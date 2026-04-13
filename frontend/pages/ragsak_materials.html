@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Materials Management | Ragsak</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            --color-moss-green: #4A5D23;
+            --color-moss-light: #8DA067;
+            --color-soft-black: #121212;
+            --color-off-white: #F4F5F2;
+            --font-montserrat: "Montserrat", sans-serif;
+        }
+
+        @layer base {
+            body {
+                font-family: var(--font-montserrat);
+                @apply bg-off-white text-soft-black antialiased;
+            }
+        }
+
+        .status-pill { @apply inline-block w-28 text-center py-1 rounded text-[9px] font-bold uppercase tracking-tighter; }
+        .status-green { @apply bg-moss-green text-white; }
+        .status-yellow { @apply border border-moss-green/50 text-moss-light; }
+        .status-red { @apply border border-red-900/50 text-red-500; }
+
+        #materialModal:not(.hidden) { @apply !flex items-center justify-center; }
+
+        .modal-active { animation: modalIn 0.2s ease-out forwards; }
+        @keyframes modalIn { 
+            from { opacity: 0; transform: scale(0.98); } 
+            to { opacity: 1; transform: scale(1); } 
+        }
+
+        #toast-container {
+            @apply fixed top-10 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 pointer-events-none;
+        }
+        .toast-card {
+            @apply bg-soft-black text-white px-8 py-4 rounded-2xl shadow-2xl border-l-4 flex items-center gap-4 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-auto;
+        }
+        .toast-card.show { @apply opacity-100 translate-y-0; }
+        .toast-success { @apply border-moss-green; }
+        .toast-error { @apply border-red-600; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green rounded; }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-8">
+        <div class="lg:col-span-1">
+            <div id="sidebar-container"></div>
+        </div>
+
+        <div class="flex h-screen flex-col lg:col-span-7 px-8 pt-10 pb-6">
+            <header class="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+                <div>
+                    <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">Materials Inventory</h1>
+                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">Raw Resource Management • Ragsak Farm</p>
+                </div>
+                <div class="relative">
+                    <input type="text" id="inventorySearch" placeholder="Search resources..." 
+                        class="h-11 w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400">
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-moss-green">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Material Asset Value</p>
+                    <h2 id="grandTotal" class="text-4xl font-black italic tracking-tighter">₱0.00</h2>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Active Material SKU</p>
+                    <h2 id="skuCount" class="text-4xl font-black italic tracking-tighter">00</h2>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-hidden bg-soft-black rounded-3xl p-6 shadow-2xl flex flex-col">
+                <div class="flex items-center justify-between mb-6 px-2">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Raw Resource Stockpile</p>
+                    <button onclick="openModal()" class="bg-white/10 hover:bg-white/20 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all">Add Stock Entry</button>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                    <table class="w-full text-left min-w-[800px] table-fixed">
+                        <thead class="sticky top-0 bg-soft-black z-10">
+                            <tr class="border-b border-white/5">
+                                <th class="pb-6 px-2 text-[10px] font-bold uppercase tracking-widest text-white/60">Name</th>
+                                <th class="pb-6 w-[120px] text-center text-[10px] font-bold uppercase text-white/60">Stock</th> 
+                                <th class="pb-6 w-[160px] text-center text-[10px] font-bold uppercase text-white/60">Status</th>
+                                <th class="pb-6 w-[140px] text-right text-[10px] font-bold uppercase text-white/60">Unit Price</th>
+                                <th class="pb-6 w-[160px] text-right text-[10px] font-bold uppercase text-white/60">Asset Value</th>
+                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-white/60 pr-2">Ctrl</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryBody" class="divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="materialModal" class="hidden fixed inset-0 bg-soft-black/30 z-[60] p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-moss-green">
+            <div class="p-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <h2 id="modalTitle" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">Authorize Stock Entry</h2>
+                
+                <div class="space-y-8">
+                    <input type="hidden" id="matId">
+                    <input type="hidden" id="matProcess" value="Raw Material">
+                    <input type="hidden" id="matPrice" value="0">
+                    
+                    <div class="grid grid-cols-12 gap-4 items-end">
+                        <div class="col-span-12 md:col-span-6 group relative">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Material Name</label>
+                            <input type="text" id="matName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="Search or type name..." autocomplete="off">
+                            <ul id="predictiveResults" class="absolute z-50 w-full bg-white shadow-2xl rounded-b-xl border border-gray-100 hidden max-h-40 overflow-y-auto custom-scrollbar top-full mt-1"></ul>
+                        </div>
+
+                        <div class="col-span-6 md:col-span-3 group">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Quantity</label>
+                            <input type="number" id="matQty" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="0">
+                        </div>
+
+                        <div class="col-span-6 md:col-span-3 group">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Unit</label>
+                            <input type="text" id="matUnit" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="kg / sack">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3 pt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <button type="button" onclick="handleResourceCommit(true)" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-widest shadow-xl">
+                                Commit & Close
+                            </button>
+                            <button type="button" onclick="handleResourceCommit(false)" class="bg-moss-green/10 text-moss-green border border-moss-green/20 text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green hover:text-white transition-all uppercase tracking-widest">
+                                Commit & Add Another
+                            </button>
+                        </div>
+                        <button type="button" onclick="closeModal()" class="w-full py-4 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
+                            Abort Entry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../components/ragsak_navigation.js"></script>
+
+    <script>
+        const STORAGE_KEY = 'ragsak_materials_inv';
+        const DEFAULT_CONTEXT = 'Raw Material';
+        const nameInput = document.getElementById('matName');
+        const suggestionsUl = document.getElementById('predictiveResults');
+
+        injectNavigation('nav-materials');
+
+        // Render Logic for specific Materials Columns
+        window.render = function() {
+            const body = document.getElementById('inventoryBody');
+            const data = window.inventoryData || [];
+            
+            body.innerHTML = data.map(item => {
+                const assetValue = item.qty * (item.price || 0);
+                const statusClass = item.qty > 50 ? 'status-green' : (item.qty > 10 ? 'status-yellow' : 'status-red');
+                const statusText = item.qty > 50 ? 'Stable' : (item.qty > 10 ? 'Low Stock' : 'Critical');
+
+                return `
+                    <tr class="hover:bg-white/5 transition-colors group">
+                        <td class="px-2 py-4 text-xs font-bold text-white uppercase tracking-tight">${item.name}</td>
+                        <td class="py-4 text-center">
+                            <span class="text-xs font-black text-white">${item.qty}</span>
+                            <span class="text-[9px] font-bold text-white/30 uppercase ml-1">${item.unit}</span>
+                        </td>
+                        <td class="py-4 text-center">
+                            <span class="status-pill ${statusClass}">${statusText}</span>
+                        </td>
+                        <td class="py-4 text-right text-xs font-medium text-white/70">₱${(item.price || 0).toLocaleString()}</td>
+                        <td class="py-4 text-right text-xs font-black text-moss-light">₱${assetValue.toLocaleString()}</td>
+                        <td class="py-4 text-right pr-2">
+                            <button onclick="editItem('${item.id}')" class="text-white/20 hover:text-white transition-colors mr-3 text-[10px] font-bold uppercase tracking-tighter">Edit</button>
+                            <button onclick="deleteItem('${item.id}')" class="text-white/20 hover:text-red-500 transition-colors text-[10px] font-bold uppercase tracking-tighter">Del</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            const total = data.reduce((sum, item) => sum + (item.qty * (item.price || 0)), 0);
+            document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            document.getElementById('skuCount').innerText = data.length.toString().padStart(2, '0');
+        };
+
+        initInventoryManager({
+            storageKey: STORAGE_KEY,
+            tableBodyId: 'inventoryBody',
+            totalDisplayId: 'grandTotal',
+            skuCountId: 'skuCount',
+            modalId: 'materialModal',
+            formFields: { id: 'matId', process: 'matProcess', name: 'matName', qty: 'matQty', unit: 'matUnit', price: 'matPrice' }
+        });
+
+        nameInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const currentItems = window.inventoryData || [];
+            if (query.length < 1) { suggestionsUl.classList.add('hidden'); return; }
+            const matches = currentItems.filter(item => item.name.toLowerCase().includes(query));
+            if (matches.length > 0) {
+                suggestionsUl.innerHTML = matches.map(item => `
+                    <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors"
+                        onmousedown="selectSuggestion('${item.name.replace(/'/g, "\\'")}', '${item.unit}', ${item.price})">
+                        <div class="flex justify-between items-center">
+                            <span>${item.name}</span>
+                            <span class="text-[9px] font-bold text-gray-400 tracking-tighter">${item.unit}</span>
+                        </div>
+                    </li>
+                `).join('');
+                suggestionsUl.classList.remove('hidden');
+            } else { suggestionsUl.classList.add('hidden'); }
+        });
+
+        function selectSuggestion(name, unit, price) {
+            nameInput.value = name;
+            document.getElementById('matUnit').value = unit;
+            document.getElementById('matPrice').value = price;
+            suggestionsUl.classList.add('hidden');
+            setTimeout(() => document.getElementById('matQty').focus(), 50);
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-card ${type === 'success' ? 'toast-success' : 'toast-error'}`;
+            toast.innerHTML = `<div class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-moss-green' : 'bg-red-500'} animate-pulse"></div><p class="text-[10px] font-black uppercase tracking-widest">${message}</p>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000);
+        }
+
+        function handleResourceCommit(shouldClose = true) {
+            const nameEl = document.getElementById('matName');
+            const qtyEl = document.getElementById('matQty');
+            const unitEl = document.getElementById('matUnit');
+            const idField = document.getElementById('matId');
+            
+            const name = nameEl.value.trim();
+            const qty = parseFloat(qtyEl.value) || 0;
+            const unit = unitEl.value.trim();
+            const price = parseFloat(document.getElementById('matPrice').value) || 0;
+
+            if (!name || qty <= 0) { showToast("Provide valid Name and Quantity", "error"); return; }
+
+            let inventory = window.inventoryData || [];
+
+            if (idField.value) {
+                const idx = inventory.findIndex(item => item.id == idField.value);
+                if (idx > -1) inventory[idx] = { ...inventory[idx], name, qty, unit, price };
+            } else {
+                const existingIdx = inventory.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+                if (existingIdx > -1) {
+                    inventory[existingIdx].qty += qty;
+                    inventory[existingIdx].unit = unit;
+                } else {
+                    inventory.push({ id: Date.now(), name, qty, unit, price, process: DEFAULT_CONTEXT });
+                }
+            }
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+            window.inventoryData = inventory;
+            window.render();
+            showToast("Material Entry Authorized", "success");
+
+            if (shouldClose) { closeModal(); } 
+            else {
+                [nameEl, qtyEl, unitEl].forEach(el => {
+                    el.classList.add('bg-moss-green/10');
+                    setTimeout(() => el.classList.remove('bg-moss-green/10'), 400);
+                });
+                idField.value = ''; nameEl.value = ''; qtyEl.value = ''; unitEl.value = ''; nameEl.focus(); 
+            }
+        }
+
+        function openModal() { clearForm(); document.getElementById('materialModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('materialModal').classList.add('hidden'); suggestionsUl.classList.add('hidden'); }
+        function clearForm() {
+            document.getElementById('matId').value = '';
+            document.getElementById('matName').value = '';
+            document.getElementById('matQty').value = '';
+            document.getElementById('matUnit').value = '';
+            document.getElementById('matPrice').value = '0';
+            document.getElementById('modalTitle').innerText = "Authorize Stock Entry";
+        }
+
+        document.addEventListener('click', (e) => { if (!nameInput.contains(e.target) && !suggestionsUl.contains(e.target)) suggestionsUl.classList.add('hidden'); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+    </script>
+</body>
+</html>

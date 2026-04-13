@@ -1,0 +1,25 @@
+/* notifications.css */
+.center-toast {
+    border-radius: 10px;
+    font-size: 16px;
+    padding: 14px 18px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+
+.swal2-slide-in {
+    animation: slideIn 0.4s ease-out forwards;
+}
+
+.swal2-slide-out {
+    animation: slideOut 0.4s ease-in forwards;
+}
+
+@keyframes slideIn {
+    0% { transform: translateY(-30px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-30px); opacity: 0; }
+}

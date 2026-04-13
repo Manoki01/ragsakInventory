@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Registry | Ragsak</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            --color-moss-green: #4A5D23;
+            --color-moss-light: #8DA067;
+            --color-soft-black: #121212;
+            --color-off-white: #F4F5F2;
+            --font-montserrat: "Montserrat", sans-serif;
+        }
+
+        @layer base {
+            body {
+                font-family: var(--font-montserrat);
+                @apply bg-off-white text-soft-black antialiased;
+            }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green rounded; }
+    </style>
+</head>
+<body>
+    <div class="grid grid-cols-1 lg:grid-cols-8">
+        <div class="lg:col-span-1">
+            <div id="sidebar-container"></div>
+        </div>
+
+        <div class="flex h-screen flex-col lg:col-span-7 px-8 pt-10 pb-6">
+            <header class="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+                <div>
+                    <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">Process Architect</h1>
+                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">Production Logic • Formula Management</p>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1 overflow-hidden">
+                <div class="lg:col-span-1">
+                    <div class="bg-white p-8 rounded-3xl shadow-xl border-t-[12px] border-moss-green">
+                        <h2 class="text-xl font-black italic uppercase tracking-tighter text-soft-black mb-6">Define New Process</h2>
+                        <form onsubmit="event.preventDefault(); createProcess();" class="space-y-6">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Process Name</label>
+                                <input type="text" id="procName" required class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green uppercase" placeholder="e.g. FERMENTATION">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Computation Formula (Future)</label>
+                                <textarea id="procFormula" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-xs font-bold outline-none focus:border-moss-green h-24" placeholder="[Input A] * 0.5 + [Input B]..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-soft-black text-white text-xs font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-[0.2em] shadow-lg">
+                                Register Process
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 flex flex-col bg-soft-black rounded-3xl p-8 shadow-2xl overflow-hidden">
+                    <div class="flex items-center justify-between mb-8">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Active Production Pipelines</p>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto custom-scrollbar pr-4">
+                        <table class="w-full text-left">
+                            <thead class="sticky top-0 bg-soft-black z-10">
+                                <tr class="border-b border-white/5">
+                                    <th class="pb-4 text-[9px] font-bold uppercase tracking-widest text-white/30">Process Name</th>
+                                    <th class="pb-4 text-[9px] font-bold uppercase tracking-widest text-white/30">Formula Config</th>
+                                    <th class="pb-4 text-right text-[9px] font-bold uppercase tracking-widest text-white/30">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="processTableBody" class="divide-y divide-white/5">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../components/ragsak_navigation.js"></script>
+
+    <script type="module">
+        injectNavigation('nav-process');
+        const STORAGE_KEY = 'ragsak_custom_processes';
+
+        function createProcess() {
+            const name = document.getElementById('procName').value.trim();
+            const formula = document.getElementById('procFormula').value.trim();
+            
+            let processes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            
+            if (processes.find(p => typeof p === 'string' ? p === name : p.name === name)) {
+                alert("Process already exists.");
+                return;
+            }
+
+            processes.push({ name: name, formula: formula, id: Date.now() });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(processes));
+            
+            document.getElementById('procName').value = '';
+            document.getElementById('procFormula').value = '';
+            renderProcesses();
+        }
+
+        function renderProcesses() {
+            const body = document.getElementById('processTableBody');
+            let processes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || ["Process Alpha", "Process Beta", "Process Gamma", "Process Delta"];
+            
+            body.innerHTML = processes.map((p, idx) => {
+                const name = typeof p === 'string' ? p : p.name;
+                const formula = p.formula || 'No formula defined';
+                return `
+                <tr class="hover:bg-white/[0.02] transition">
+                    <td class="py-6 text-xs font-black text-white uppercase italic tracking-tighter">${name}</td>
+                    <td class="py-6 text-[10px] font-mono text-moss-light uppercase max-w-xs truncate">${formula}</td>
+                    <td class="py-6 text-right">
+                        <button onclick="deleteProcess(${idx})" class="text-[9px] font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest transition-colors">Delete</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function deleteProcess(index) {
+            if(confirm("Deleting this will affect new registrations. Continue?")) {
+                let processes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+                processes.splice(index, 1);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(processes));
+                renderProcesses();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', renderProcesses);
+    </script>
+</body>
+</html>

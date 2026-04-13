@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Registry | Ragsak</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            --color-moss-green: #4A5D23;
+            --color-moss-light: #8DA067;
+            --color-soft-black: #121212;
+            --color-off-white: #F4F5F2;
+            --font-montserrat: "Montserrat", sans-serif;
+        }
+
+        @layer base {
+            body {
+                font-family: var(--font-montserrat);
+                @apply bg-off-white text-soft-black antialiased overflow-hidden;
+            }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { @apply bg-transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green/20 rounded; }
+
+        .process-checkbox:checked + label {
+            @apply border-moss-green bg-moss-green/10 text-moss-green ring-1 ring-moss-green/20;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid grid-cols-1 lg:grid-cols-8 h-screen">
+        <div class="lg:col-span-1">
+            <div id="sidebar-container"></div>
+        </div>
+
+        <div class="flex h-full flex-col lg:col-span-7 px-10 pt-10 pb-6 overflow-hidden">
+            <header class="mb-8 shrink-0">
+                <h1 class="text-3xl font-black italic uppercase tracking-tighter text-soft-black">Master Registry</h1>
+                <p class="text-[10px] font-bold text-moss-green uppercase tracking-[0.3em]">System Initialization</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 flex-1 overflow-hidden">
+                <div class="lg:col-span-2 flex flex-col h-full overflow-hidden">
+                    <div class="bg-white rounded-[40px] border-t-[12px] border-moss-green flex flex-col h-full max-w-5xl overflow-hidden">
+                        
+                        <div class="px-10 py-6 border-b border-gray-50 shrink-0">
+                            <h2 class="text-xl font-black italic uppercase tracking-tighter text-soft-black">Initialize Resource</h2>
+                        </div>
+                        
+                        <form id="intakeForm" class="flex-1 overflow-y-auto custom-scrollbar px-10 py-8 space-y-10" onsubmit="event.preventDefault();">
+                            
+                            <div>
+                                <label class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 block">Target Database</label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="db_toggle" value="ragsak_products_inv" class="hidden peer" checked onchange="updateDbFromRadio(this.value)">
+                                        <div class="py-3 border-2 border-gray-100 rounded-xl text-center text-[9px] font-bold uppercase peer-checked:border-moss-green peer-checked:bg-moss-green/5 transition-all">Products</div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="db_toggle" value="ragsak_materials_inv" class="hidden peer" onchange="updateDbFromRadio(this.value)">
+                                        <div class="py-3 border-2 border-gray-100 rounded-xl text-center text-[9px] font-bold uppercase peer-checked:border-moss-green peer-checked:bg-moss-green/5 transition-all">Raw Materials</div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="db_toggle" value="ragsak_packaging_inv" class="hidden peer" onchange="updateDbFromRadio(this.value)">
+                                        <div class="py-3 border-2 border-gray-100 rounded-xl text-center text-[9px] font-bold uppercase peer-checked:border-moss-green peer-checked:bg-moss-green/5 transition-all">Packaging</div>
+                                    </label>
+                                </div>
+                                <input type="hidden" id="targetDb" value="ragsak_products_inv">
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div class="space-y-8">
+                                    <div class="relative">
+                                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 block">Item Description</label>
+                                        <input type="text" id="itemName" placeholder="Resource name..." required 
+                                               class="w-full bg-gray-50 border-b-2 border-gray-100 py-3 text-sm font-bold outline-none focus:border-moss-green uppercase"
+                                               autocomplete="off">
+                                        <ul id="predictiveResults" class="absolute z-50 w-full bg-white shadow-2xl rounded-b-xl border border-gray-100 hidden max-h-40 overflow-y-auto custom-scrollbar top-full"></ul>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 block">Price (₱)</label>
+                                            <input type="number" id="itemPrice" placeholder="0.00" step="0.01" required class="w-full bg-gray-50 border-b-2 border-gray-100 py-3 text-sm font-bold outline-none focus:border-moss-green">
+                                        </div>
+                                        <div>
+                                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 block">Unit</label>
+                                            <input type="text" id="itemUnit" placeholder="kg, pcs..." required class="w-full bg-gray-50 border-b-2 border-gray-100 py-3 text-sm font-bold outline-none focus:border-moss-green uppercase">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label id="processLabel" class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 block">Production Phases</label>
+                                    <div id="processCheckboxContainer" class="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1"></div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="px-10 py-6 bg-gray-50 border-t border-gray-100 shrink-0">
+                            <button type="submit" form="intakeForm" class="w-full bg-soft-black text-white text-[10px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-[0.4em] shadow-xl">
+                                Register Resource
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1 flex flex-col bg-soft-black rounded-[40px] p-8 overflow-hidden h-full">
+                    <div class="flex items-center justify-between mb-6 shrink-0">
+                        <h3 class="text-white text-lg font-black italic uppercase tracking-tighter">Live Log</h3>
+                        <button onclick="clearLog()" class="text-[9px] font-bold text-white/20 hover:text-red-500 uppercase tracking-widest transition-colors">Clear</button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                        <div id="logBody" class="space-y-4"></div>
+                        <div id="emptyState" class="h-full flex flex-col items-center justify-center text-white/10 italic text-center">
+                            <p class="text-[10px] uppercase tracking-widest font-bold">Awaiting Input</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../components/ragsak_navigation.js"></script>
+
+    <script type="module">
+        import { getProcesses } from "../assets/js/api.js";
+        import { addProduct } from "../assets/js/products.js";
+        import { addRawMaterial } from "../assets/js/raw_materials.js"
+        import { addPackaging } from "../assets/js/packaging.js";
+
+        injectNavigation("nav-add-stocks");
+
+        const intakeForm = document.getElementById("intakeForm");
+        const processContainer = document.getElementById("processCheckboxContainer");
+        let cachedProcesses = null;
+
+        initialize();
+
+        function initialize(){
+            loadProcessesIfNeeded();
+        }
+
+        window.updateDbFromRadio = function(value){
+            document.getElementById("targetDb").value = value;
+            loadProcessesIfNeeded();
+        };
+
+        async function loadProcessesIfNeeded(){
+            const targetDb = document.getElementById("targetDb").value;
+
+            if(targetDb !== "ragsak_products_inv"){
+                processContainer.innerHTML = "";
+                return;
+            }
+
+            if(cachedProcesses){
+                displayProcesses(cachedProcesses);
+                return;
+            }
+
+            try{
+                const response = await getProcesses();
+
+                if(response.status !== "success"){
+                    console.error(response.message);
+                    return;
+                }
+
+                cachedProcesses = response.data; // store cache
+                displayProcesses(cachedProcesses);
+
+            }catch(error){
+                console.error("Failed to load processes", error);
+            }
+        }
+
+        function displayProcesses(processes){
+
+            processContainer.innerHTML = "";
+
+            if(!processes || processes.length === 0){
+                processContainer.innerHTML =
+                `<div class="text-gray-400 text-[10px] uppercase">
+                    No processes available
+                </div>`;
+                return;
+            }
+
+            processes.forEach(process => {
+
+                const wrapper = document.createElement("div");
+                wrapper.classList.add("relative");
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.id = `proc_${process.processID}`;
+                checkbox.name = "selectedProcesses";
+                checkbox.value = process.processID;
+                checkbox.className = "hidden peer process-checkbox";
+
+                const label = document.createElement("label");
+                label.htmlFor = checkbox.id;
+                label.className =
+                "flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg cursor-pointer text-[8px] font-bold uppercase transition-all hover:bg-gray-50 peer-checked:border-moss-green peer-checked:bg-moss-green/10";
+
+                label.textContent = process.processName;
+
+                const checkmark = document.createElement("span");
+                checkmark.className =
+                "text-moss-green opacity-0 peer-checked:opacity-100 font-black";
+
+                checkmark.textContent = "✔";
+
+                label.appendChild(checkmark);
+
+                wrapper.append(checkbox,label);
+                processContainer.appendChild(wrapper);
+            });
+        }
+
+        intakeForm.addEventListener("submit", e=>{
+            e.preventDefault();
+            processIntake();
+        });
+
+        function processIntake(){
+
+            const targetDb = document.getElementById("targetDb").value;
+
+            const unitName = document.getElementById("itemName").value.trim();
+            const unitPrice = parseFloat(document.getElementById("itemPrice").value);
+            const unitType = document.getElementById("itemUnit").value.trim();
+
+            let data = {
+                unitName,
+                unitType,
+                unitPrice
+            };
+
+            if(targetDb === "ragsak_products_inv") {
+                const checkedProcesses = Array.from(
+                    document.querySelectorAll("#processCheckboxContainer input:checked")
+                ).map(cb => cb.value.trim());
+
+                const processes = checkedProcesses
+                    .map(val => parseInt(val, 10))
+                    .filter(num => Number.isInteger(num) && num > 0);
+
+                data.processes = processes;
+            }
+
+            console.log("Passing data:", data);
+
+            if(targetDb === "ragsak_products_inv" && (!data.processes || data.processes.length === 0)) {
+                alert("Please select atleast one processes");
+            } else {
+                if(data.unitName && data.unitType && !isNaN(data.unitPrice)) {
+                    switch(targetDb) {
+                        case "ragsak_products_inv":
+                            addProduct(data);
+                            break;
+
+                        case "ragsak_materials_inv":
+                            addRawMaterial(data);
+                            break;
+
+                        case "ragsak_packaging_inv":
+                            addPackaging(data);
+                            break;
+                    }
+                } else {
+                    alert("Please fill in all required fields");
+                }
+                
+            }
+            
+        }
+        </script>
+</body>
+</html>

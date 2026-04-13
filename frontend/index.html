@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ragsak Systems | Login</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            /* Branding Colors */
+            --color-moss-green: #4A5D23;
+            --color-moss-light: #8DA067;
+            --color-soft-black: #121212;
+            --color-off-white: #F4F5F2;
+            
+            /* Typography */
+            --font-montserrat: "Montserrat", sans-serif;
+        }
+
+        @layer base {
+            body {
+                font-family: var(--font-montserrat);
+                @apply bg-off-white text-soft-black antialiased;
+            }
+        }
+
+        /* Custom Transition for Inputs */
+        .input-field {
+            @apply w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm transition-all outline-none focus:border-moss-green focus:ring-2 focus:ring-moss-green/10;
+        }
+
+        /* Hide scrollbars for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen items-center justify-center p-4">
+
+    <div class="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl shadow-moss-green/5 border border-gray-100">
+        
+        <div class="flex w-full flex-col justify-between p-10 md:w-1/2 lg:p-16">
+            
+            <header>
+                <div class="flex items-center gap-3 mb-10">
+                    <div class="h-10 w-10 rounded-lg bg-soft-black flex items-center justify-center shadow-lg shadow-moss-green/20">
+                        <span class="text-white font-bold text-lg">R</span>
+                    </div>
+                    <div>
+                        <span class="block font-black uppercase tracking-tighter text-soft-black leading-none">Ragsak</span>
+                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-moss-green">Inventory Manager</span>
+                    </div>
+                </div>
+                <h2 class="text-4xl font-extrabold tracking-tight text-soft-black uppercase">Sign In</h2>
+                <p class="mt-2 text-sm text-gray-400">Access the Ragsak Farm Village inventory node.</p>
+            </header>
+
+            <form id="loginForm" class="mt-10 space-y-6">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Username</label>
+                    <input type="text" id="username" required placeholder="ragsak_admin" class="input-field" autocomplete="off" />
+                    <p id="usernameError" class="text-[9px] text-red-500 font-bold uppercase mt-1 hidden">Invalid characters detected</p>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center ml-1">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green">Passcode</label>
+                    </div>
+                    <input type="password" id="password" required placeholder="••••••••" class="input-field" />
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" id="submitBtn" class="group relative w-full overflow-hidden rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-moss-green active:scale-[0.98]">
+                        <span id="btnText" class="relative z-10">Authorize Access</span>
+                    </button>
+                </div>
+                
+                <p class="text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    New to the village? <a href="pages/ragsak_registration.html" class="text-moss-green hover:underline">Create Account</a>
+                </p>
+            </form>
+        </div>
+
+        <div class="hidden w-1/2 bg-soft-black md:flex flex-col justify-between p-16 text-white relative">
+            
+            <div class="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-moss-green/10 blur-[100px]"></div>
+            <div class="absolute top-10 right-10 h-32 w-32 border border-white/5 rounded-full"></div>
+            
+            <div class="relative">
+                <h3 class="text-5xl font-black leading-[0.85] tracking-tighter uppercase italic opacity-20 select-none">
+                    Regenerative<br/>Agriculture
+                </h3>
+            </div>
+
+            <div class="relative z-10 space-y-6">
+                <div class="h-2 w-32 bg-moss-green"></div>
+                <p class="text-3xl font-light leading-tight tracking-tight">
+                    Inventory System for <span class="text-moss-light font-semibold italic">Ragsak Farm Village</span>.
+                </p>
+                
+                <div class="flex items-center gap-6 pt-6">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-1">Ragsak Farm Village</span>
+                        <span class="flex items-center gap-2 text-xs font-bold text-moss-light uppercase">
+                            <span class="h-2 w-2 rounded-full bg-moss-light animate-pulse"></span>
+                            Philippines-Tarlac
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute bottom-0 left-0 w-full h-1.5 bg-moss-green"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { loginUser } from './assets/js/users.js';
+
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const usernameInput = document.getElementById('username'); // Ensure your HTML ID is 'username'
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = usernameInput.value;
+            const password = document.getElementById('password').value;
+            
+            if(username && password) {
+                // Enter Loading State
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
+                btnText.innerHTML = `
+                    <span class="flex items-center justify-center gap-3">
+                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Authorizing...
+                    </span>
+                `;
+
+                let data = {
+                    username,
+                    password
+                }
+
+                handleLogin(data);
+            }
+        });
+
+        async function handleLogin(data) {
+            console.log("Passing data:", data);
+            
+            const validUser = await loginUser(data);
+
+            setTimeout(() => {
+
+                if (validUser) {
+
+                    btnText.innerHTML = "Access Granted";
+                    submitBtn.classList.replace('bg-soft-black', 'bg-moss-green');
+
+                    setTimeout(() => {
+                        window.location.href = "pages/ragsak_home.html";
+                    }, 800);
+
+                } else {
+
+                    btnText.innerHTML = "Authorization Denied";
+                    submitBtn.classList.replace('bg-soft-black', 'bg-red-900');
+
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+                        submitBtn.classList.replace('bg-red-900', 'bg-soft-black');
+                        btnText.innerHTML = "Authorize Access";
+                    }, 2000);
+                }
+
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

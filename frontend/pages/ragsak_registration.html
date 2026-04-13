@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ragsak Systems | Register</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --color-moss-green: #4A5D23; --color-moss-light: #8DA067;
+            --color-soft-black: #121212; --color-off-white: #F4F5F2;
+            --font-montserrat: "Montserrat", sans-serif;
+        }
+        @layer base { body { font-family: var(--font-montserrat); @apply bg-off-white text-soft-black antialiased; } }
+        .input-field { @apply w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm transition-all outline-none focus:border-moss-green focus:ring-2 focus:ring-moss-green/10; }
+    </style>
+</head>
+<body class="flex min-h-screen items-center justify-center p-4">
+
+    <div class="flex w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl border border-gray-100">
+        <div class="flex w-full flex-col justify-between p-10 lg:p-12">
+            
+            <header class="text-center">
+                <div class="inline-flex items-center gap-3 mb-6">
+                    <div class="h-8 w-8 rounded-lg bg-soft-black flex items-center justify-center"><span class="text-white font-bold">R</span></div>
+                    <span class="font-black uppercase tracking-tighter text-soft-black">Ragsak Village</span>
+                </div>
+                <h2 class="text-3xl font-extrabold tracking-tight text-soft-black uppercase italic">Account Creation</h2>
+                <p class="mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">Inventory Registration System</p>
+            </header>
+
+            <form id="registerForm" class="mt-8 space-y-5">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Name</label>
+                    <input type="text" id="regUsername" required placeholder="Ex. Juan Dela Cruzr" class="input-field" autocomplete="off" />
+                    <p id="userHint" class="text-[8px] text-gray-400 uppercase mt-1 ml-1 font-bold">Lowercase letters, numbers, and dots only.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Passcode</label>
+                        <input type="password" id="regPassword" required placeholder="••••••••" class="input-field" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Confirm</label>
+                        <input type="password" id="confirmPassword" required placeholder="••••••••" class="input-field" />
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Assigned Role</label>
+                    <select id="regRole" class="input-field appearance-none font-bold">
+                        <option disabled selected>-- Select an Option --</option>
+                        <option value="Chairman">Chairman</option>
+                        <option value="President">President</option>
+                        <option value="Supervisor">Supervisor</option>
+                        <option value="Manufacturing">Manufacturing</option>
+                    </select>
+                </div>
+
+                <div id="errorMsg" class="text-[10px] font-bold text-red-600 uppercase text-center hidden"></div>
+
+                <button type="submit" id="regBtn" class="w-full rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-moss-green active:scale-95 shadow-lg">
+                    Register Personnel
+                </button>
+            </form>
+
+            <p class="mt-8 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                Existing personnel? <a href="../index.html" class="text-moss-green hover:underline">Sign In</a>
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { registerUsers } from '../assets/js/users.js';
+
+        const regForm = document.getElementById('registerForm');
+        const usernameInput = document.getElementById('regUsername');
+        const errorDiv = document.getElementById('errorMsg');
+
+        regForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            errorDiv.classList.add('hidden');
+
+            const username = usernameInput.value;
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            const role = document.getElementById('regRole').value;
+
+            // Simple Validation
+            if (password !== confirm) {
+                errorDiv.innerText = "Passcodes do not match";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            /* // Check if username exists
+            if (users.some(u => u.username === username)) {
+                errorDiv.innerText = "Username already exists in node";
+                errorDiv.classList.remove('hidden');
+                return;
+            } */
+
+            let data = {
+                username,
+                password,
+                role
+            };
+
+            console.log("Passing data:", data);
+
+            if(data.username && data.password && data.role) {
+                registerUsers(data);
+            } else {
+                alert("Please fill in all required fields");
+            }
+        });
+    </script>
+</body>
+</html>

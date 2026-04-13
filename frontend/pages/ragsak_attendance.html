@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Log | Ragsak</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            --color-moss-green: #4A5D23;
+            --color-moss-light: #8DA067;
+            --color-soft-black: #121212;
+            --color-off-white: #F4F5F2;
+            --font-montserrat: "Montserrat", sans-serif;
+        }
+
+        @layer base {
+            body {
+                font-family: var(--font-montserrat);
+                @apply bg-off-white text-soft-black antialiased;
+            }
+        }
+
+        .status-pill { @apply inline-block w-24 text-center py-1 rounded text-[9px] font-bold uppercase tracking-tighter; }
+        .status-present { @apply bg-moss-green text-white; }
+        .status-absent { @apply border border-red-900/50 text-red-500; }
+        .status-late { @apply border border-orange-500/50 text-orange-500; }
+        .status-complete { @apply border border-white/20 text-white/30; }
+
+        .modal-active { display: flex !important; animation: modalIn 0.2s ease-out; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green rounded; }
+    </style>
+</head>
+<body>
+    <div class="grid grid-cols-1 lg:grid-cols-8">
+        <div class="lg:col-span-1">
+            <div id="sidebar-container"></div>
+        </div>
+
+        <div class="flex h-screen flex-col lg:col-span-7 px-8 pt-10 pb-6">
+            <header class="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+                <div>
+                    <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">Attendance Log</h1>
+                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">Workforce Management • Ragsak Farm</p>
+                </div>
+                <button onclick="openModal()" class="bg-soft-black text-white text-[10px] font-bold py-4 px-10 rounded-full hover:bg-moss-green transition-all uppercase tracking-widest shadow-xl">
+                    + Log Daily Entry
+                </button>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-moss-green">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">On-Duty Today</p>
+                    <h2 id="presentCount" class="text-4xl font-black italic tracking-tighter text-moss-green">00</h2>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-orange-500">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Late / Delayed</p>
+                    <h2 id="lateCount" class="text-4xl font-black italic tracking-tighter text-orange-500">00</h2>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Total Staff Logs</p>
+                    <h2 id="totalStaff" class="text-4xl font-black italic tracking-tighter">00</h2>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-hidden bg-soft-black rounded-3xl p-6 shadow-2xl flex flex-col">
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                    <table class="w-full text-left min-w-[1000px]">
+                        <thead class="sticky top-0 bg-soft-black z-10">
+                            <tr class="border-b border-white/5">
+                                <th class="pb-6 px-2 text-[10px] font-bold uppercase tracking-widest text-white/60">Date</th>
+                                <th class="pb-6 text-[10px] font-bold uppercase tracking-widest text-white/60 w-[350px]">Personnel & Position</th>
+                                <th class="pb-6 w-[100px] text-[10px] font-bold uppercase text-white/60 text-center">Status</th>
+                                <th class="pb-6 w-[180px] text-[10px] font-bold uppercase text-white/60 text-center border-x border-white/5">Morning Shift</th>
+                                <th class="pb-6 w-[180px] text-[10px] font-bold uppercase text-white/60 text-center border-r border-white/5">Afternoon Shift</th>
+                                <th class="pb-6 w-[80px] text-right text-[10px] font-bold uppercase text-white/60">Ctrl</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceBody" class="divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="attendanceModal" class="hidden fixed inset-0 bg-soft-black/90 z-[60] items-center justify-center p-4 backdrop-blur-md">
+        <div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-moss-green">
+            <div class="p-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <h2 id="modalTitle" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">Log Daily Entry</h2>
+                <div class="space-y-5">
+                    <input type="hidden" id="staffId">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Date</label>
+                            <input type="date" id="staffDate" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Current Status</label>
+                            <select id="staffStatus" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green">
+                                <option value="Present">Present</option>
+                                <option value="Late">Late</option>
+                                <option value="Absent">Absent</option>
+                                <option value="Complete">Complete</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="group">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Staff Name</label>
+                            <input type="text" id="staffName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="Full Name">
+                        </div>
+                        <div class="group">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                                Position
+                            </label>
+                            <select id="staffPosition" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all"></select>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-gray-50 rounded-xl space-y-4">
+                        <p class="text-[9px] font-black uppercase text-moss-green tracking-[.2em]">Morning Session</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[8px] font-bold text-gray-400 uppercase ml-1">AM Time In</label>
+                                <input type="time" id="amIn" class="w-full bg-white border border-gray-200 py-2 px-2 text-xs font-bold rounded">
+                            </div>
+                            <div>
+                                <label class="text-[8px] font-bold text-gray-400 uppercase ml-1">AM Time Out</label>
+                                <input type="time" id="amOut" class="w-full bg-white border border-gray-200 py-2 px-2 text-xs font-bold rounded">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-gray-50 rounded-xl space-y-4">
+                        <p class="text-[9px] font-black uppercase text-moss-green tracking-[.2em]">Afternoon Session</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[8px] font-bold text-gray-400 uppercase ml-1">PM Time In</label>
+                                <input type="time" id="pmIn" class="w-full bg-white border border-gray-200 py-2 px-2 text-xs font-bold rounded">
+                            </div>
+                            <div>
+                                <label class="text-[8px] font-bold text-gray-400 uppercase ml-1">PM Time Out</label>
+                                <input type="time" id="pmOut" class="w-full bg-white border border-gray-200 py-2 px-2 text-xs font-bold rounded">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 pt-4" id="modalControls">
+                        <button type="button" onclick="closeModal()" class="flex-1 py-4 text-[10px] font-bold uppercase text-gray-400 hover:bg-red-700 rounded-xl hover:text-white">Cancel</button>
+                        <button type="button" onclick="handleSave()" class="flex-1 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-moss-green transition-all uppercase tracking-widest">Commit Entry</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="hidden fixed inset-0 bg-soft-black/95 z-[70] items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-8 text-center border-t-[10px] border-moss-green">
+            <div id="confirmIcon" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">🌿</div>
+            <h3 id="confirmTitle" class="text-xl font-black italic uppercase tracking-tighter mb-2">Are you sure?</h3>
+            <p id="confirmMessage" class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-8">This will modify the permanent workforce log.</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirm()" class="flex-1 py-4 text-[10px] font-bold uppercase text-gray-400 hover:bg-gray-100 rounded-xl transition-all">Go Back</button>
+                <button id="confirmBtn" class="flex-1 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-moss-green transition-all uppercase tracking-widest">Confirm Action</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../components/ragsak_navigation.js"></script>
+
+    <script>
+        injectNavigation('nav-attendance');
+
+        let attendance = JSON.parse(localStorage.getItem('ragsak_attendance_log')) || [];
+        let positions = JSON.parse(localStorage.getItem('ragsak_positions')) || ['President', 'Admin', 'Supervisor', 'Clerk'];
+        let pendingAction = null;
+
+        // A simple "State" object
+        const AppState = {
+            attendance: JSON.parse(localStorage.getItem('logs')) || [],
+            filter: 'all'
+        };
+
+        // The single source of truth for the UI
+        function renderApp() {
+            renderStats();    // Updates the 3 cards at the top
+            renderTable();    // Updates the main list
+            // No window.location.reload() needed!
+        }
+
+        function loadPositions() {
+            const select = document.getElementById('staffPosition');
+            select.innerHTML = positions.map(p => `<option value="${p}">${p}</option>`).join('');
+        }
+
+        function addNewPosition() {
+            const newPos = prompt("Enter new position title:");
+            if (newPos && !positions.includes(newPos)) {
+                positions.push(newPos);
+                localStorage.setItem('ragsak_positions', JSON.stringify(positions));
+                loadPositions();
+                document.getElementById('staffPosition').value = newPos;
+            }
+        }
+
+        function openModal() { 
+            clearForm(); 
+            loadPositions();
+            document.getElementById('modalTitle').innerText = "Log Daily Entry";
+            document.getElementById('staffDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('attendanceModal').classList.add('modal-active'); 
+        }
+
+        function closeModal() { document.getElementById('attendanceModal').classList.remove('modal-active'); }
+
+        function openConfirm(title, msg, onConfirm, icon = "🌿") {
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = msg;
+            document.getElementById('confirmIcon').innerText = icon;
+            document.getElementById('confirmBtn').onclick = () => { onConfirm(); closeConfirm(); };
+            document.getElementById('confirmModal').classList.add('modal-active');
+        }
+
+        function closeConfirm() { document.getElementById('confirmModal').classList.remove('modal-active'); }
+
+        function render() {
+            const table = document.getElementById('attendanceBody');
+            const sortedData = [...attendance].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            table.innerHTML = sortedData.map(staff => {
+                let statusClass = 'status-present';
+                if (staff.status === 'Absent') statusClass = 'status-absent';
+                if (staff.status === 'Late') statusClass = 'status-late';
+                if (staff.status === 'Complete') statusClass = 'status-complete';
+
+                return `
+                <tr class="hover:bg-white/[0.02] transition">
+                    <td class="py-6 px-2 text-[10px] font-mono text-white/40 uppercase">${staff.date}</td>
+                    <td class="py-6">
+                        <div class="flex items-baseline gap-3">
+                            <p class="font-bold text-sm uppercase italic text-white leading-none whitespace-nowrap">${staff.name}</p>
+                            <span class="w-px h-3 bg-white/10"></span>
+                            <p class="text-[9px] text-moss-light uppercase font-black tracking-widest italic whitespace-nowrap">${staff.position || 'Personnel'}</p>
+                        </div>
+                    </td>
+                    <td class="py-6 text-center"><span class="status-pill ${statusClass}">${staff.status}</span></td>
+                    <td class="py-6 text-center border-x border-white/5">
+                        <span class="text-xs font-mono text-white/60">${staff.amIn || '--:--'}</span>
+                        <span class="mx-2 text-white/10">→</span>
+                        <span class="text-xs font-mono text-white/60">${staff.amOut || '--:--'}</span>
+                    </td>
+                    <td class="py-6 text-center border-r border-white/5">
+                        <span class="text-xs font-mono text-white/60">${staff.pmIn || '--:--'}</span>
+                        <span class="mx-2 text-white/10">→</span>
+                        <span class="text-xs font-mono text-white/60">${staff.pmOut || '--:--'}</span>
+                    </td>
+                    <td class="py-6 text-right">
+                        <button onclick="editStaff(${staff.id})" class="text-[9px] font-bold uppercase text-white/30 hover:text-white">Modify</button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('presentCount').innerText = attendance.filter(s => s.status === 'Present').length.toString().padStart(2, '0');
+            document.getElementById('lateCount').innerText = attendance.filter(s => s.status === 'Late').length.toString().padStart(2, '0');
+            document.getElementById('totalStaff').innerText = attendance.length.toString().padStart(2, '0');
+            
+            localStorage.setItem('ragsak_attendance_log', JSON.stringify(attendance));
+        }
+
+        function handleSave() {
+            const name = document.getElementById('staffName').value;
+            const date = document.getElementById('staffDate').value;
+            if (!name || !date) return alert("Missing Personnel Name or Date.");
+
+            const actionType = document.getElementById('staffId').value ? "Update Log" : "New Entry";
+            
+            openConfirm(
+                `Confirm ${actionType}?`,
+                `You are about to save this record for ${name}.`,
+                () => executeSave()
+            );
+        }
+
+        function executeSave() {
+            const id = document.getElementById('staffId').value;
+            const date = document.getElementById('staffDate').value;
+            const name = document.getElementById('staffName').value;
+            const position = document.getElementById('staffPosition').value;
+            let status = document.getElementById('staffStatus').value;
+            
+            const amIn = document.getElementById('amIn').value;
+            const amOut = document.getElementById('amOut').value;
+            const pmIn = document.getElementById('pmIn').value;
+            const pmOut = document.getElementById('pmOut').value;
+
+            if (pmOut && status === 'Present') status = 'Complete';
+            
+            const entry = { id: id ? parseInt(id) : Date.now(), date, name, position, status, amIn, amOut, pmIn, pmOut };
+            
+            if (id) {
+                const idx = attendance.findIndex(s => s.id == id);
+                attendance[idx] = entry;
+            } else {
+                attendance.push(entry);
+            }
+            closeModal(); render();
+        }
+
+        function deleteRecord(id) {
+            openConfirm(
+                "Delete Record?",
+                "This action cannot be undone. Log will be permanently removed.",
+                () => {
+                    attendance = attendance.filter(s => s.id !== id);
+                    closeModal();
+                    render();
+                },
+                "⚠️"
+            );
+        }
+
+        function editStaff(id) {
+            loadPositions();
+            const s = attendance.find(staff => staff.id === id);
+            document.getElementById('staffId').value = s.id;
+            document.getElementById('staffDate').value = s.date;
+            document.getElementById('staffName').value = s.name;
+            document.getElementById('staffPosition').value = s.position || '';
+            document.getElementById('staffStatus').value = s.status;
+            document.getElementById('amIn').value = s.amIn;
+            document.getElementById('amOut').value = s.amOut;
+            document.getElementById('pmIn').value = s.pmIn;
+            document.getElementById('pmOut').value = s.pmOut;
+            document.getElementById('modalTitle').innerText = "Update Record";
+            
+            // Add Delete option during edit
+            const ctrl = document.getElementById('modalControls');
+            ctrl.innerHTML = `
+                <button type="button" onclick="deleteRecord(${s.id})" class="px-6 py-4 text-[10px] font-bold uppercase text-red-500 hover:bg-red-50 rounded-xl transition-all">Delete Log</button>
+                <div class="flex-1"></div>
+                <button type="button" onclick="closeModal()" class="px-6 py-4 text-[10px] font-bold uppercase text-gray-400 hover:bg-gray-100 rounded-xl transition-all">Cancel</button>
+                <button type="button" onclick="handleSave()" class="px-10 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-moss-green transition-all uppercase tracking-widest">Update Log</button>
+            `;
+            
+            document.getElementById('attendanceModal').classList.add('modal-active');
+        }
+
+        function clearForm() {
+            document.getElementById('staffId').value = '';
+            document.getElementById('staffName').value = '';
+            document.getElementById('staffStatus').value = 'Present';
+            document.getElementById('amIn').value = '';
+            document.getElementById('amOut').value = '';
+            document.getElementById('pmIn').value = '';
+            document.getElementById('pmOut').value = '';
+            document.getElementById('modalControls').innerHTML = `
+                <button type="button" onclick="closeModal()" class="flex-1 py-4 text-[10px] font-bold uppercase text-gray-400 hover:bg-red-700 rounded-xl hover:text-white transition-all">Cancel</button>
+                <button type="button" onclick="handleSave()" class="flex-1 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-moss-green transition-all uppercase tracking-widest">Commit Entry</button>
+            `;
+        }
+
+        render();
+    </script>
+</body>
+</html>
