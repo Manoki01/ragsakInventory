@@ -115,16 +115,23 @@
                 </div>
 
                 <div class="lg:col-span-1 flex flex-col bg-soft-black rounded-[40px] p-8 overflow-hidden h-full">
-                    <div class="flex items-center justify-between mb-6 shrink-0">
-                        <h3 class="text-white text-lg font-black italic uppercase tracking-tighter">Live Log</h3>
-                        <button onclick="clearLog()" class="text-[9px] font-bold text-white/20 hover:text-red-500 uppercase tracking-widest transition-colors">Clear</button>
+                    <div class="flex flex-col mb-6 shrink-0 gap-1">
+                        <h3 class="text-white text-lg font-black italic uppercase tracking-tighter">
+                            Information Preview
+                        </h3>
+                        <p id="dbLabel"
+                        class="text-white/60 text-[10px] font-bold uppercase tracking-widest">
+                        </p>
                     </div>
-
                     <div class="flex-1 overflow-y-auto custom-scrollbar pr-1">
                         <div id="logBody" class="space-y-4"></div>
-                        <div id="emptyState" class="h-full flex flex-col items-center justify-center text-white/10 italic text-center">
-                            <p class="text-[10px] uppercase tracking-widest font-bold">Awaiting Input</p>
+                        <div id="emptyState"
+                            class="h-full flex flex-col items-center justify-center text-white/10 italic text-center">
+                            <p class="text-[10px] uppercase tracking-widest font-bold">
+                                Awaiting Input
+                            </p>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -136,73 +143,101 @@
     <script type="module">
         import { getProcesses } from "../assets/js/api.js";
         import { addProduct } from "../assets/js/products.js";
-        import { addRawMaterial } from "../assets/js/raw_materials.js"
+        import { addRawMaterial } from "../assets/js/raw_materials.js";
         import { addPackaging } from "../assets/js/packaging.js";
 
         injectNavigation("nav-add-stocks");
 
         const intakeForm = document.getElementById("intakeForm");
         const processContainer = document.getElementById("processCheckboxContainer");
+        document.getElementById("itemName").addEventListener("input", updatePreview);
+        document.getElementById("itemPrice").addEventListener("input", updatePreview);
+        document.getElementById("itemUnit").addEventListener("input", updatePreview);
+        const FINISHED_PRODUCT_ID = 7; 
+        const FINISHED_PRODUCT_NAME = "Finished Product";
+
         let cachedProcesses = null;
+        let selectedProcessOrder = [];
 
         initialize();
 
-        function initialize(){
+        function initialize() {
             loadProcessesIfNeeded();
+            updateDbLabel();
         }
 
-        window.updateDbFromRadio = function(value){
+        window.updateDbFromRadio = function (value) {
             document.getElementById("targetDb").value = value;
             loadProcessesIfNeeded();
         };
 
-        async function loadProcessesIfNeeded(){
+        async function loadProcessesIfNeeded() {
             const targetDb = document.getElementById("targetDb").value;
+            const label = document.getElementById("processLabel");
 
-            if(targetDb !== "ragsak_products_inv"){
-                processContainer.innerHTML = "";
+            if (targetDb === "ragsak_products_inv") {
+                label.textContent = "Production Phases";
+            } else {
+                label.textContent = "Material Type";
+            }
+
+            if (targetDb !== "ragsak_products_inv") {
+                displayNonProductOptions();
                 return;
             }
 
-            if(cachedProcesses){
+            if (cachedProcesses) {
                 displayProcesses(cachedProcesses);
                 return;
             }
 
-            try{
+            try {
                 const response = await getProcesses();
 
-                if(response.status !== "success"){
+                if (response.status !== "success") {
                     console.error(response.message);
                     return;
                 }
 
-                cachedProcesses = response.data; // store cache
+                cachedProcesses = response.data;
                 displayProcesses(cachedProcesses);
 
-            }catch(error){
+            } catch (error) {
                 console.error("Failed to load processes", error);
             }
         }
 
-        function displayProcesses(processes){
-
+        function displayProcesses(processes) {
             processContainer.innerHTML = "";
 
-            if(!processes || processes.length === 0){
-                processContainer.innerHTML =
-                `<div class="text-gray-400 text-[10px] uppercase">
-                    No processes available
-                </div>`;
+            if (!processes || processes.length === 0) {
+                processContainer.innerHTML = `
+                    <div class="text-gray-400 text-[10px] uppercase">
+                        No processes available
+                    </div>`;
                 return;
             }
 
+            // ✅ FIRST: normal processes
             processes.forEach(process => {
+                // ❌ skip Finished Product if it's in DB (avoid duplicate)
+                if (Number(process.processID) === FINISHED_PRODUCT_ID) return;
 
                 const wrapper = document.createElement("div");
-                wrapper.classList.add("relative");
 
                 const checkbox = document.createElement("input");
+                checkbox.addEventListener("change", (e) => {
+                    const id = parseInt(e.target.value, 10);
+
+                    if (e.target.checked) {
+                        selectedProcessOrder.push(id);
+                    } else {
+                        selectedProcessOrder = selectedProcessOrder.filter(x => x !== id);
+                    }
+
+                    updatePreview();
+                });
+
                 checkbox.type = "checkbox";
                 checkbox.id = `proc_${process.processID}`;
                 checkbox.name = "selectedProcesses";
@@ -212,30 +247,94 @@
                 const label = document.createElement("label");
                 label.htmlFor = checkbox.id;
                 label.className =
-                "flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg cursor-pointer text-[8px] font-bold uppercase transition-all hover:bg-gray-50 peer-checked:border-moss-green peer-checked:bg-moss-green/10";
+                    "flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg cursor-pointer text-[8px] font-bold uppercase transition-all hover:bg-gray-50 peer-checked:border-moss-green peer-checked:bg-moss-green/10";
 
                 label.textContent = process.processName;
 
                 const checkmark = document.createElement("span");
                 checkmark.className =
-                "text-moss-green opacity-0 peer-checked:opacity-100 font-black";
-
+                    "text-moss-green opacity-0 peer-checked:opacity-100 font-black";
                 checkmark.textContent = "✔";
 
                 label.appendChild(checkmark);
 
-                wrapper.append(checkbox,label);
+                wrapper.append(checkbox, label);
+                processContainer.appendChild(wrapper);
+            });
+
+            // ✅ SECOND: add Finished Product (ALWAYS LAST)
+            const wrapper = document.createElement("div");
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.id = `proc_${FINISHED_PRODUCT_ID}`;
+            checkbox.value = FINISHED_PRODUCT_ID;
+            checkbox.checked = true;
+            checkbox.disabled = true; // 🔥 KEY PART
+            checkbox.className = "hidden peer process-checkbox";
+
+            const label = document.createElement("label");
+            label.className =
+                "flex items-center justify-between px-3 py-2 border border-moss-green bg-moss-green/10 text-moss-green rounded-lg text-[8px] font-bold uppercase cursor-not-allowed opacity-80";
+
+            label.textContent = FINISHED_PRODUCT_NAME;
+
+            const checkmark = document.createElement("span");
+            checkmark.className = "text-moss-green font-black";
+            checkmark.textContent = "✔";
+
+            label.appendChild(checkmark);
+
+            wrapper.append(checkbox, label);
+            processContainer.appendChild(wrapper);
+
+            updatePreview();
+        }
+
+        function displayNonProductOptions() {
+            processContainer.innerHTML = "";
+
+            const options = [
+                { id: "main", label: "Main" },
+                { id: "alternative", label: "Alternative" }
+            ];
+
+            options.forEach(opt => {
+                const wrapper = document.createElement("div");
+
+                const radio = document.createElement("input");
+                radio.addEventListener("change", updatePreview);
+                radio.type = "radio";
+                radio.id = `opt_${opt.id}`;
+                radio.name = "altType"; // IMPORTANT: same name = radio group
+                radio.value = opt.id;
+                radio.className = "hidden peer process-checkbox";
+
+                const label = document.createElement("label");
+                label.htmlFor = radio.id;
+                label.className =
+                    "flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg cursor-pointer text-[8px] font-bold uppercase transition-all hover:bg-gray-50 peer-checked:border-moss-green peer-checked:bg-moss-green/10";
+
+                label.textContent = opt.label;
+
+                const checkmark = document.createElement("span");
+                checkmark.className =
+                    "text-moss-green opacity-0 peer-checked:opacity-100 font-black";
+                checkmark.textContent = "✔";
+
+                label.appendChild(checkmark);
+
+                wrapper.append(radio, label);
                 processContainer.appendChild(wrapper);
             });
         }
 
-        intakeForm.addEventListener("submit", e=>{
+        intakeForm.addEventListener("submit", e => {
             e.preventDefault();
             processIntake();
         });
 
-        function processIntake(){
-
+        function processIntake() {
             const targetDb = document.getElementById("targetDb").value;
 
             const unitName = document.getElementById("itemName").value.trim();
@@ -248,43 +347,188 @@
                 unitPrice
             };
 
-            if(targetDb === "ragsak_products_inv") {
-                const checkedProcesses = Array.from(
-                    document.querySelectorAll("#processCheckboxContainer input:checked")
-                ).map(cb => cb.value.trim());
+            if (targetDb === "ragsak_products_inv") {
+                let ordered = [...selectedProcessOrder];
 
-                const processes = checkedProcesses
-                    .map(val => parseInt(val, 10))
-                    .filter(num => Number.isInteger(num) && num > 0);
+                ordered = [...new Set(ordered)];
 
-                data.processes = processes;
+                ordered = ordered.filter(id => id !== FINISHED_PRODUCT_ID);
+
+                if (ordered.length === 0) {
+                    ordered = [FINISHED_PRODUCT_ID];
+                } else {
+                    ordered.push(FINISHED_PRODUCT_ID);
+                }
+
+                data.processes = ordered;
+            }
+           else {
+                const materialType = getCategoryType();
+                data.materialType = materialType;
             }
 
             console.log("Passing data:", data);
 
-            if(targetDb === "ragsak_products_inv" && (!data.processes || data.processes.length === 0)) {
-                alert("Please select atleast one processes");
-            } else {
-                if(data.unitName && data.unitType && !isNaN(data.unitPrice)) {
-                    switch(targetDb) {
-                        case "ragsak_products_inv":
-                            addProduct(data);
-                            break;
-
-                        case "ragsak_materials_inv":
-                            addRawMaterial(data);
-                            break;
-
-                        case "ragsak_packaging_inv":
-                            addPackaging(data);
-                            break;
-                    }
-                } else {
-                    alert("Please fill in all required fields");
-                }
-                
+            if (!unitName || !unitType || isNaN(unitPrice)) {
+                alert("Please fill in all required fields");
+                return;
             }
-            
+
+            if (targetDb === "ragsak_products_inv" && (!data.processes || data.processes.length === 0)) {
+                alert("Please select at least one process");
+                return;
+            }
+
+            if (targetDb !== "ragsak_products_inv" && !data.materialType) {
+                alert("Please select Main or Alternative");
+                return;
+            }
+
+            switch (targetDb) {
+                case "ragsak_products_inv":
+                    addProduct(data);
+                    break;
+
+                case "ragsak_materials_inv":
+                    addRawMaterial(data);
+                    break;
+
+                case "ragsak_packaging_inv":
+                    addPackaging(data);
+                    break;
+            }
+
+            clearPreview();
+        }
+
+        function updatePreview() {
+            const name = document.getElementById("itemName").value.trim();
+            const price = document.getElementById("itemPrice").value;
+            const unit = document.getElementById("itemUnit").value.trim();
+            const targetDb = document.getElementById("targetDb").value;
+            const logBody = document.getElementById("logBody");
+            const emptyState = document.getElementById("emptyState");
+
+            let selectedItems = [];
+
+            const selectionLabel =
+                targetDb === "ragsak_products_inv"
+                    ? "Product Phases"
+                    : "Material Type";
+
+            if (targetDb === "ragsak_products_inv") {
+                selectedItems = selectedProcessOrder.map((id, index) => {
+                    const label = document.querySelector(`#proc_${id}`)
+                        ?.nextElementSibling
+                        ?.textContent
+                        ?.replace("✔", "")
+                        .trim();
+
+                    return `${index + 1}. ${label}`;
+                });
+
+                if (selectedProcessOrder.length === 0) {
+                    selectedItems = [`1. ${FINISHED_PRODUCT_NAME}`];
+                } else {
+                    selectedItems.push(`${selectedItems.length + 1}. ${FINISHED_PRODUCT_NAME}`);
+                }
+            }
+            else {
+                const selected = document.querySelector("#processCheckboxContainer input:checked");
+                if (selected) {
+                    selectedItems = [
+                        selected.nextElementSibling.textContent.replace("✔", "").trim()
+                    ];
+                }
+            }
+
+            let html = "";
+
+            if (name) {
+                html += `<p class="text-white text-sm font-black tracking-wide">
+                    Name: <span class="text-white/90">${name}</span>
+                </p>`;
+            }
+            if (price) {
+                html += `<p class="text-white text-sm font-black tracking-wide">
+                    Price: <span class="text-white/90">
+                        ₱${Number(price || 0).toLocaleString("en-PH", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </span>
+                </p>`;
+            }
+            if (unit) {
+                html += `<p class="text-white text-sm font-black tracking-wide">
+                    Unit: <span class="text-white/90">${unit}</span>
+                </p>`;
+            }
+            if (selectedItems.length > 0) {
+                html += `<p class="text-white text-sm font-black mt-4 tracking-wide">
+                    ${selectionLabel}:
+                </p>`;
+
+                selectedItems.forEach(item => {
+                    html += `<p class="text-white text-xs font-semibold ml-2 opacity-90">
+                        • ${item}
+                    </p>`;
+                });
+            }
+            if (!name && !price && !unit && selectedItems.length === 0) {
+                emptyState.style.display = "flex";
+                logBody.innerHTML = "";
+            } else {
+                emptyState.style.display = "none";
+                logBody.innerHTML = html;
+            }
+        }
+
+        function updateDbLabel() {
+            const targetDb = document.getElementById("targetDb").value;
+            const dbLabel = document.getElementById("dbLabel");
+
+            const labels = {
+                ragsak_products_inv: "Products",
+                ragsak_materials_inv: "Raw Materials",
+                ragsak_packaging_inv: "Packaging"
+            };
+
+            dbLabel.textContent = labels[targetDb] || "Unknown Database";
+        }
+
+        window.updateDbFromRadio = function (value) {
+            document.getElementById("targetDb").value = value;
+
+            clearPreview();
+
+            loadProcessesIfNeeded();
+            updateDbLabel();
+        };
+
+        function clearPreview() {
+            document.getElementById("itemName").value = "";
+            document.getElementById("itemPrice").value = "";
+            document.getElementById("itemUnit").value = "";
+
+            // clear selections (checkboxes / radios)
+            document.querySelectorAll("#processCheckboxContainer input").forEach(input => {
+                input.checked = false;
+            });
+
+            // clear preview panel
+            document.getElementById("logBody").innerHTML = "";
+
+            // show empty state again
+            document.getElementById("emptyState").style.display = "flex";
+        }
+
+        function getCategoryType() {
+            const selected = document.querySelector(
+                '#processCheckboxContainer input[name="altType"]:checked'
+            );
+
+            return selected ? selected.value : null;
         }
         </script>
 </body>

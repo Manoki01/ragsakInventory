@@ -240,7 +240,9 @@
                 grouped[processName].forEach(item => {
 
                     const status = checkStockStatus(item.quantity);
-                    const value = item.quantity * (item.productPrice || 0);
+                    const isFinished = (item.processName || "").toLowerCase() === "Finished Product";
+                    const unitPrice = isFinished ? (item.productPrice || 0) : 0;
+                    const value = isFinished ? item.quantity * unitPrice : 0;
 
                     total += value;
                     count++;
@@ -268,7 +270,7 @@
                         </td>
 
                         <td class="py-4 text-right text-xs">
-                            ₱${parseFloat(item.productPrice || 0).toLocaleString("en-PH", {
+                            ₱${parseFloat(unitPrice || 0).toLocaleString("en-PH", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             })}
@@ -322,14 +324,23 @@
         // Predictive Search Logic (FIXED Undefined)
         prodNameInput.addEventListener('input', function () {
             const query = this.value.toLowerCase().trim();
-            const currentItems = window.inventoryData || [];
+            const selectedProcessID = Number(document.getElementById('prodProcess').value);
+
+            if (!selectedProcessID) {
+                showToast("Select process first", "error");
+                suggestionsUl.classList.add('hidden');
+                return;
+            }
 
             if (query.length < 1) {
                 suggestionsUl.classList.add('hidden');
                 return;
             }
 
-            // unique product names
+            const currentItems = (window.inventoryData || []).filter(item =>
+                Number(item.processID) === selectedProcessID
+            );
+
             const uniqueNames = [...new Set(
                 currentItems.map(item => item.productName)
             )];
@@ -344,10 +355,7 @@
             }
 
             suggestionsUl.innerHTML = matches.map(name => {
-
-                const itemData = currentItems.find(
-                    i => i.productName === name
-                ) || { unitType: '' };
+                const itemData = currentItems.find(i => i.productName === name);
 
                 return `
                     <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors"
@@ -394,9 +402,6 @@
             }, 3000);
         }
 
-
-
-
         closeCommit.addEventListener('click', () => {
             const qtyInput = Number(document.getElementById('prodQty').value);
             const prodProc = Number(document.getElementById('prodProcess').value);
@@ -426,6 +431,44 @@
             closeProductModal();
             getProducts();
         }
+
+        openCommit.addEventListener('click', () => {
+            const qtyInput = Number(document.getElementById('prodQty').value);
+            const prodProc = Number(document.getElementById('prodProcess').value);
+
+            if (!selectedProductID || qtyInput <= 0 || !prodProc) {
+                showToast("Name, Quantity, and Process are required", "error");
+                return;
+            }
+
+            openCommit.disabled = true;
+
+             let data = {
+                productID: selectedProductID,
+                quantity: qtyInput,
+                processID: prodProc
+            };
+
+            handleOpenCommit(data);
+
+            openCommit.disabled = false;
+           
+        });
+
+        function handleOpenCommit(data) {
+            const procEl = document.getElementById('prodProcess')
+            const nameEl = document.getElementById('prodName');
+            const qtyEl = document.getElementById('prodQty');
+
+            console.log(data);
+            stockinProduct(data);
+            selectedProductID = null; 
+            procEl.value = '';  
+            nameEl.value = '';
+            qtyEl.value = '';
+            nameEl.focus(); 
+        }
+            
 
         /* // Commit Logic (FIXED Handle & Reset)
         async function handleProductCommit(shouldClose = true) {

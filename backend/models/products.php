@@ -53,17 +53,21 @@ class Product {
 
             // Get the inserted product ID
             $productID = $this->conn->insert_id;
+            
 
             $stmt2 = $this->conn->prepare(
-                "INSERT INTO tbl_productStock (productID, processID, quantity) VALUES (?, ?, ?)"
+                "INSERT INTO tbl_processFlow (productID, processID, flowOrder) VALUES (?, ?, ?)"
             );
 
+            $flowOrder = 1;
             foreach ($data['processes'] as $process) {
                 $quantity = 0;
-                $stmt2->bind_param('iii', $productID, $process, $quantity);
+                $stmt2->bind_param('iiii', $productID, $process, $quantity, $flowOrder);
                 if (!$stmt2->execute()) {
                     throw new Exception("Failed to add Product Processes.");
                 }
+
+                $flowOrder++;
             }
 
             $this->conn->commit();

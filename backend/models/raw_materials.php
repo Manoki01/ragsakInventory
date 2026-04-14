@@ -23,15 +23,16 @@ class Raw_Material {
         try {
             $quantity = 0;
             $stmt = $this->conn->prepare("
-            INSERT INTO tbl_rawMaterials (rawMaterialName, quantity, unitType, rawMaterialprice) 
-            VALUES (?, ?, ?, ?)");
+            INSERT INTO tbl_rawMaterials (rawMaterialName, quantity, unitType, rawMaterialprice, matType) 
+            VALUES (?, ?, ?, ?, ? )");
             
             $stmt->bind_param(
-                "sisi",
+                "sisis",
                 $data['unitName'],
                 $quantity,
                 $data['unitType'],
-                $data['unitPrice']
+                $data['unitPrice'],
+                $data['materialType']
             );
 
             if(!$stmt->execute()) {
