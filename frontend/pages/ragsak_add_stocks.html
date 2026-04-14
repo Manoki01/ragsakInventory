@@ -26,6 +26,17 @@
                 @apply bg-off-white text-soft-black antialiased overflow-hidden;
             }
         }
+
+         /* Toast Styles */
+        #toast-container {
+            @apply fixed top-10 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 pointer-events-none;
+        }
+        .toast-card {
+            @apply bg-soft-black text-white px-8 py-4 rounded-2xl shadow-2xl border-l-4 flex items-center gap-4 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-auto;
+        }
+        .toast-card.show { @apply opacity-100 translate-y-0; }
+        .toast-success { @apply border-moss-green; }
+        .toast-error { @apply border-red-600; }
         
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-transparent; }
@@ -37,6 +48,8 @@
     </style>
 </head>
 <body>
+    <div id="toast-container"></div>
+
     <div class="grid grid-cols-1 lg:grid-cols-8 h-screen">
         <div class="lg:col-span-1">
             <div id="sidebar-container"></div>
@@ -107,7 +120,7 @@
                         </form>
 
                         <div class="px-10 py-6 bg-gray-50 border-t border-gray-100 shrink-0">
-                            <button type="submit" form="intakeForm" class="w-full bg-soft-black text-white text-[10px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-[0.4em] shadow-xl">
+                            <button type="submit" id="submitBtn" form="intakeForm" class="w-full bg-soft-black text-white text-[10px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-[0.4em] shadow-xl">
                                 Register Resource
                             </button>
                         </div>
@@ -145,6 +158,7 @@
         import { addProduct } from "../assets/js/products.js";
         import { addRawMaterial } from "../assets/js/raw_materials.js";
         import { addPackaging } from "../assets/js/packaging.js";
+        import { showToast } from '../components/notification.js';
 
         injectNavigation("nav-add-stocks");
 
@@ -218,7 +232,6 @@
                 return;
             }
 
-            // ✅ FIRST: normal processes
             processes.forEach(process => {
                 // ❌ skip Finished Product if it's in DB (avoid duplicate)
                 if (Number(process.processID) === FINISHED_PRODUCT_ID) return;
@@ -262,7 +275,6 @@
                 processContainer.appendChild(wrapper);
             });
 
-            // ✅ SECOND: add Finished Product (ALWAYS LAST)
             const wrapper = document.createElement("div");
 
             const checkbox = document.createElement("input");
@@ -331,10 +343,11 @@
 
         intakeForm.addEventListener("submit", e => {
             e.preventDefault();
+            document.getElementById('submitBtn').disabled;
             processIntake();
         });
 
-        function processIntake() {
+        async function processIntake() {
             const targetDb = document.getElementById("targetDb").value;
 
             const unitName = document.getElementById("itemName").value.trim();
@@ -384,17 +397,36 @@
                 return;
             }
 
+            let  response
             switch (targetDb) {
                 case "ragsak_products_inv":
-                    addProduct(data);
+                    response = await addProduct(data);
+                    if (response) {
+                        showToast("Product added successfully", "success");
+                    } else {
+                        showToast("Failed in adding product", "error");
+
+                    }
                     break;
 
                 case "ragsak_materials_inv":
-                    addRawMaterial(data);
+                    response = await addRawMaterial(data);
+                    if(response) {
+                       showToast("Raw Material added successfully", "success");
+                    } else {
+                        showToast("Failed in adding raw material", "error");
+
+                    } 
                     break;
 
                 case "ragsak_packaging_inv":
-                    addPackaging(data);
+                    response = await addRawMaterial(data);
+                    if(response) {
+                       showToast("Packaging added successfully", "success");
+                    } else {
+                        showToast("Failed in adding packaging", "error");
+
+                    } 
                     break;
             }
 
@@ -410,7 +442,6 @@
             const emptyState = document.getElementById("emptyState");
 
             let selectedItems = [];
-
             const selectionLabel =
                 targetDb === "ragsak_products_inv"
                     ? "Product Phases"
@@ -510,6 +541,7 @@
             document.getElementById("itemName").value = "";
             document.getElementById("itemPrice").value = "";
             document.getElementById("itemUnit").value = "";
+            selectedProcessOrder = [];
 
             // clear selections (checkboxes / radios)
             document.querySelectorAll("#processCheckboxContainer input").forEach(input => {

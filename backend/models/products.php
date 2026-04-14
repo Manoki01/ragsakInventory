@@ -14,13 +14,14 @@ class Product {
         p.productID, 
         p.productName, 
         ps.quantity,
-        ps.processID,
-        (SELECT processName FROM tbl_process WHERE processID = ps.processID) AS processName,
+        pf.processID,
+        (SELECT processName FROM tbl_process WHERE processID = pf.processID) AS processName,
         p.unitType,
         p.productPrice
         FROM tbl_products p
-        INNER JOIN tbl_productStock ps ON p.productID = ps.productID
-        INNER JOIN tbl_process pp ON pp.processID = ps.processID";
+        INNER JOIN tbl_processFlow pf ON p.productID = pf.productID
+        INNER JOIN tbl_productStock ps ON pf.flowID = ps.flowID
+        INNER JOIN tbl_process pp ON pp.processID = pf.processID";
 
         $result = $this->conn->query($query);
 
@@ -61,10 +62,18 @@ class Product {
 
             $flowOrder = 1;
             foreach ($data['processes'] as $process) {
-                $quantity = 0;
-                $stmt2->bind_param('iiii', $productID, $process, $quantity, $flowOrder);
+                $stmt2->bind_param('iii', $productID, $process, $flowOrder);
                 if (!$stmt2->execute()) {
                     throw new Exception("Failed to add Product Processes.");
+                }
+
+                $flowID = $this->conn->insert_id;
+                $quantity = 0;
+                $stmt3 = $this->conn->prepare('INSERT INTO tbl_productStock (flowID, quantity) VALUES (?, ?)');
+                $stmt3->bind_param('ii', $flowID, $quantity);
+
+                if(!$stmt3->execute()) {
+                    throw new Exception(("Failed to add Product Processes."));
                 }
 
                 $flowOrder++;
@@ -86,7 +95,10 @@ class Product {
             $process = $data['processID'];
             $product = $data['productID'];
 
-            $checkStmt = $this->conn->prepare("SELECT stockID, quantity FROM tbl_productStock WHERE productID = ? AND processID = ?");
+            $checkStmt = $this->conn->prepare("
+            SELECT ps.flowID, ps.quantity FROM tbl_productStock ps
+            INNER JOIN tbl_processFlow pf ON ps.flowID = pf.flowID
+            WHERE pf.productID = ? AND pf.processID = ?");
             $checkStmt->bind_param(
                 'ii',
                 $product,
@@ -102,17 +114,17 @@ class Product {
             if($result && $result->num_rows > 0) {
                 $row = $result->fetch_assoc();
                 $quantity = $row['quantity'];
+                $flowID = $row['flowID'];
                 $finalQuantity = $data['quantity'] + $quantity;
 
                 $updateStmt = $this->conn->prepare("UPDATE tbl_productStock SET
                 quantity = ?
-                WHERE productID = ? AND processID = ?");
+                WHERE flowID = ?");
 
                 $updateStmt->bind_param(
-                    'iii',
+                    'ii',
                     $finalQuantity,
-                    $product,
-                    $process
+                    $flowID
                 );
 
                 if(!$updateStmt->execute()) {

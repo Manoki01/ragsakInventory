@@ -90,7 +90,7 @@
             <div class="flex-1 overflow-hidden bg-soft-black rounded-3xl p-6 shadow-2xl flex flex-col">
                 <div class="flex items-center justify-between mb-6 px-2">
                     <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Raw Resource Stockpile</p>
-                    <button onclick="openModal()" class="bg-white/10 hover:bg-white/20 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all">Add Stock Entry</button>
+                    <button id="modalOpen" class="bg-white/10 hover:bg-white/20 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all">Add Stock Entry</button>
                 </div>
                 
                 <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
@@ -142,14 +142,14 @@
 
                     <div class="flex flex-col gap-3 pt-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <button type="button" onclick="handleResourceCommit(true)" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-widest shadow-xl">
+                            <button type="button" id="commitClose" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-widest shadow-xl">
                                 Commit & Close
                             </button>
-                            <button type="button" onclick="handleResourceCommit(false)" class="bg-moss-green/10 text-moss-green border border-moss-green/20 text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green hover:text-white transition-all uppercase tracking-widest">
+                            <button type="button" id="commitOpen" class="bg-moss-green/10 text-moss-green border border-moss-green/20 text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green hover:text-white transition-all uppercase tracking-widest">
                                 Commit & Add Another
                             </button>
                         </div>
-                        <button type="button" onclick="closeModal()" class="w-full py-4 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
+                        <button type="button" id="modalClose" class="w-full py-4 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
                             Abort Entry
                         </button>
                     </div>
@@ -160,151 +160,298 @@
 
     <script src="../components/ragsak_navigation.js"></script>
 
-    <script>
-        const STORAGE_KEY = 'ragsak_materials_inv';
-        const DEFAULT_CONTEXT = 'Raw Material';
-        const nameInput = document.getElementById('matName');
+    <script type="module">
+        import { loadRawMaterials } from "../assets/js/raw_materials.js";
+        import { checkStockStatus } from '../assets/js/utils.js';
+        import { stockinRawMaterial } from '../assets/js/raw_materials.js';
+        import { showToast } from '../components/notification.js';
+
+        const matNameInput = document.getElementById('matName');
         const suggestionsUl = document.getElementById('predictiveResults');
+        const openModal = document.getElementById('modalOpen');
+        const closeModal = document.getElementById('modalClose');
+        const closeCommit = document.getElementById('commitClose');
+        const openCommit = document.getElementById('commitOpen');
 
-        injectNavigation('nav-materials');
+        injectNavigation('nav-products');
 
-        // Render Logic for specific Materials Columns
-        window.render = function() {
-            const body = document.getElementById('inventoryBody');
-            const data = window.inventoryData || [];
-            
-            body.innerHTML = data.map(item => {
-                const assetValue = item.qty * (item.price || 0);
-                const statusClass = item.qty > 50 ? 'status-green' : (item.qty > 10 ? 'status-yellow' : 'status-red');
-                const statusText = item.qty > 50 ? 'Stable' : (item.qty > 10 ? 'Low Stock' : 'Critical');
+        window.inventoryData = [];
+
+        async function getRawMaterials() {
+            try {
+                const response = await loadRawMaterials();
+
+                if (!response || response.status !== "success") {
+                    console.error("Failed to load raw materials:", response);
+                    return;
+                }
+
+                window.inventoryData = response.data;
+
+                renderRawMaterials();
+
+            } catch (err) {
+                console.error("Load products error:", err);
+            }
+        }
+
+        function renderRawMaterials(data = window.inventoryData, count = 0) {
+            const tbody = document.getElementById("inventoryBody");
+            tbody.innerHTML = "";
+
+            if (!data || data.length === 0) return;
+
+            // ✅ sort by product name only
+            data = [...data].sort((a, b) =>
+                (a.rawMaterialName || "").localeCompare(b.rawMaterialName || "")
+            );
+
+            let total = 0;
+
+            data.forEach(item => {
+
+                const status = checkStockStatus(item.quantity);
+                const unitPrice = item.rawMaterialPrice || 0;
+                const value = item.quantity * unitPrice;
+
+                total += value;
+                count++;
+
+                const row = document.createElement("tr");
+                row.className = "text-white/80";
+
+                row.innerHTML = `
+                    <!-- NAME -->
+                    <td class="py-4 text-xs font-bold px-2">
+                        ${item.rawMaterialName}
+                    </td>
+
+                    <!-- STOCK -->
+                    <td class="py-4 text-center text-xs">
+                        ${item.quantity} ${item.unitType}
+                    </td>
+
+                    <!-- STATUS -->
+                    <td class="py-4 text-center">
+                        <span class="status-pill ${
+                            status === "Out of Stock" ? "status-red" :
+                            status === "Low Stock" ? "status-yellow" :
+                            "status-green"
+                        }">
+                            ${status}
+                        </span>
+                    </td>
+
+                    <!-- UNIT PRICE -->
+                    <td class="py-4 text-right text-xs">
+                        ₱${parseFloat(unitPrice).toLocaleString("en-PH", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </td>
+
+                    <!-- VALUE -->
+                    <td class="py-4 text-right text-xs font-bold">
+                        ₱${value.toLocaleString("en-PH", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </td>
+
+                    <!-- CTRL -->
+                    <td class="py-4 text-right text-xs pr-2">
+                        <button class="text-white/40 hover:text-white">Edit</button>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+
+            document.getElementById("skuCount").innerText = count;
+
+            document.getElementById("grandTotal").innerText =
+                "₱" + total.toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+        }
+
+        const searchInput = document.getElementById("inventorySearch");
+
+            searchInput.addEventListener("input", function () {
+                const query = this.value.toLowerCase().trim();
+
+                const allItems = window.inventoryData || [];
+
+                if (query.length === 0) {
+                    renderRawMaterials(allItems);
+                    return;
+                }
+
+                const filtered = allItems.filter(item =>
+                    item.rawMaterialName.toLowerCase().includes(query)
+                );
+
+                renderRawMaterials(filtered);
+            });
+
+        // Predictive Search Logic (FIXED Undefined)
+        matNameInput.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+
+            if (query.length < 1) {
+                suggestionsUl.classList.add('hidden');
+                return;
+            }
+
+            const uniqueNames = [...new Set(
+                currentItems.map(item => item.rawMaterialName)
+            )];
+
+            const matches = uniqueNames.filter(name =>
+                name.toLowerCase().includes(query)
+            );
+
+            if (matches.length === 0) {
+                suggestionsUl.classList.add('hidden');
+                return;
+            }
+
+            suggestionsUl.innerHTML = matches.map(name => {
+                const itemData = currentItems.find(i => i.rawMaterialName === name);
 
                 return `
-                    <tr class="hover:bg-white/5 transition-colors group">
-                        <td class="px-2 py-4 text-xs font-bold text-white uppercase tracking-tight">${item.name}</td>
-                        <td class="py-4 text-center">
-                            <span class="text-xs font-black text-white">${item.qty}</span>
-                            <span class="text-[9px] font-bold text-white/30 uppercase ml-1">${item.unit}</span>
-                        </td>
-                        <td class="py-4 text-center">
-                            <span class="status-pill ${statusClass}">${statusText}</span>
-                        </td>
-                        <td class="py-4 text-right text-xs font-medium text-white/70">₱${(item.price || 0).toLocaleString()}</td>
-                        <td class="py-4 text-right text-xs font-black text-moss-light">₱${assetValue.toLocaleString()}</td>
-                        <td class="py-4 text-right pr-2">
-                            <button onclick="editItem('${item.id}')" class="text-white/20 hover:text-white transition-colors mr-3 text-[10px] font-bold uppercase tracking-tighter">Edit</button>
-                            <button onclick="deleteItem('${item.id}')" class="text-white/20 hover:text-red-500 transition-colors text-[10px] font-bold uppercase tracking-tighter">Del</button>
-                        </td>
-                    </tr>
+                    <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors"
+                        data-id="${itemData.rawMaterialID}"
+                        data-name="${name}"
+                        data-unit="${itemData.unitType || ''}">
+                        ${name}
+                    </li>
                 `;
             }).join('');
 
-            const total = data.reduce((sum, item) => sum + (item.qty * (item.price || 0)), 0);
-            document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            document.getElementById('skuCount').innerText = data.length.toString().padStart(2, '0');
-        };
-
-        initInventoryManager({
-            storageKey: STORAGE_KEY,
-            tableBodyId: 'inventoryBody',
-            totalDisplayId: 'grandTotal',
-            skuCountId: 'skuCount',
-            modalId: 'materialModal',
-            formFields: { id: 'matId', process: 'matProcess', name: 'matName', qty: 'matQty', unit: 'matUnit', price: 'matPrice' }
+            suggestionsUl.classList.remove('hidden');
         });
 
-        nameInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            const currentItems = window.inventoryData || [];
-            if (query.length < 1) { suggestionsUl.classList.add('hidden'); return; }
-            const matches = currentItems.filter(item => item.name.toLowerCase().includes(query));
-            if (matches.length > 0) {
-                suggestionsUl.innerHTML = matches.map(item => `
-                    <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors"
-                        onmousedown="selectSuggestion('${item.name.replace(/'/g, "\\'")}', '${item.unit}', ${item.price})">
-                        <div class="flex justify-between items-center">
-                            <span>${item.name}</span>
-                            <span class="text-[9px] font-bold text-gray-400 tracking-tighter">${item.unit}</span>
-                        </div>
-                    </li>
-                `).join('');
-                suggestionsUl.classList.remove('hidden');
-            } else { suggestionsUl.classList.add('hidden'); }
-        });
+        suggestionsUl.addEventListener('mousedown', function (e) {
+            const li = e.target.closest('li');
+            if (!li) return;
 
-        function selectSuggestion(name, unit, price) {
-            nameInput.value = name;
-            document.getElementById('matUnit').value = unit;
-            document.getElementById('matPrice').value = price;
+            matNameInput.value = li.dataset.name;
+            selectedProductID = Number(li.dataset.id);
+            document.getElementById('matUnit').value = li.dataset.unit;
+
             suggestionsUl.classList.add('hidden');
-            setTimeout(() => document.getElementById('matQty').focus(), 50);
+
+            setTimeout(() => {
+                document.getElementById('matQty').focus();
+            }, 50);
+        });
+
+        closeCommit.addEventListener('click', () => {
+            const qtyInput = Number(document.getElementById('matQty').value);;
+
+            if (!selectedProductID || qtyInput <= 0) {
+                showToast("Name and Quantity are required", "error");
+                return;
+            }
+
+            closeCommit.disabled = true;
+
+             let data = {
+                productID: selectedProductID,
+                quantity: qtyInput,
+            };
+
+            handleCloseCommit(data);
+
+            closeCommit.disabled = false;
+           
+        });
+
+        async function handleCloseCommit(data) {
+            console.log(data);
+            await stockinProduct(data);
+            closeMaterialModal();
+            await getRawMaterials();
+            showToast("Stock In Sccessful", "success");
         }
 
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast-card ${type === 'success' ? 'toast-success' : 'toast-error'}`;
-            toast.innerHTML = `<div class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-moss-green' : 'bg-red-500'} animate-pulse"></div><p class="text-[10px] font-black uppercase tracking-widest">${message}</p>`;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000);
+        openCommit.addEventListener('click', () => {
+            const qtyInput = Number(document.getElementById('prodQty').value);
+            const prodProc = Number(document.getElementById('prodProcess').value);
+
+            if (!selectedProductID || qtyInput <= 0 || !prodProc) {
+                showToast("Name, Quantity, and Process are required", "error");
+                return;
+            }
+
+            openCommit.disabled = true;
+
+             let data = {
+                productID: selectedProductID,
+                quantity: qtyInput,
+                processID: prodProc
+            };
+
+            handleOpenCommit(data);
+
+            openCommit.disabled = false;
+           
+        });
+
+        function handleOpenCommit(data) {
+            const procEl = document.getElementById('prodProcess')
+            const nameEl = document.getElementById('prodName');
+            const qtyEl = document.getElementById('prodQty');
+
+            console.log(data);
+            stockinProduct(data);
+            selectedProductID = null; 
+            procEl.value = '';  
+            nameEl.value = '';
+            qtyEl.value = '';
+            nameEl.focus(); 
+            showToast("Stock In Sccessful", "success");
         }
 
-        function handleResourceCommit(shouldClose = true) {
-            const nameEl = document.getElementById('matName');
-            const qtyEl = document.getElementById('matQty');
-            const unitEl = document.getElementById('matUnit');
-            const idField = document.getElementById('matId');
+        openModal.addEventListener('click', () => {
+                //clearForm(); 
+                document.getElementById('materialModal').classList.remove('hidden');
+         });
             
-            const name = nameEl.value.trim();
-            const qty = parseFloat(qtyEl.value) || 0;
-            const unit = unitEl.value.trim();
-            const price = parseFloat(document.getElementById('matPrice').value) || 0;
 
-            if (!name || qty <= 0) { showToast("Provide valid Name and Quantity", "error"); return; }
+        closeModal.addEventListener('click', () => {
+            closeMaterialModal();
+        });
 
-            let inventory = window.inventoryData || [];
-
-            if (idField.value) {
-                const idx = inventory.findIndex(item => item.id == idField.value);
-                if (idx > -1) inventory[idx] = { ...inventory[idx], name, qty, unit, price };
-            } else {
-                const existingIdx = inventory.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
-                if (existingIdx > -1) {
-                    inventory[existingIdx].qty += qty;
-                    inventory[existingIdx].unit = unit;
-                } else {
-                    inventory.push({ id: Date.now(), name, qty, unit, price, process: DEFAULT_CONTEXT });
-                }
-            }
-
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
-            window.inventoryData = inventory;
-            window.render();
-            showToast("Material Entry Authorized", "success");
-
-            if (shouldClose) { closeModal(); } 
-            else {
-                [nameEl, qtyEl, unitEl].forEach(el => {
-                    el.classList.add('bg-moss-green/10');
-                    setTimeout(() => el.classList.remove('bg-moss-green/10'), 400);
-                });
-                idField.value = ''; nameEl.value = ''; qtyEl.value = ''; unitEl.value = ''; nameEl.focus(); 
-            }
+        function closeMaterialModal() {
+            document.getElementById('materialModal').classList.add('hidden');
+            suggestionsUl.classList.add('hidden');
         }
+            
 
-        function openModal() { clearForm(); document.getElementById('materialModal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('materialModal').classList.add('hidden'); suggestionsUl.classList.add('hidden'); }
         function clearForm() {
-            document.getElementById('matId').value = '';
-            document.getElementById('matName').value = '';
-            document.getElementById('matQty').value = '';
-            document.getElementById('matUnit').value = '';
-            document.getElementById('matPrice').value = '0';
-            document.getElementById('modalTitle').innerText = "Authorize Stock Entry";
+            document.getElementById('prodId').value = '';
+            document.getElementById('prodProcess').value = '';
+            document.getElementById('prodName').value = '';
+            document.getElementById('prodQty').value = '';
+            document.getElementById('prodUnit').value = '';
+            document.getElementById('prodPrice').value = '0';
+            document.getElementById('modalTitle').innerText = "Stock In";
         }
 
-        document.addEventListener('click', (e) => { if (!nameInput.contains(e.target) && !suggestionsUl.contains(e.target)) suggestionsUl.classList.add('hidden'); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+        document.addEventListener('click', (e) => {
+            if (!matNameInput.contains(e.target) && !suggestionsUl.contains(e.target)) {
+                suggestionsUl.classList.add('hidden');
+            }
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        getRawMaterials();
     </script>
 </body>
 </html>

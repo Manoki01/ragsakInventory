@@ -77,11 +77,9 @@ export async function addPackaging(data) {
         const response = await createPackaging(data);
 
         if(response.status === "success") {
-            alert("Packaging Added!");
-            loadPackaging();
+            return true;
         } else {
-            alert("Failed: ", response.message);
-            console.error("API Error: " + response.message);
+            return false;
         }
     } catch(error) {
         console.error("Failed to add packaging", error);

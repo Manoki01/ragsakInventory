@@ -7,7 +7,10 @@ function getRawMaterials() {
 
     $data = $rawMaterial->getAll();
 
-    echo json_encode($data);
+    echo json_encode([
+        "status" => "success",
+        "data" => $data
+    ]);
 }
 
 function createRawMaterial() {

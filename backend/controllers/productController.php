@@ -8,9 +8,9 @@ function getProducts() {
     $data = $product->getAll();
 
     echo json_encode([
-    "status" => "success",
-    "data" => $data
-]);
+        "status" => "success",
+        "data" => $data
+    ]);
 }
 
 function createProduct() {

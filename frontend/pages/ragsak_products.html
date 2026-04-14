@@ -173,6 +173,7 @@
         import { loadProducts } from "../assets/js/products.js";
         import { checkStockStatus } from '../assets/js/utils.js';
         import { stockinProduct } from '../assets/js/products.js';
+        import { showToast } from '../components/notification.js';
 
         const prodNameInput = document.getElementById('prodName');
         const suggestionsUl = document.getElementById('predictiveResults');
@@ -209,7 +210,7 @@
             const tbody = document.getElementById("inventoryBody");
             tbody.innerHTML = "";
 
-            if (!data || data.length === 0) return;
+            let count = new Set(data.map(item => item.productName)).size;
 
             data = [...data].sort((a, b) => {
                 const processCompare = (a.processName || "").localeCompare(b.processName || "");
@@ -226,7 +227,6 @@
             });
 
             let total = 0;
-            let count = 0;
 
             Object.keys(grouped).forEach(processName => {
                 const headerRow = document.createElement("tr");
@@ -240,12 +240,11 @@
                 grouped[processName].forEach(item => {
 
                     const status = checkStockStatus(item.quantity);
-                    const isFinished = (item.processName || "").toLowerCase() === "Finished Product";
+                    const isFinished = (item.processName || "") === "Finished Product";
                     const unitPrice = isFinished ? (item.productPrice || 0) : 0;
                     const value = isFinished ? item.quantity * unitPrice : 0;
 
                     total += value;
-                    count++;
 
                     const row = document.createElement("tr");
                     row.className = "border-b border-white/5 text-white/80";
@@ -385,23 +384,6 @@
             }, 50);
         });
 
-        // Global Toast System (Unified)
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast-card ${type === 'success' ? 'toast-success' : 'toast-error'}`;
-            toast.innerHTML = `
-                <div class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-moss-green' : 'bg-red-500'} animate-pulse"></div>
-                <p class="text-[10px] font-black uppercase tracking-widest">${message}</p>
-            `;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
-        }
-
         closeCommit.addEventListener('click', () => {
             const qtyInput = Number(document.getElementById('prodQty').value);
             const prodProc = Number(document.getElementById('prodProcess').value);
@@ -425,11 +407,12 @@
            
         });
 
-        function handleCloseCommit(data) {
+        async function handleCloseCommit(data) {
             console.log(data);
-            stockinProduct(data);
+            await stockinProduct(data);
             closeProductModal();
-            getProducts();
+            await getProducts();
+            showToast("Stock In Successful", "success");
         }
 
         openCommit.addEventListener('click', () => {
@@ -467,38 +450,8 @@
             nameEl.value = '';
             qtyEl.value = '';
             nameEl.focus(); 
+            showToast("Stock In Sccessful", "success");
         }
-            
-
-        /* // Commit Logic (FIXED Handle & Reset)
-        async function handleProductCommit(shouldClose = true) {
-            const nameEl = document.getElementById('prodName');
-            const qtyEl = document.getElementById('prodQty');
-            const unitEl = document.getElementById('prodUnit');
-            const procEl = document.getElementById('prodProcess');
-
-            if (!name || qty <= 0 || !process) {
-                showToast("Name, Qty, and Process are required", "error");
-                return;
-            }
-
-            showToast("Input Successful", "success");
-
-            if (shouldClose) {
-                await getProducts();
-                closeModal();
-            } else {
-                // Flash effect and reset only core inputs
-                [nameEl, qtyEl].forEach(el => {
-                    el.classList.add('bg-moss-green/10');
-                    setTimeout(() => el.classList.remove('bg-moss-green/10'), 400);
-                });
-                document.getElementById('prodId').value = '';
-                nameEl.value = '';
-                qtyEl.value = '';
-                nameEl.focus(); 
-            }
-        } */
 
         async function syncProcessDropdown() {
             const processSelect = document.getElementById('prodProcess');
