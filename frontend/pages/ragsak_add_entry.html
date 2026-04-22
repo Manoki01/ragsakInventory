@@ -50,7 +50,7 @@
 <body>
     <div id="toast-container"></div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-8 h-screen">
+    <main class="min-h-screen lg:pl-64">
         <div class="lg:col-span-1">
             <div id="sidebar-container"></div>
         </div>
@@ -63,7 +63,7 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 flex-1 overflow-hidden">
                 <div class="lg:col-span-2 flex flex-col h-full overflow-hidden">
-                    <div class="bg-white rounded-[40px] border-t-[12px] border-moss-green flex flex-col h-full max-w-5xl overflow-hidden">
+                    <div class="bg-white rounded-[40px] border-t-[12px] border-soft-black flex flex-col h-full max-w-5xl overflow-hidden">
                         
                         <div class="px-10 py-6 border-b border-gray-50 shrink-0">
                             <h2 class="text-xl font-black italic uppercase tracking-tighter text-soft-black">Initialize Resource</h2>
@@ -149,18 +149,17 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <script src="../components/ragsak_navigation.js"></script>
-
-    <script type="module">
+    <script>
+        window.currentPageId = 'nav-add-entry';
+    </script>
+    <script type="module" src="../components/ragsak_navigation.js"></script>
         import { getProcesses } from "../assets/js/api.js";
         import { addProduct } from "../assets/js/products.js";
         import { addRawMaterial } from "../assets/js/raw_materials.js";
         import { addPackaging } from "../assets/js/packaging.js";
         import { showToast } from '../components/notification.js';
-
-        injectNavigation("nav-add-stocks");
 
         const intakeForm = document.getElementById("intakeForm");
         const processContainer = document.getElementById("processCheckboxContainer");
@@ -420,7 +419,7 @@
                     break;
 
                 case "ragsak_packaging_inv":
-                    response = await addRawMaterial(data);
+                    response = await addPackaging(data);
                     if(response) {
                        showToast("Packaging added successfully", "success");
                     } else {

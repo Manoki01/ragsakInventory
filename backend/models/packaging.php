@@ -55,7 +55,10 @@ class Packaging {
         try {
             $packaging = $data['packagingID'];
 
-            $updateStmt = $this->conn->prepare("UPDATE tbl_packaging SET quantity = ? WHERE packagingID = ?");
+            $updateStmt = $this->conn->prepare("
+                UPDATE tbl_packaging SET quantity = quantity + ? 
+                WHERE packagingID = ?
+            ");
 
             $updateStmt->bind_param(
                 "ii",
@@ -67,6 +70,7 @@ class Packaging {
                 throw new Exception("Failed to update stock");
             }
 
+            $this->conn->commit();
             return true;
         } catch(Exception $e) {
             $this->conn->rollback();

@@ -59,61 +59,59 @@
 
     <div id="toast-container"></div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-8">
-        <div class="lg:col-span-1">
-            <div id="sidebar-container"></div>
-        </div>
+    <div id="sidebar-container"></div>
 
-        <div class="flex h-screen flex-col lg:col-span-7 px-8 pt-10 pb-6">
-            <header class="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+    <main class="min-h-screen lg:pl-64">
+        <div class="flex min-h-screen flex-col px-4 pt-4 pb-6 md:px-8 md:pt-8 lg:px-8 lg:pt-10">
+            <header class="flex flex-col md:flex-row justify-between items-start mb-8 lg:mb-10 gap-6">
                 <div>
                     <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">Packaging Inventory</h1>
                     <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">Supply Management • Ragsak Farm</p>
                 </div>
-                <div class="relative">
+                <div class="relative w-full md:w-auto">
                     <input type="text" id="inventorySearch" placeholder="Search supplies..." 
-                        class="h-11 w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400">
+                        class="h-11 w-full md:w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400">
                 </div>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 lg:mb-10">
                 <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-moss-green">
                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Packaging Asset Value</p>
-                    <h2 id="grandTotal" class="text-4xl font-black italic tracking-tighter">₱0.00</h2>
+                    <h2 id="grandTotal" class="text-4xl font-black italic tracking-tighter text-soft-black">₱0.00</h2>
                 </div>
                 <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black">
                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Active Supply SKU</p>
-                    <h2 id="skuCount" class="text-4xl font-black italic tracking-tighter">00</h2>
+                    <h2 id="skuCount" class="text-4xl font-black italic tracking-tighter text-soft-black">00</h2>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-hidden bg-soft-black rounded-3xl p-6 shadow-2xl flex flex-col">
-                <div class="flex items-center justify-between mb-6 px-2">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Packaging Supply Stockpile</p>
-                    <button onclick="openModal()" class="bg-white/10 hover:bg-white/20 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all">Add Supply Entry</button>
+            <div class="flex-1 overflow-hidden bg-white rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col min-h-[500px]">
+                <div class="flex items-center justify-between mb-6 px-2 gap-4">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">Packaging Supply Stockpile</p>
+                    <button id="modalOpen" class="bg-soft-black hover:bg-moss-light text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all shrink-0">Add Supply Entry</button>
                 </div>
                 
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar pr-2">
                     <table class="w-full text-left min-w-[800px] table-fixed">
-                        <thead class="sticky top-0 bg-soft-black z-10">
-                            <tr class="border-b border-white/5">
-                                <th class="pb-6 px-2 text-[10px] font-bold uppercase tracking-widest text-white/60">Name</th>
-                                <th class="pb-6 w-[120px] text-center text-[10px] font-bold uppercase text-white/60">Stock</th> 
-                                <th class="pb-6 w-[160px] text-center text-[10px] font-bold uppercase text-white/60">Status</th>
-                                <th class="pb-6 w-[140px] text-right text-[10px] font-bold uppercase text-white/60">Unit Price</th>
-                                <th class="pb-6 w-[160px] text-right text-[10px] font-bold uppercase text-white/60">Asset Value</th>
-                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-white/60 pr-2">Ctrl</th>
+                        <thead class="sticky top-0 bg-white z-10">
+                            <tr class="border-b border-gray-200">
+                                <th class="pb-6 pt-2 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Name</th>
+                                <th class="pb-6 w-[120px] text-center text-[10px] font-bold uppercase text-gray-600">Stock</th> 
+                                <th class="pb-6 w-[160px] text-center text-[10px] font-bold uppercase text-gray-600">Status</th>
+                                <th class="pb-6 w-[140px] text-right text-[10px] font-bold uppercase text-gray-600">Unit Price</th>
+                                <th class="pb-6 w-[160px] text-right text-[10px] font-bold uppercase text-gray-600">Asset Value</th>
+                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">Ctrl</th>
                             </tr>
                         </thead>
-                        <tbody id="inventoryBody" class="divide-y divide-white/5"></tbody>
+                        <tbody id="inventoryBody" class="divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <div id="packagingModal" class="hidden fixed inset-0 bg-soft-black/30 z-[60] p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-moss-green">
+        <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black">
             <div class="p-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <h2 id="modalTitle" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">Authorize Supply Entry</h2>
                 
@@ -142,14 +140,14 @@
 
                     <div class="flex flex-col gap-3 pt-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <button type="button" onclick="handleResourceCommit(true)" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-widest shadow-xl">
+                            <button type="button" id="commitClose" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-widest shadow-xl">
                                 Commit & Close
                             </button>
-                            <button type="button" onclick="handleResourceCommit(false)" class="bg-moss-green/10 text-moss-green border border-moss-green/20 text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green hover:text-white transition-all uppercase tracking-widest">
+                            <button type="button" id="commitOpen" class="bg-moss-green/10 text-moss-green border border-moss-green/20 text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green hover:text-white transition-all uppercase tracking-widest">
                                 Commit & Add Another
                             </button>
                         </div>
-                        <button type="button" onclick="closeModal()" class="w-full py-4 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
+                        <button type="button" id="modalClose" class="w-full py-4 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
                             Abort Entry
                         </button>
                     </div>
@@ -158,154 +156,296 @@
         </div>
     </div>
 
-    <script src="../components/ragsak_navigation.js"></script>
+   <script>
+        window.currentPageId = 'nav-packaging';
+    </script>
+    <script type="module" src="../components/ragsak_navigation.js"></script>
+        import { loadPackaging } from "../assets/js/packaging.js";
+        import { checkStockStatus } from '../assets/js/utils.js';
+        import { stockinPackaging } from '../assets/js/packaging.js';
+        import { showToast } from '../components/notification.js';
 
-    <script>
-        const STORAGE_KEY = 'ragsak_packaging_inv';
-        const DEFAULT_CONTEXT = 'Packaging Supply';
-        const nameInput = document.getElementById('packName');
+        const pacNameInput = document.getElementById('packName');
         const suggestionsUl = document.getElementById('predictiveResults');
+        const openModal = document.getElementById('modalOpen');
+        const closeModal = document.getElementById('modalClose');
+        const closeCommit = document.getElementById('commitClose');
+        const openCommit = document.getElementById('commitOpen');
 
-        injectNavigation('nav-packaging');
+        let selectedPackID;
 
-        // Custom render for Packaging Columns
-        window.render = function() {
-            const body = document.getElementById('inventoryBody');
-            const data = window.inventoryData || [];
-            
-            body.innerHTML = data.map(item => {
-                const assetValue = item.qty * (item.price || 0);
-                const statusClass = item.qty > 100 ? 'status-green' : (item.qty > 20 ? 'status-yellow' : 'status-red');
-                const statusText = item.qty > 100 ? 'Stable' : (item.qty > 20 ? 'Low Stock' : 'Critical');
+        window.inventoryData = [];
+
+        async function getPackaging() {
+            try {
+                const response = await loadPackaging();
+
+                if (!response || response.status !== "success") {
+                    console.error("Failed to load packaging:", response);
+                    return;
+                }
+
+                window.inventoryData = response.data;
+
+                renderPackaging();
+
+            } catch (err) {
+                console.error("Load packaging error:", err);
+            }
+        }
+
+        function renderPackaging(data = window.inventoryData) {
+            const tbody = document.getElementById("inventoryBody");
+            tbody.innerHTML = "";
+
+            let count = new Set(data.map(item => item.packagingName)).size;
+
+            data = [...data].sort((a, b) =>
+                (a.packagingName || "").localeCompare(b.packagingName || "")
+            );
+
+            let total = 0;
+
+            data.forEach(item => {
+
+                const status = checkStockStatus(item.quantity);
+                const unitPrice = item.packagingPrice || 0;
+                const value = item.quantity * unitPrice;
+
+                total += value;
+
+                const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 text-soft-black hover:bg-white/[0.02] transition-colors group";
+
+                row.innerHTML = `
+                    <td class="py-4 text-xs font-bold px-2 text-soft-black">
+                        ${item.packagingName}
+                    </td>
+
+                    <td class="py-4 text-center text-xs text-soft-black/60 font-mono">
+                        ${item.quantity} ${item.unitType}
+                    </td>
+
+                    <td class="py-4 text-center">
+                        <span class="status-pill ${
+                            status === "Out of Stock" ? "status-red" :
+                            status === "Low Stock" ? "status-yellow" :
+                            "status-green"
+                        }">
+                            ${status}
+                        </span>
+                    </td>
+
+                    <td class="py-4 text-right text-xs text-soft-black/60 font-mono">
+                        ₱${parseFloat(unitPrice).toLocaleString("en-PH", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </td>
+
+                    <td class="py-4 text-right text-xs font-bold text-soft-black">
+                        ₱${value.toLocaleString("en-PH", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </td>
+
+                    <td class="py-4 text-right text-xs pr-2">
+                        <button class="text-soft-black/40 hover:text-moss-green transition-colors">Edit</button>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+
+            document.getElementById("skuCount").innerText = count;
+
+            document.getElementById("grandTotal").innerText =
+                "₱" + total.toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+        }
+
+        const searchInput = document.getElementById("inventorySearch");
+
+        searchInput.addEventListener("input", function () {
+            const query = this.value.toLowerCase().trim();
+
+            const allItems = window.inventoryData || [];
+
+            if (query.length === 0) {
+                renderPackaging(allItems);
+                return;
+            }
+
+            const filtered = allItems.filter(item =>
+                item.packagingName.toLowerCase().includes(query)
+            );
+
+            renderPackaging(filtered);
+        });
+
+        pacNameInput.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+
+            if (query.length < 1) {
+                suggestionsUl.classList.add('hidden');
+                return;
+            }
+
+            const uniqueNames = [...new Set(
+                window.inventoryData.map(item => item.packagingName)
+            )];
+
+            const matches = uniqueNames.filter(name =>
+                name.toLowerCase().includes(query)
+            );
+
+            if (matches.length === 0) {
+                suggestionsUl.classList.add('hidden');
+                return;
+            }
+
+            suggestionsUl.innerHTML = matches.map(name => {
+                const itemData = window.inventoryData.find(i => i.packagingName === name);
 
                 return `
-                    <tr class="hover:bg-white/5 transition-colors group">
-                        <td class="px-2 py-4 text-xs font-bold text-white uppercase tracking-tight">${item.name}</td>
-                        <td class="py-4 text-center">
-                            <span class="text-xs font-black text-white">${item.qty}</span>
-                            <span class="text-[9px] font-bold text-white/30 uppercase ml-1">${item.unit}</span>
-                        </td>
-                        <td class="py-4 text-center">
-                            <span class="status-pill ${statusClass}">${statusText}</span>
-                        </td>
-                        <td class="py-4 text-right text-xs font-medium text-white/70">₱${(item.price || 0).toLocaleString()}</td>
-                        <td class="py-4 text-right text-xs font-black text-moss-light">₱${assetValue.toLocaleString()}</td>
-                        <td class="py-4 text-right pr-2">
-                            <button onclick="editItem('${item.id}')" class="text-white/20 hover:text-white transition-colors mr-3 text-[10px] font-bold uppercase tracking-tighter">Edit</button>
-                            <button onclick="deleteItem('${item.id}')" class="text-white/20 hover:text-red-500 transition-colors text-[10px] font-bold uppercase tracking-tighter">Del</button>
-                        </td>
-                    </tr>
+                    <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors text-soft-black"
+                        data-id="${itemData.packagingID}"
+                        data-name="${name}"
+                        data-unit="${itemData.unitType || ''}">
+                        ${name}
+                    </li>
                 `;
             }).join('');
 
-            const total = data.reduce((sum, item) => sum + (item.qty * (item.price || 0)), 0);
-            document.getElementById('grandTotal').innerText = `₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            document.getElementById('skuCount').innerText = data.length.toString().padStart(2, '0');
-        };
-
-        initInventoryManager({
-            storageKey: STORAGE_KEY,
-            tableBodyId: 'inventoryBody',
-            totalDisplayId: 'grandTotal',
-            skuCountId: 'skuCount',
-            modalId: 'packagingModal',
-            formFields: { id: 'packId', process: 'packProcess', name: 'packName', qty: 'packQty', unit: 'packUnit', price: 'packPrice' }
+            suggestionsUl.classList.remove('hidden');
         });
 
-        // Predictive Search Logic
-        nameInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            const currentItems = window.inventoryData || [];
-            if (query.length < 1) { suggestionsUl.classList.add('hidden'); return; }
-            const matches = currentItems.filter(item => item.name.toLowerCase().includes(query));
-            if (matches.length > 0) {
-                suggestionsUl.innerHTML = matches.map(item => `
-                    <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors"
-                        onmousedown="selectSuggestion('${item.name.replace(/'/g, "\\'")}', '${item.unit}', ${item.price})">
-                        <div class="flex justify-between items-center">
-                            <span>${item.name}</span>
-                            <span class="text-[9px] font-bold text-gray-400 tracking-tighter">${item.unit}</span>
-                        </div>
-                    </li>
-                `).join('');
-                suggestionsUl.classList.remove('hidden');
-            } else { suggestionsUl.classList.add('hidden'); }
-        });
+        suggestionsUl.addEventListener('mousedown', function (e) {
+            const li = e.target.closest('li');
+            if (!li) return;
 
-        function selectSuggestion(name, unit, price) {
-            nameInput.value = name;
-            document.getElementById('packUnit').value = unit;
-            document.getElementById('packPrice').value = price;
+            pacNameInput.value = li.dataset.name;
+            selectedPackID = Number(li.dataset.id);
+            document.getElementById('packUnit').value = li.dataset.unit;
+
             suggestionsUl.classList.add('hidden');
-            setTimeout(() => document.getElementById('packQty').focus(), 50);
-        }
 
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast-card ${type === 'success' ? 'toast-success' : 'toast-error'}`;
-            toast.innerHTML = `<div class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-moss-green' : 'bg-red-500'} animate-pulse"></div><p class="text-[10px] font-black uppercase tracking-widest">${message}</p>`;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000);
-        }
+            setTimeout(() => {
+                document.getElementById('packQty').focus();
+            }, 50);
+        });
 
-        function handleResourceCommit(shouldClose = true) {
+        closeCommit.addEventListener('click', () => {
+            const qtyInput = Number(document.getElementById('packQty').value);
+
+            if (!selectedPackID || qtyInput <= 0) {
+                showToast("Name and Quantity are required", "error");
+                return;
+            }
+
+            closeCommit.disabled = true;
+
+            let data = {
+                packagingID: selectedPackID,
+                quantity: qtyInput,
+            };
+
+            handleCloseCommit(data);
+
+            closeCommit.disabled = false;
+        });
+
+        async function handleCloseCommit(data) {
             const nameEl = document.getElementById('packName');
             const qtyEl = document.getElementById('packQty');
-            const unitEl = document.getElementById('packUnit');
-            const idField = document.getElementById('packId');
-            
-            const name = nameEl.value.trim();
-            const qty = parseFloat(qtyEl.value) || 0;
-            const unit = unitEl.value.trim();
-            const price = parseFloat(document.getElementById('packPrice').value) || 0;
+            const response = await stockinPackaging(data);
 
-            if (!name || qty <= 0) { showToast("Provide valid Name and Quantity", "error"); return; }
+            selectedPackID = null; 
+            nameEl.value = '';
+            qtyEl.value = '';
 
-            let inventory = window.inventoryData || [];
-
-            if (idField.value) {
-                const idx = inventory.findIndex(item => item.id == idField.value);
-                if (idx > -1) inventory[idx] = { ...inventory[idx], name, qty, unit, price };
+            if(response) {
+                closePackagingModal();
+                await getPackaging();
+                showToast("Stock In Successful", "success");
             } else {
-                const existingIdx = inventory.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
-                if (existingIdx > -1) {
-                    inventory[existingIdx].qty += qty;
-                    inventory[existingIdx].unit = unit;
-                } else {
-                    inventory.push({ id: Date.now(), name, qty, unit, price, process: DEFAULT_CONTEXT });
-                }
-            }
-
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
-            window.inventoryData = inventory;
-            window.render();
-            showToast("Supply Entry Authorized", "success");
-
-            if (shouldClose) { closeModal(); } 
-            else {
-                [nameEl, qtyEl, unitEl].forEach(el => {
-                    el.classList.add('bg-moss-green/10');
-                    setTimeout(() => el.classList.remove('bg-moss-green/10'), 400);
-                });
-                idField.value = ''; nameEl.value = ''; qtyEl.value = ''; unitEl.value = ''; nameEl.focus(); 
+                showToast("Stock In Failed", "error");
             }
         }
 
-        function openModal() { clearForm(); document.getElementById('packagingModal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('packagingModal').classList.add('hidden'); suggestionsUl.classList.add('hidden'); }
+        openCommit.addEventListener('click', () => {
+            const qtyInput = Number(document.getElementById('packQty').value);
+
+            if (!selectedPackID || qtyInput <= 0) {
+                showToast("Name and Quantity are required", "error");
+                return;
+            }
+
+            openCommit.disabled = true;
+
+            let data = {
+                packagingID: selectedPackID,
+                quantity: qtyInput,
+            };
+
+            handleOpenCommit(data);
+
+            openCommit.disabled = false;
+        });
+
+        async function handleOpenCommit(data) {
+            const nameEl = document.getElementById('packName');
+            const qtyEl = document.getElementById('packQty');
+            const response = await stockinPackaging(data);
+            selectedPackID = null; 
+            nameEl.value = '';
+            qtyEl.value = '';
+
+            if(response) {
+                await getPackaging();
+                nameEl.focus(); 
+                showToast("Stock In Successful", "success");
+            } else {
+                showToast("Stock In Failed", "error");
+            }
+        }
+
+        openModal.addEventListener('click', () => {
+            document.getElementById('packagingModal').classList.remove('hidden');
+        });
+
+        closeModal.addEventListener('click', () => {
+            closePackagingModal();
+        });
+
+        function closePackagingModal() {
+            document.getElementById('packagingModal').classList.add('hidden');
+            suggestionsUl.classList.add('hidden');
+        }
+
         function clearForm() {
             document.getElementById('packId').value = '';
             document.getElementById('packName').value = '';
             document.getElementById('packQty').value = '';
             document.getElementById('packUnit').value = '';
             document.getElementById('packPrice').value = '0';
-            document.getElementById('modalTitle').innerText = "Authorize Supply Entry";
+            document.getElementById('modalTitle').innerText = "Stock In";
         }
 
-        document.addEventListener('click', (e) => { if (!nameInput.contains(e.target) && !suggestionsUl.contains(e.target)) suggestionsUl.classList.add('hidden'); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+        document.addEventListener('click', (e) => {
+            if (!pacNameInput.contains(e.target) && !suggestionsUl.contains(e.target)) {
+                suggestionsUl.classList.add('hidden');
+            }
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePackagingModal();
+        });
+
+        getPackaging();
     </script>
 </body>
 </html>

@@ -59,67 +59,64 @@
 
     <div id="toast-container"></div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-8">
-        <div class="lg:col-span-1">
-            <div id="sidebar-container"></div>
-        </div>
+    <div id="sidebar-container"></div>
 
-        <div class="flex h-screen flex-col lg:col-span-7 px-8 pt-10 pb-6">
-            <header class="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+    <main class="min-h-screen lg:pl-64">
+        <div class="flex min-h-screen flex-col px-4 pt-4 pb-6 md:px-8 md:pt-8 lg:px-8 lg:pt-10">
+            <header class="flex flex-col md:flex-row justify-between items-start mb-8 lg:mb-10 gap-6">
                 <div>
                     <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">Materials Inventory</h1>
                     <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">Raw Resource Management • Ragsak Farm</p>
                 </div>
-                <div class="relative">
+                <div class="relative w-full md:w-auto">
                     <input type="text" id="inventorySearch" placeholder="Search resources..." 
-                        class="h-11 w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400">
+                        class="h-11 w-full md:w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400">
                 </div>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 lg:mb-10">
                 <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-moss-green">
                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Material Asset Value</p>
-                    <h2 id="grandTotal" class="text-4xl font-black italic tracking-tighter">₱0.00</h2>
+                    <h2 id="grandTotal" class="text-4xl font-black italic tracking-tighter text-soft-black">₱0.00</h2>
                 </div>
                 <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black">
                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Active Material SKU</p>
-                    <h2 id="skuCount" class="text-4xl font-black italic tracking-tighter">00</h2>
+                    <h2 id="skuCount" class="text-4xl font-black italic tracking-tighter text-soft-black">00</h2>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-hidden bg-soft-black rounded-3xl p-6 shadow-2xl flex flex-col">
-                <div class="flex items-center justify-between mb-6 px-2">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Raw Resource Stockpile</p>
-                    <button id="modalOpen" class="bg-white/10 hover:bg-white/20 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all">Add Stock Entry</button>
+            <div class="flex-1 overflow-hidden bg-white rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col min-h-[500px]">
+                <div class="flex items-center justify-between mb-6 px-2 gap-4">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">Raw Resource Stockpile</p>
+                    <button id="modalOpen" class="bg-soft-black hover:bg-moss-light text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all shrink-0">Add Stock Entry</button>
                 </div>
                 
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar pr-2">
                     <table class="w-full text-left min-w-[800px] table-fixed">
-                        <thead class="sticky top-0 bg-soft-black z-10">
-                            <tr class="border-b border-white/5">
-                                <th class="pb-6 px-2 text-[10px] font-bold uppercase tracking-widest text-white/60">Name</th>
-                                <th class="pb-6 w-[120px] text-center text-[10px] font-bold uppercase text-white/60">Stock</th> 
-                                <th class="pb-6 w-[160px] text-center text-[10px] font-bold uppercase text-white/60">Status</th>
-                                <th class="pb-6 w-[140px] text-right text-[10px] font-bold uppercase text-white/60">Unit Price</th>
-                                <th class="pb-6 w-[160px] text-right text-[10px] font-bold uppercase text-white/60">Asset Value</th>
-                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-white/60 pr-2">Ctrl</th>
+                        <thead class="sticky top-0 bg-white z-10">
+                            <tr class="border-b border-gray-200">
+                                <th class="pb-6 pt-2 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Name</th>
+                                <th class="pb-6 w-[120px] text-center text-[10px] font-bold uppercase text-gray-600">Stock</th> 
+                                <th class="pb-6 w-[160px] text-center text-[10px] font-bold uppercase text-gray-600">Status</th>
+                                <th class="pb-6 w-[140px] text-right text-[10px] font-bold uppercase text-gray-600">Unit Price</th>
+                                <th class="pb-6 w-[160px] text-right text-[10px] font-bold uppercase text-gray-600">Asset Value</th>
+                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">Ctrl</th>
                             </tr>
                         </thead>
-                        <tbody id="inventoryBody" class="divide-y divide-white/5"></tbody>
+                        <tbody id="inventoryBody" class="divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <div id="materialModal" class="hidden fixed inset-0 bg-soft-black/30 z-[60] p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-moss-green">
+        <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black">
             <div class="p-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <h2 id="modalTitle" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">Authorize Stock Entry</h2>
                 
                 <div class="space-y-8">
                     <input type="hidden" id="matId">
-                    <input type="hidden" id="matProcess" value="Raw Material">
                     <input type="hidden" id="matPrice" value="0">
                     
                     <div class="grid grid-cols-12 gap-4 items-end">
@@ -158,7 +155,10 @@
         </div>
     </div>
 
-    <script src="../components/ragsak_navigation.js"></script>
+    <script>
+        window.currentPageId = 'nav-materials';
+    </script>
+    <script type="module" src="../components/ragsak_navigation.js"></script>
 
     <script type="module">
         import { loadRawMaterials } from "../assets/js/raw_materials.js";
@@ -171,9 +171,9 @@
         const openModal = document.getElementById('modalOpen');
         const closeModal = document.getElementById('modalClose');
         const closeCommit = document.getElementById('commitClose');
-        const openCommit = document.getElementById('commitOpen');
+        const openCommit = document.getElementById('commitOpen');;
 
-        injectNavigation('nav-products');
+        let selectedMatID;
 
         window.inventoryData = [];
 
@@ -191,17 +191,16 @@
                 renderRawMaterials();
 
             } catch (err) {
-                console.error("Load products error:", err);
+                console.error("Load raw materials error:", err);
             }
         }
 
-        function renderRawMaterials(data = window.inventoryData, count = 0) {
+        function renderRawMaterials(data = window.inventoryData) {
             const tbody = document.getElementById("inventoryBody");
             tbody.innerHTML = "";
 
-            if (!data || data.length === 0) return;
+            let count = new Set(data.map(item => item.rawMaterialName)).size;
 
-            // ✅ sort by product name only
             data = [...data].sort((a, b) =>
                 (a.rawMaterialName || "").localeCompare(b.rawMaterialName || "")
             );
@@ -215,23 +214,19 @@
                 const value = item.quantity * unitPrice;
 
                 total += value;
-                count++;
 
                 const row = document.createElement("tr");
-                row.className = "text-white/80";
+                row.className = "border-b border-gray-200 text-soft-black hover:bg-white/[0.02] transition-colors group";
 
                 row.innerHTML = `
-                    <!-- NAME -->
-                    <td class="py-4 text-xs font-bold px-2">
+                    <td class="py-4 text-xs font-bold px-2 text-soft-black">
                         ${item.rawMaterialName}
                     </td>
 
-                    <!-- STOCK -->
-                    <td class="py-4 text-center text-xs">
+                    <td class="py-4 text-center text-xs text-soft-black/60 font-mono">
                         ${item.quantity} ${item.unitType}
                     </td>
 
-                    <!-- STATUS -->
                     <td class="py-4 text-center">
                         <span class="status-pill ${
                             status === "Out of Stock" ? "status-red" :
@@ -242,25 +237,22 @@
                         </span>
                     </td>
 
-                    <!-- UNIT PRICE -->
-                    <td class="py-4 text-right text-xs">
+                    <td class="py-4 text-right text-xs text-soft-black/60 font-mono">
                         ₱${parseFloat(unitPrice).toLocaleString("en-PH", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}
                     </td>
 
-                    <!-- VALUE -->
-                    <td class="py-4 text-right text-xs font-bold">
+                    <td class="py-4 text-right text-xs font-bold text-soft-black">
                         ₱${value.toLocaleString("en-PH", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}
                     </td>
 
-                    <!-- CTRL -->
                     <td class="py-4 text-right text-xs pr-2">
-                        <button class="text-white/40 hover:text-white">Edit</button>
+                        <button class="text-soft-black/40 hover:text-moss-green transition-colors">Edit</button>
                     </td>
                 `;
 
@@ -278,24 +270,23 @@
 
         const searchInput = document.getElementById("inventorySearch");
 
-            searchInput.addEventListener("input", function () {
-                const query = this.value.toLowerCase().trim();
+        searchInput.addEventListener("input", function () {
+            const query = this.value.toLowerCase().trim();
 
-                const allItems = window.inventoryData || [];
+            const allItems = window.inventoryData || [];
 
-                if (query.length === 0) {
-                    renderRawMaterials(allItems);
-                    return;
-                }
+            if (query.length === 0) {
+                renderRawMaterials(allItems);
+                return;
+            }
 
-                const filtered = allItems.filter(item =>
-                    item.rawMaterialName.toLowerCase().includes(query)
-                );
+            const filtered = allItems.filter(item =>
+                item.rawMaterialName.toLowerCase().includes(query)
+            );
 
-                renderRawMaterials(filtered);
-            });
+            renderRawMaterials(filtered);
+        });
 
-        // Predictive Search Logic (FIXED Undefined)
         matNameInput.addEventListener('input', function () {
             const query = this.value.toLowerCase().trim();
 
@@ -305,7 +296,7 @@
             }
 
             const uniqueNames = [...new Set(
-                currentItems.map(item => item.rawMaterialName)
+                window.inventoryData.map(item => item.rawMaterialName)
             )];
 
             const matches = uniqueNames.filter(name =>
@@ -318,10 +309,10 @@
             }
 
             suggestionsUl.innerHTML = matches.map(name => {
-                const itemData = currentItems.find(i => i.rawMaterialName === name);
+                const itemData = window.inventoryData.find(i => i.rawMaterialName === name);
 
                 return `
-                    <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors"
+                    <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors text-soft-black"
                         data-id="${itemData.rawMaterialID}"
                         data-name="${name}"
                         data-unit="${itemData.unitType || ''}">
@@ -338,7 +329,7 @@
             if (!li) return;
 
             matNameInput.value = li.dataset.name;
-            selectedProductID = Number(li.dataset.id);
+            selectedMatID = Number(li.dataset.id);
             document.getElementById('matUnit').value = li.dataset.unit;
 
             suggestionsUl.classList.add('hidden');
@@ -349,77 +340,84 @@
         });
 
         closeCommit.addEventListener('click', () => {
-            const qtyInput = Number(document.getElementById('matQty').value);;
+            const qtyInput = Number(document.getElementById('matQty').value);
 
-            if (!selectedProductID || qtyInput <= 0) {
+            if (!selectedMatID || qtyInput <= 0) {
                 showToast("Name and Quantity are required", "error");
                 return;
             }
 
             closeCommit.disabled = true;
 
-             let data = {
-                productID: selectedProductID,
+            let data = {
+                rawMaterialID: selectedMatID,
                 quantity: qtyInput,
             };
 
             handleCloseCommit(data);
 
             closeCommit.disabled = false;
-           
         });
 
         async function handleCloseCommit(data) {
-            console.log(data);
-            await stockinProduct(data);
-            closeMaterialModal();
-            await getRawMaterials();
-            showToast("Stock In Sccessful", "success");
+            const nameEl = document.getElementById('matName');
+            const qtyEl = document.getElementById('matQty');
+            const response = await stockinRawMaterial(data);
+
+            selectedMatID = null; 
+            nameEl.value = '';
+            qtyEl.value = '';
+
+            if(response) {
+                closeMaterialModal();
+                await getRawMaterials();
+                showToast("Stock In Successful", "success");
+            } else {
+                showToast("Stock In Failed", "error");
+            }
         }
 
         openCommit.addEventListener('click', () => {
-            const qtyInput = Number(document.getElementById('prodQty').value);
-            const prodProc = Number(document.getElementById('prodProcess').value);
+            const qtyInput = Number(document.getElementById('matQty').value);
 
-            if (!selectedProductID || qtyInput <= 0 || !prodProc) {
-                showToast("Name, Quantity, and Process are required", "error");
+            if (!selectedMatID || qtyInput <= 0) {
+                showToast("Name and Quantity are required", "error");
                 return;
             }
 
             openCommit.disabled = true;
 
-             let data = {
-                productID: selectedProductID,
+            let data = {
+                rawMaterialID: selectedMatID,
                 quantity: qtyInput,
-                processID: prodProc
             };
 
             handleOpenCommit(data);
 
             openCommit.disabled = false;
-           
         });
 
-        function handleOpenCommit(data) {
-            const procEl = document.getElementById('prodProcess')
-            const nameEl = document.getElementById('prodName');
-            const qtyEl = document.getElementById('prodQty');
+        async function handleOpenCommit(data) {
+            const nameEl = document.getElementById('matName');
+            const qtyEl = document.getElementById('matQty');
+            const response = await stockinRawMaterial(data);
 
-            console.log(data);
-            stockinProduct(data);
-            selectedProductID = null; 
-            procEl.value = '';  
+            selectedMatID = null; 
             nameEl.value = '';
             qtyEl.value = '';
-            nameEl.focus(); 
-            showToast("Stock In Sccessful", "success");
+
+            if(response) {
+                await getRawMaterials();
+                nameEl.focus();
+                showToast("Stock In Successful", "success");
+            } else {
+                showToast("Stock In Failed", "error");
+            }
         }
 
         openModal.addEventListener('click', () => {
-                //clearForm(); 
-                document.getElementById('materialModal').classList.remove('hidden');
-         });
-            
+            document.getElementById('materialModal').classList.remove('hidden');
+        });
 
         closeModal.addEventListener('click', () => {
             closeMaterialModal();
@@ -429,15 +427,13 @@
             document.getElementById('materialModal').classList.add('hidden');
             suggestionsUl.classList.add('hidden');
         }
-            
 
         function clearForm() {
-            document.getElementById('prodId').value = '';
-            document.getElementById('prodProcess').value = '';
-            document.getElementById('prodName').value = '';
-            document.getElementById('prodQty').value = '';
-            document.getElementById('prodUnit').value = '';
-            document.getElementById('prodPrice').value = '0';
+            document.getElementById('matId').value = '';
+            document.getElementById('matName').value = '';
+            document.getElementById('matQty').value = '';
+            document.getElementById('matUnit').value = '';
+            document.getElementById('matPrice').value = '0';
             document.getElementById('modalTitle').innerText = "Stock In";
         }
 
@@ -448,7 +444,7 @@
         });
         
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') closeMaterialModal();
         });
 
         getRawMaterials();

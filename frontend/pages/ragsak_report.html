@@ -1,138 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Report Engine | Ragsak Inventory</title>
-        
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Engine | Ragsak Inventory</title>
 
-        <style type="text/tailwindcss">
-            @theme {
-                --color-moss-green: #4A5D23;
-                --color-moss-light: #8DA067;
-                --color-soft-black: #121212;
-                --color-off-white: #F4F5F2;
-                --font-montserrat: "Montserrat", sans-serif;
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            --color-moss-green: #4A5D23;
+            --color-moss-light: #8DA067;
+            --color-soft-black: #121212;
+            --color-off-white: #F4F5F2;
+            --font-montserrat: "Montserrat", sans-serif;
+        }
+
+        @layer base {
+            body {
+                font-family: var(--font-montserrat);
+                @apply bg-off-white text-soft-black antialiased;
             }
+        }
 
-            @layer base {
-                body {
-                    font-family: var(--font-montserrat);
-                    @apply bg-off-white text-soft-black antialiased;
-                }
+        @media print {
+            body * { visibility: hidden; }
+            #printableReport, #printableReport * { visibility: visible; }
+            #printableReport {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block !important;
+                background: white !important;
             }
+            .no-print { display: none !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <div id="sidebar-container"></div>
 
-            /* Optimized Print Logic */
-            @media print {
-                body * { visibility: hidden; }
-                #printableReport, #printableReport * { visibility: visible; }
-                #printableReport {
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    width: 100%;
-                    display: block !important;
-                    background: white !important;
-                }
-                .no-print { display: none !important; }
-                
-                /* Ensure background colors actually show in PDF */
-                * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            }
-        </style>
-    </head>
-    
-    <body>
-       <div class="grid grid-cols-1 lg:grid-cols-8 no-print min-h-screen">
-        <div class="lg:col-span-1 border-r border-gray-200">
-            <div id="sidebar-container"></div>
-        </div>
-        
-        <div class="flex flex-col lg:col-span-7 px-8 pt-10 pb-6">
-            <div class="mb-10">
-                <h1 class="text-3xl font-black text-soft-black uppercase tracking-tighter italic leading-none">
-                    Report Engine
-                </h1>
-                <p class="text-[10px] font-bold text-moss-green uppercase tracking-[0.2em] mt-2">
-                    Operational Intelligence • Philippines Tarlac Hub
-                </p>
-            </div>
-
-            <div class="max-w-4xl space-y-6">
-                <div class="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-moss-green mb-4 italic">01. Target Departments</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-100 bg-off-white/50 cursor-pointer hover:border-moss-green transition-all">
-                            <input type="checkbox" id="dept-products" class="w-5 h-5 accent-moss-green">
-                            <span class="text-xs font-black uppercase italic">Finished Products</span>
-                        </label>
-                        <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-100 bg-off-white/50 cursor-pointer hover:border-moss-green transition-all">
-                            <input type="checkbox" id="dept-materials" class="w-5 h-5 accent-moss-green">
-                            <span class="text-xs font-black uppercase italic">Raw Materials</span>
-                        </label>
-                        <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-100 bg-off-white/50 cursor-pointer hover:border-moss-green transition-all">
-                            <input type="checkbox" id="dept-packaging" class="w-5 h-5 accent-moss-green">
-                            <span class="text-xs font-black uppercase italic">Packaging Items</span>
-                        </label>
-                    </div>
+        <main class="min-h-screen lg:pl-64">
+            <div class="min-h-screen px-4 pt-6 pb-6 sm:px-6 lg:px-8 lg:pt-10">
+                <div class="mb-10">
+                    <h1 class="text-2xl sm:text-3xl font-black text-soft-black uppercase tracking-tighter italic leading-none">
+                        Report Engine
+                    </h1>
+                    <p class="text-[10px] font-bold text-moss-green uppercase tracking-[0.2em] mt-2">
+                        Operational Intelligence • Philippines Tarlac Hub
+                    </p>
                 </div>
 
-                <div class="rounded-2xl bg-white border border-gray-100 shadow-xl overflow-hidden">
-                    <div class="bg-soft-black p-4">
-                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">02. Configure Report Modules</p>
+                <div class="max-w-8xl w-full space-y-6">
+                    <div class="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 sm:p-6">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-moss-green mb-4 italic">01. Target Departments</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-100 bg-off-white/50 cursor-pointer hover:border-moss-green transition-all">
+                                <input type="checkbox" id="dept-products" class="w-5 h-5 accent-moss-green">
+                                <span class="text-xs font-black uppercase italic">Products</span>
+                            </label>
+                            <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-100 bg-off-white/50 cursor-pointer hover:border-moss-green transition-all">
+                                <input type="checkbox" id="dept-materials" class="w-5 h-5 accent-moss-green">
+                                <span class="text-xs font-black uppercase italic">Raw Materials</span>
+                            </label>
+                            <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-100 bg-off-white/50 cursor-pointer hover:border-moss-green transition-all">
+                                <input type="checkbox" id="dept-packaging" class="w-5 h-5 accent-moss-green">
+                                <span class="text-xs font-black uppercase italic">Packaging Items</span>
+                            </label>
+                        </div>
                     </div>
-                    
-                    <div class="p-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                            <div class="space-y-4">
-                                <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-moss-green transition-all cursor-pointer bg-off-white/50">
-                                    <div class="flex flex-col">
-                                        <span class="text-xs font-black uppercase tracking-tight">Full Inventory Valuation</span>
-                                        <span class="text-[9px] text-gray-400 uppercase font-bold italic">Itemized cost & stock levels</span>
-                                    </div>
-                                    <input type="checkbox" id="check-inventory" class="w-5 h-5 accent-moss-green">
-                                </label>
 
-                                <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-moss-green transition-all cursor-pointer bg-off-white/50">
-                                    <div class="flex flex-col">
-                                        <span class="text-xs font-black uppercase tracking-tight text-red-700">Critical Stock Alerts</span>
-                                        <span class="text-[9px] text-gray-400 uppercase font-bold italic">Items below operational threshold</span>
-                                    </div>
-                                    <input type="checkbox" id="check-lowstock" class="w-5 h-5 accent-moss-green">
-                                </label>
-
-                                <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-moss-green transition-all cursor-pointer bg-off-white/50">
-                                    <div class="flex flex-col">
-                                        <span class="text-xs font-black uppercase tracking-tight">Global Metrics</span>
-                                        <span class="text-[9px] text-gray-400 uppercase font-bold italic">Total asset value & SKU counts</span>
-                                    </div>
-                                    <input type="checkbox" id="check-categories" class="w-5 h-5 accent-moss-green">
-                                </label>
+                    <div class="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 sm:p-6">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-moss-green mb-4 italic">02. Target Date Range</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Date From</label>
+                                <input
+                                    type="date"
+                                    id="date-from"
+                                    class="w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm font-bold transition-all outline-none focus:border-moss-green focus:ring-2 focus:ring-moss-green/10"
+                                >
                             </div>
-
-                            <div class="flex flex-col justify-center bg-moss-green/5 rounded-2xl p-6 border border-moss-green/10">
-                                <p class="text-[10px] font-bold text-moss-green uppercase mb-2 italic">Export Summary</p>
-                                <p class="text-[11px] leading-relaxed text-moss-green/70 italic font-medium">
-                                    Documents are optimized for A4 paper. Please ensure <span class="text-moss-green font-black underline">"Background Graphics"</span> is enabled in your print settings to see the brand colors.
-                                </p>
+                            <div>
+                                <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Date Until</label>
+                                <input
+                                    type="date"
+                                    id="date-until"
+                                    class="w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm font-bold transition-all outline-none focus:border-moss-green focus:ring-2 focus:ring-moss-green/10"
+                                >
                             </div>
                         </div>
+                        <p class="mt-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        </p>
+                    </div>
 
-                        <div class="flex items-center justify-end space-x-6">
-                            <button onclick="window.location.reload()" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-soft-black transition-colors">Reset Filters</button>
-                            <button onclick="prepareAndPrint()" class="bg-moss-green text-white text-[11px] font-black uppercase tracking-widest px-10 py-4 rounded-xl hover:bg-soft-black hover:scale-105 transition-all shadow-lg">
-                                Generate PDF / Print
+                    <div class="rounded-2xl bg-white border border-gray-100 shadow-xl overflow-hidden">
+                        <div class="bg-soft-black p-4">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">03. Choose what report to Print</p>
+                        </div>
+
+                        <div class="p-5 sm:p-8">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                                <div class="space-y-4">
+                                    <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-moss-green transition-all cursor-pointer bg-off-white/50">
+                                        <div class="flex flex-col pr-4">
+                                            <span class="text-xs font-black uppercase tracking-tight">Full Inventory</span>
+                                            <span class="text-[9px] text-soft-black uppercase font-bold italic">Itemized cost & stock levels</span>
+                                        </div>
+                                        <input type="checkbox" id="check-inventory" class="w-5 h-5 accent-moss-green">
+                                    </label>
+
+                                    <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-moss-green transition-all cursor-pointer bg-off-white/50">
+                                        <div class="flex flex-col pr-4">
+                                            <span class="text-xs font-black uppercase tracking-tight text-red-700">Critical Stock Alerts</span>
+                                            <span class="text-[9px] text-soft-black uppercase font-bold italic">Items that are out of stock</span>
+                                        </div>
+                                        <input type="checkbox" id="check-lowstock" class="w-5 h-5 accent-moss-green">
+                                    </label>
+
+                                    <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-moss-green transition-all cursor-pointer bg-off-white/50">
+                                        <div class="flex flex-col pr-4">
+                                            <span class="text-xs font-black uppercase tracking-tight">Total Value of Items</span>
+                                            <span class="text-[9px] text-soft-black uppercase font-bold italic">Total asset value</span>
+                                        </div>
+                                        <input type="checkbox" id="check-categories" class="w-5 h-5 accent-moss-green">
+                                    </label>
+
+                                    <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-moss-green transition-all cursor-pointer bg-off-white/50">
+                                        <div class="flex flex-col pr-4">
+                                            <span class="text-xs font-black uppercase tracking-tight">Product Stock In / Out</span>
+                                            <span class="text-[9px] text-soft-black uppercase font-bold italic">Display of Stock In / Out of products</span>
+                                        </div>
+                                        <input type="checkbox" id="check-stock-movement" class="w-5 h-5 accent-moss-green">
+                                    </label>
+                                </div>
+
+                                <div class="flex flex-col justify-center bg-moss-green/5 rounded-2xl p-6 border border-moss-green/10">
+                                    <p class="text-[10px] font-bold text-moss-green uppercase mb-2 italic">Export Summary</p>
+                                    <p class="text-[11px] leading-relaxed text-moss-green/70 italic font-medium">
+                                        Documents are optimized for A4 paper. Please ensure <span class="text-moss-green font-black underline">"Background Graphics"</span> is enabled in your print settings to see the brand colors.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end sm:space-x-6">
+                                <button onclick="window.location.reload()" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-soft-black transition-colors">
+                                    Reset Filters
+                                </button>
+                                <button onclick="prepareAndPrint()" class="bg-moss-green text-white text-[11px] font-black uppercase tracking-widest px-8 sm:px-10 py-4 rounded-xl hover:bg-soft-black hover:scale-105 transition-all shadow-lg">
+                                    Generate PDF / Print
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+                        <div class="bg-soft-black p-4 flex items-center justify-between">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">04. Report History</p>
+                            <button
+                                type="button"
+                                onclick="clearReportHistory()"
+                                class="text-[9px] font-bold uppercase tracking-widest text-white/60 hover:text-red-400 transition-colors"
+                            >
+                                Clear History
                             </button>
                         </div>
+
+                        <div class="p-5 sm:p-6">
+                            <div id="reportHistoryList" class="space-y-3"></div>
+                            <div id="reportHistoryEmpty" class="hidden py-10 text-center">
+                                <p class="text-[10px] font-bold uppercase tracking-widest text-gray-300">No generated reports yet</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
     <div id="printableReport" class="hidden p-12 bg-white min-h-screen">
@@ -157,24 +207,144 @@
         </div>
     </div>
 
-    <script src="../components/ragsak_navigation.js"></script>
-
     <script>
-        injectNavigation('nav-reports');
+        window.currentPageId = 'nav-reports';
+    </script>
+    <script type="module" src="../components/ragsak_navigation.js"></script>
+
+        const REPORT_HISTORY_KEY = 'ragsak_report_history';
+        const ORDER_KEY = 'ragsak_orders_data';
+        const PRODUCT_STOCK_LOG_KEY = 'ragsak_product_stock_log';
+
+        function getSelectedDepartments() {
+            const selections = [];
+            if (document.getElementById('dept-products').checked) selections.push('Products');
+            if (document.getElementById('dept-materials').checked) selections.push('Materials');
+            if (document.getElementById('dept-packaging').checked) selections.push('Packaging');
+            return selections;
+        }
+
+        function getSelectedModules() {
+            const modules = [];
+            if (document.getElementById('check-inventory').checked) modules.push('Full Inventory Valuation');
+            if (document.getElementById('check-lowstock').checked) modules.push('Critical Stock Alerts');
+            if (document.getElementById('check-categories').checked) modules.push('Global Metrics');
+            if (document.getElementById('check-stock-movement').checked) modules.push('Product Stock In / Out');
+            return modules;
+        }
+
+        function saveReportHistory(entry) {
+            const history = JSON.parse(localStorage.getItem(REPORT_HISTORY_KEY)) || [];
+            history.unshift(entry);
+            localStorage.setItem(REPORT_HISTORY_KEY, JSON.stringify(history.slice(0, 20)));
+            renderReportHistory();
+        }
+
+        function clearReportHistory() {
+            if (!confirm("Clear all generated report history?")) return;
+            localStorage.removeItem(REPORT_HISTORY_KEY);
+            renderReportHistory();
+        }
+
+        function renderReportHistory() {
+            const history = JSON.parse(localStorage.getItem(REPORT_HISTORY_KEY)) || [];
+            const list = document.getElementById('reportHistoryList');
+            const empty = document.getElementById('reportHistoryEmpty');
+
+            if (history.length === 0) {
+                list.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+
+            list.innerHTML = history.map(item => `
+                <div class="rounded-2xl border border-gray-100 bg-off-white/60 p-4 sm:p-5">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <p class="text-xs sm:text-sm font-black uppercase italic tracking-tight text-soft-black">${item.fileName}</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-moss-green">
+                                ${item.dateLabel}
+                            </p>
+                        </div>
+                        <div class="text-left sm:text-right">
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Reference</p>
+                            <p class="text-[10px] font-mono text-gray-500">${item.reference}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+                        <div>
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Departments</p>
+                            <p class="text-[10px] font-black uppercase text-soft-black">${item.departments.join(', ') || 'None'}</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Modules</p>
+                            <p class="text-[10px] font-black uppercase text-soft-black">${item.modules.join(', ') || 'None'}</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Range</p>
+                            <p class="text-[10px] font-black uppercase text-soft-black">${item.dateRange || 'No Date Filter'}</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Status</p>
+                            <p class="text-[10px] font-black uppercase text-moss-green">${item.status || 'Export Initiated'}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function normalizeDateString(value) {
+            if (!value) return null;
+            const d = new Date(value);
+            if (isNaN(d.getTime())) return null;
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function isDateInRange(dateValue, from, until) {
+            const normalized = normalizeDateString(dateValue);
+            if (!normalized) return false;
+            if (from && normalized < from) return false;
+            if (until && normalized > until) return false;
+            return true;
+        }
+
+        function buildRangeLabel(from, until) {
+            if (!from && !until) return 'No Date Filter';
+            if (from && until) return `${from} to ${until}`;
+            if (from) return `${from} onward`;
+            return `Until ${until}`;
+        }
 
         function prepareAndPrint() {
             const reportArea = document.getElementById('report-content-area');
             const printDate = document.getElementById('printDate');
             const reportRef = document.getElementById('reportRef');
-            
-            reportArea.innerHTML = ''; 
-            reportRef.innerText = `REF: RSK-INV-${Date.now()}`;
-            
-            printDate.innerText = new Date().toLocaleDateString('en-PH', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+
+            reportArea.innerHTML = '';
+            const reference = `REF: RSK-INV-${Date.now()}`;
+            reportRef.innerText = reference;
+
+            const dateFrom = document.getElementById('date-from').value || '';
+            const dateUntil = document.getElementById('date-until').value || '';
+
+            if (dateFrom && dateUntil && dateFrom > dateUntil) {
+                alert("Target date range is invalid. 'Date From' must be earlier than or equal to 'Date Until'.");
+                return;
+            }
+
+            printDate.innerText = new Date().toLocaleDateString('en-PH', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             }).toUpperCase();
 
-            // 1. GATHER DATA
             let masterData = [];
             const depts = [
                 { id: 'dept-products', key: 'ragsak_products_inv', label: 'Product' },
@@ -194,7 +364,6 @@
                 return;
             }
 
-            // 2. MODULE: VALUATION
             if (document.getElementById('check-inventory').checked) {
                 reportArea.innerHTML += `
                     <section>
@@ -218,8 +387,8 @@
                                         <td class="py-3 font-bold text-moss-green uppercase text-[9px]">${i.category}</td>
                                         <td class="py-3 font-bold uppercase italic">${i.name}</td>
                                         <td class="py-3 text-center font-mono font-bold">${i.qty} <span class="text-[9px] text-gray-400">${i.unit}</span></td>
-                                        <td class="py-3 text-right font-mono">₱${(parseFloat(i.price) || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                                        <td class="py-3 text-right font-mono font-black italic">₱${((i.qty || 0) * (i.price || 0)).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                                        <td class="py-3 text-right font-mono">₱${(parseFloat(i.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                        <td class="py-3 text-right font-mono font-black italic">₱${((i.qty || 0) * (i.price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -227,7 +396,6 @@
                     </section>`;
             }
 
-            // 3. MODULE: LOW STOCK
             if (document.getElementById('check-lowstock').checked) {
                 const lowItems = masterData.filter(i => (i.qty <= (i.category === 'Packaging' ? 50 : 15)));
                 reportArea.innerHTML += `
@@ -253,9 +421,8 @@
                     </section>`;
             }
 
-            // 4. MODULE: METRICS
             if (document.getElementById('check-categories').checked) {
-                const totalValue = masterData.reduce((acc, i) => acc + (i.qty * i.price), 0);
+                const totalValue = masterData.reduce((acc, i) => acc + ((i.qty || 0) * (i.price || 0)), 0);
                 reportArea.innerHTML += `
                     <section>
                         <h2 class="text-xl font-black uppercase tracking-tight mb-4 flex items-center italic">
@@ -265,33 +432,161 @@
                         <div class="grid grid-cols-3 gap-6">
                             <div class="p-6 border-2 border-soft-black bg-off-white italic text-center rounded-xl">
                                 <p class="text-[9px] font-black uppercase text-gray-500 mb-2 tracking-widest">Total Asset Value</p>
-                                <p class="text-2xl font-black text-moss-green">₱${totalValue.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                                <p class="text-2xl font-black text-moss-green">₱${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                             </div>
                             <div class="p-6 border-2 border-soft-black bg-off-white italic text-center rounded-xl">
-                                <p class="text-[9px] font-black uppercase text-gray-500 mb-2 tracking-widest">Global SKU Count</p>
+                                <p class="text-[9px] font-black uppercase text-gray-500 mb-2 tracking-widest">Global Items Count</p>
                                 <p class="text-2xl font-black">${masterData.length.toString().padStart(2, '0')}</p>
                             </div>
                             <div class="p-6 border-2 border-soft-black bg-off-white italic text-center rounded-xl">
-                                <p class="text-[9px] font-black uppercase text-gray-500 mb-2 tracking-widest">Active Hubs</p>
+                                <p class="text-[9px] font-black uppercase text-gray-500 mb-2 tracking-widest">Active Categories</p>
                                 <p class="text-2xl font-black">0${[...new Set(masterData.map(i => i.category))].length}</p>
                             </div>
                         </div>
                     </section>`;
             }
 
-            // EXECUTION: Font & Layout Fix
-            if(reportArea.innerHTML === '') {
+            if (document.getElementById('check-stock-movement').checked) {
+                const orders = JSON.parse(localStorage.getItem(ORDER_KEY)) || [];
+                const stockInLogs = JSON.parse(localStorage.getItem(PRODUCT_STOCK_LOG_KEY)) || [];
+
+                const filteredOrders = orders.filter(order => isDateInRange(order.date, dateFrom, dateUntil));
+
+                const filteredStockIn = Array.isArray(stockInLogs)
+                    ? stockInLogs.filter(entry =>
+                        (entry.type === 'in' || entry.movement === 'in' || entry.direction === 'in' || entry.action === 'stock_in') &&
+                        isDateInRange(entry.date, dateFrom, dateUntil)
+                    )
+                    : [];
+
+                const stockOutRows = filteredOrders.map(order => `
+                    <tr>
+                        <td class="py-3 font-mono text-[10px]">${order.date || '--'}</td>
+                        <td class="py-3 font-bold uppercase italic">${order.productName || 'Unknown Product'}</td>
+                        <td class="py-3 uppercase text-[9px] font-black text-gray-500">${order.process || 'Product'}</td>
+                        <td class="py-3 text-center font-mono font-black text-red-700">${order.qty || 0}</td>
+                        <td class="py-3 uppercase text-[9px] font-black text-gray-500">${order.customer || 'Order'}</td>
+                    </tr>
+                `).join('');
+
+                const stockInRows = filteredStockIn.map(entry => `
+                    <tr>
+                        <td class="py-3 font-mono text-[10px]">${entry.date || '--'}</td>
+                        <td class="py-3 font-bold uppercase italic">${entry.productName || entry.name || 'Unknown Product'}</td>
+                        <td class="py-3 uppercase text-[9px] font-black text-gray-500">${entry.process || 'Product'}</td>
+                        <td class="py-3 text-center font-mono font-black text-moss-green">${entry.qty || entry.quantity || 0}</td>
+                        <td class="py-3 uppercase text-[9px] font-black text-gray-500">${entry.note || entry.source || 'Stock In'}</td>
+                    </tr>
+                `).join('');
+
+                reportArea.innerHTML += `
+                    <section>
+                        <h2 class="text-xl font-black uppercase tracking-tight mb-4 flex items-center italic">
+                            <span class="w-8 h-8 bg-soft-black text-white flex items-center justify-center mr-3 text-xs not-italic">04</span>
+                            Product Stock In / Out
+                        </h2>
+
+                        <p class="mb-5 text-[10px] font-bold uppercase tracking-[0.2em] text-moss-green">
+                            Range: ${buildRangeLabel(dateFrom, dateUntil)}
+                        </p>
+
+                        <div class="space-y-8">
+                            <div>
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="h-3 w-3 rounded-full bg-moss-green"></div>
+                                    <h3 class="text-sm font-black uppercase italic tracking-tight">Stock In</h3>
+                                </div>
+
+                                ${filteredStockIn.length > 0 ? `
+                                    <table class="w-full text-[11px] text-left border-collapse">
+                                        <thead>
+                                            <tr class="border-b-2 border-soft-black uppercase font-black text-gray-400 italic">
+                                                <th class="py-2">Date</th>
+                                                <th class="py-2">Product</th>
+                                                <th class="py-2">Process</th>
+                                                <th class="py-2 text-center">Qty In</th>
+                                                <th class="py-2">Source</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            ${stockInRows}
+                                        </tbody>
+                                    </table>
+                                ` : `
+                                    <div class="p-4 rounded-xl bg-moss-green/5 border border-moss-green/10">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-moss-green">
+                                            No stock-in history found for the selected range.
+                                        </p>
+                                        <p class="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                            Add entries to localStorage key: PRODUCT_STOCK_LOG_KEY = "ragsak_product_stock_log" to populate this section.
+                                        </p>
+                                    </div>
+                                `}
+                            </div>
+
+                            <div>
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="h-3 w-3 rounded-full bg-red-700"></div>
+                                    <h3 class="text-sm font-black uppercase italic tracking-tight">Stock Out</h3>
+                                </div>
+
+                                ${filteredOrders.length > 0 ? `
+                                    <table class="w-full text-[11px] text-left border-collapse">
+                                        <thead>
+                                            <tr class="border-b-2 border-soft-black uppercase font-black text-gray-400 italic">
+                                                <th class="py-2">Date</th>
+                                                <th class="py-2">Product</th>
+                                                <th class="py-2">Process</th>
+                                                <th class="py-2 text-center">Qty Out</th>
+                                                <th class="py-2">Reference</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            ${stockOutRows}
+                                        </tbody>
+                                    </table>
+                                ` : `
+                                    <p class="text-xs italic py-4 text-gray-400">
+                                        No product stock-out records found from orders within the selected range.
+                                    </p>
+                                `}
+                            </div>
+                        </div>
+                    </section>`;
+            }
+
+            if (reportArea.innerHTML === '') {
                 alert("Please select at least one report module.");
                 return;
             }
 
-            // Ensure fonts are ready before triggering
+            const historyEntry = {
+                fileName: `ragsak_report_${new Date().toISOString().slice(0, 10)}`,
+                reference,
+                dateLabel: new Date().toLocaleString('en-PH', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }).toUpperCase(),
+                departments: getSelectedDepartments(),
+                modules: getSelectedModules(),
+                dateRange: buildRangeLabel(dateFrom, dateUntil),
+                status: 'Export Initiated',
+                createdAt: Date.now()
+            };
+
+            saveReportHistory(historyEntry);
+
             document.fonts.ready.then(() => {
                 setTimeout(() => {
                     window.print();
-                }, 300); // 300ms delay to let Tailwind JIT finish layout
+                }, 300);
             });
         }
+
+        renderReportHistory();
     </script>
 </body>
 </html>

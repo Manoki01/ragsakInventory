@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style type="text/tailwindcss">
         @theme {
@@ -65,7 +66,7 @@
             <form id="loginForm" class="mt-10 space-y-6">
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Username</label>
-                    <input type="text" id="username" required placeholder="ragsak_admin" class="input-field" autocomplete="off" />
+                    <input type="text" id="username" required placeholder="ragsak_admin" class="input-field" autocomplete="off" aria-label="Username" aria-describedby="usernameError" />
                     <p id="usernameError" class="text-[9px] text-red-500 font-bold uppercase mt-1 hidden">Invalid characters detected</p>
                 </div>
 
@@ -73,11 +74,24 @@
                     <div class="flex justify-between items-center ml-1">
                         <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green">Passcode</label>
                     </div>
-                    <input type="password" id="password" required placeholder="••••••••" class="input-field" />
+                    <div class="relative">
+                        <input type="password" id="password" required placeholder="••••••••" class="input-field pr-10" aria-label="Password" aria-describedby="passwordHelp" />
+                        <button type="button" id="togglePassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-moss-green" aria-label="Toggle password visibility">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="passwordHelp" class="text-[8px] text-gray-400 uppercase mt-1 ml-1 font-bold hidden">Password must be at least 6 characters with uppercase, lowercase, and number.</p>
                 </div>
 
                 <div class="pt-4">
-                    <button type="submit" id="submitBtn" class="group relative w-full overflow-hidden rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-moss-green active:scale-[0.98]">
+                    <div class="flex items-center justify-center mb-4">
+                        <input type="checkbox" id="captcha" required class="mr-2" aria-label="Verify you are not a robot" />
+                        <label for="captcha" class="text-[10px] font-bold uppercase tracking-widest text-moss-green">I'm not a robot</label>
+                    </div>
+                    <button type="submit" id="submitBtn" class="group relative w-full overflow-hidden rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-moss-green active:scale-[0.98]" aria-label="Submit login form">
                         <span id="btnText" class="relative z-10">Authorize Access</span>
                     </button>
                 </div>
@@ -123,16 +137,75 @@
     <script type="module">
         import { loginUser } from './assets/js/users.js';
 
+        // Check for inactivity logout
+        if (sessionStorage.getItem('inactivityLogout')) {
+            sessionStorage.removeItem('inactivityLogout');
+            Swal.fire({
+                title: 'Session Expired',
+                text: 'You have been logged out due to inactivity.',
+                icon: 'info',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4A5D23',
+                didClose: () => {
+                    // Clear any remaining session data
+                    localStorage.clear();
+                }
+            });
+        }
+
         const loginForm = document.getElementById('loginForm');
         const submitBtn = document.getElementById('submitBtn');
         const btnText = document.getElementById('btnText');
         const usernameInput = document.getElementById('username'); // Ensure your HTML ID is 'username'
+        const passwordInput = document.getElementById('password');
+        const togglePasswordBtn = document.getElementById('togglePassword');
+
+        // Password visibility toggle
+        togglePasswordBtn.addEventListener('click', () => {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            const icon = togglePasswordBtn.querySelector('svg');
+            if (type === 'text') {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+            }
+        });
 
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const username = usernameInput.value;
-            const password = document.getElementById('password').value;
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            
+            // Client-side input sanitization and validation
+            const usernameError = document.getElementById('usernameError');
+            
+            // Reset error state
+            usernameError.classList.add('hidden');
+            usernameInput.classList.remove('border-red-500');
+            
+            // Validate username: at least 4 characters
+            if (username.length < 4 || username.length > 50) {
+                usernameError.textContent = 'Username must be 4-50 characters long.';
+                usernameError.classList.remove('hidden');
+                usernameInput.classList.add('border-red-500');
+                return;
+            }
+            
+            // Validate password: at least 6 characters, one uppercase, one lowercase, one number
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+            if (!passwordRegex.test(password)) {
+                alert('Password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, and one number.');
+                return;
+            }
+            
+            // Validate CAPTCHA
+            const captcha = document.getElementById('captcha');
+            if (!captcha.checked) {
+                alert('Please verify you are not a robot.');
+                return;
+            }
             
             if(username && password) {
                 // Enter Loading State
@@ -149,8 +222,8 @@
                 `;
 
                 let data = {
-                    username,
-                    password
+                    username: username,
+                    password: password
                 }
 
                 handleLogin(data);
@@ -160,11 +233,12 @@
         async function handleLogin(data) {
             console.log("Passing data:", data);
             
-            const validUser = await loginUser(data);
+            const response = await loginUser(data);
 
             setTimeout(() => {
 
-                if (validUser) {
+                if (response.status === "success") {
+                    localStorage.setItem('jwt', response.token);
 
                     btnText.innerHTML = "Access Granted";
                     submitBtn.classList.replace('bg-soft-black', 'bg-moss-green');
@@ -174,8 +248,7 @@
                     }, 800);
 
                 } else {
-
-                    btnText.innerHTML = "Authorization Denied";
+                    btnText.innerHTML = response.message || "Authorization Denied";
                     submitBtn.classList.replace('bg-soft-black', 'bg-red-900');
 
                     setTimeout(() => {

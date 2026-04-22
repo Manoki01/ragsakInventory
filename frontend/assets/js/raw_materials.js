@@ -37,11 +37,9 @@ export async function stockinRawMaterial(data) {
         const response = await stockRawMaterial(data);
 
         if(response.status === "success") {
-            alert("Stock In Successful");
-            loadRawMaterials();
+            return true;
         } else {
-            alert("Failed: ", response.message);
-            console.error("API Error: " + response.message);
+            return false;
         }
     } catch (error) {
         console.error("Failed to update raw material stock", error);

@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Process Registry | Ragsak</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <style type="text/tailwindcss">
@@ -26,120 +26,841 @@
                 @apply bg-off-white text-soft-black antialiased;
             }
         }
-        
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green rounded; }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            @apply bg-soft-black;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            @apply bg-moss-green rounded;
+        }
+
+        .dropdown-panel-hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="grid grid-cols-1 lg:grid-cols-8">
-        <div class="lg:col-span-1">
-            <div id="sidebar-container"></div>
-        </div>
+    <div id="sidebar-container"></div>
 
-        <div class="flex h-screen flex-col lg:col-span-7 px-8 pt-10 pb-6">
-            <header class="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+    <main class="min-h-screen lg:pl-64">
+        <div class="flex min-h-screen flex-col px-4 pt-6 pb-6 sm:px-6 lg:px-8 lg:pt-10">
+            <header class="mb-8 md:mb-10">
                 <div>
-                    <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">Process Architect</h1>
-                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">Production Logic • Formula Management</p>
+                    <h1 class="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">
+                        Process Architect
+                    </h1>
+                    <p class="mt-2 text-[10px] font-bold text-moss-green uppercase tracking-[0.2em]">
+                        Production Logic • Formula Management
+                    </p>
                 </div>
             </header>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1 overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 flex-1">
                 <div class="lg:col-span-1">
-                    <div class="bg-white p-8 rounded-3xl shadow-xl border-t-[12px] border-moss-green">
-                        <h2 class="text-xl font-black italic uppercase tracking-tighter text-soft-black mb-6">Define New Process</h2>
+                    <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border-t-[12px] border-soft-black">
+                        <h2 class="text-lg sm:text-xl font-black italic uppercase tracking-tighter text-soft-black mb-6">
+                            Define New Process
+                        </h2>
+
                         <form onsubmit="event.preventDefault(); createProcess();" class="space-y-6">
                             <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Process Name</label>
-                                <input type="text" id="procName" required class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green uppercase" placeholder="e.g. FERMENTATION">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                                    Process Name
+                                </label>
+                                <input
+                                    type="text"
+                                    id="procName"
+                                    required
+                                    class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green uppercase"
+                                    placeholder="e.g. FERMENTATION"
+                                >
                             </div>
+
                             <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Computation Formula (Future)</label>
-                                <textarea id="procFormula" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-xs font-bold outline-none focus:border-moss-green h-24" placeholder="[Input A] * 0.5 + [Input B]..."></textarea>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                                    Computation Formula (Optional)
+                                </label>
+                                <textarea
+                                    id="procFormula"
+                                    class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-xs font-bold outline-none focus:border-moss-green h-24"
+                                    placeholder="[Input A] * 0.5 + [Input B]..."
+                                ></textarea>
                             </div>
-                            <button type="submit" class="w-full bg-soft-black text-white text-xs font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-[0.2em] shadow-lg">
+
+                            <button
+                                type="submit"
+                                class="w-full bg-soft-black text-white text-xs font-black py-5 rounded-2xl hover:bg-moss-light transition-all uppercase tracking-[0.2em] shadow-lg"
+                            >
                                 Register Process
                             </button>
                         </form>
                     </div>
                 </div>
 
-                <div class="lg:col-span-2 flex flex-col bg-soft-black rounded-3xl p-8 shadow-2xl overflow-hidden">
-                    <div class="flex items-center justify-between mb-8">
-                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Active Production Pipelines</p>
+                <div class="lg:col-span-2 flex flex-col bg-white rounded-3xl p-4 sm:p-6 lg:p-8 shadow-2xl overflow-hidden min-h-[420px]">
+                    <div class="flex items-center justify-between mb-6 sm:mb-8">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">
+                            Active Production Pipelines
+                        </p>
                     </div>
 
-                    <div class="flex-1 overflow-y-auto custom-scrollbar pr-4">
-                        <table class="w-full text-left">
-                            <thead class="sticky top-0 bg-soft-black z-10">
-                                <tr class="border-b border-white/5">
-                                    <th class="pb-4 text-[9px] font-bold uppercase tracking-widest text-white/30">Process Name</th>
-                                    <th class="pb-4 text-[9px] font-bold uppercase tracking-widest text-white/30">Formula Config</th>
-                                    <th class="pb-4 text-right text-[9px] font-bold uppercase tracking-widest text-white/30">Action</th>
+                    <div class="flex-1 overflow-auto custom-scrollbar pr-2 sm:pr-4">
+                        <table class="w-full min-w-[680px] text-left">
+                            <thead class="sticky top-0 z-10">
+                                <tr class="border-b border-gray-200">
+                                    <th class="pb-4 pt-2 text-[9px] font-bold uppercase tracking-widest text-gray-600">Process Name</th>
+                                    <th class="pb-4 pt-2 text-[9px] font-bold uppercase tracking-widest text-gray-600">Formula Config</th>
+                                    <th class="pb-4 pt-2 text-right text-[9px] font-bold uppercase tracking-widest text-gray-600">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="processTableBody" class="divide-y divide-white/5">
-                                </tbody>
+                            <tbody id="processTableBody" class="divide-y divide-gray-200"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
+    </main>
+
+
+    <div id="formulaChooserModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-soft-black/30 px-4 py-6 backdrop-blur-md">
+        <div class="w-full max-w-2xl rounded-[2rem] bg-white shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between border-b border-gray-100 px-8 py-6">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-moss-green">Formula Options</p>
+                    <h3 id="chooserProcessTitle" class="mt-1 text-xl sm:text-2xl font-black italic uppercase tracking-tighter text-soft-black">Select Action</h3>
+                </div>
+                <button onclick="closeFormulaChooserModal()" class="rounded-full border border-gray-200 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 hover:border-moss-green hover:text-moss-green">
+                    Close
+                </button>
+            </div>
+
+            <div class="px-8 py-8">
+                <div class="rounded-[1.75rem] border border-gray-100 bg-gray-50 p-6">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Current Status</p>
+                    <div id="formulaChooserStatus" class="mt-3 space-y-3"></div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button id="createFormulaBtn" onclick="proceedToFormulaModal('create')" class="rounded-2xl bg-soft-black px-5 py-3 text-left hover:bg-moss-light transition-all">
+                        <span class="block text-[9px] font-bold uppercase tracking-[0.18em] text-white/70">Start Config</span>
+                        <span class="mt-1 block text-xs font-black uppercase tracking-[0.12em] text-white">Create New</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="../components/ragsak_navigation.js"></script>
+    <div id="formulaModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-soft-black/30 px-4 py-6 backdrop-blur-md">
+        <div class="w-full max-w-8xl max-h-[92vh] overflow-hidden rounded-[2rem] bg-white shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-100 px-8 py-6">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-moss-green">Formula Assignment</p>
+                    <h3 id="modalProcessTitle" class="mt-1 text-xl sm:text-2xl font-black italic uppercase tracking-tighter text-soft-black">Configure Process</h3>
+                </div>
+                <button onclick="closeFormulaModal()" class="rounded-full border border-gray-200 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 hover:border-moss-green hover:text-moss-green">
+                    Close
+                </button>
+            </div>
 
-    <script type="module">
-        injectNavigation('nav-process');
+            <div class="max-h-[calc(92vh-96px)] overflow-auto px-8 py-8 custom-scrollbar">
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        <section class="flex min-h-[320px] flex-col rounded-[1.75rem] border border-gray-100 bg-gray-50 p-6">
+                            <div>
+                                <h4 class="text-sm font-black uppercase tracking-[0.2em] text-soft-black">Raw Materials</h4>
+                                <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Select materials instantly</p>
+                            </div>
+
+                            <div class="relative mt-5">
+                                <button type="button" onclick="toggleDropdown('rawMaterials')" class="flex w-full items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-left outline-none hover:border-moss-green">
+                                    <span id="rawMaterialsTriggerText">Select raw materials</span>
+                                    <span class="text-xs">▾</span>
+                                </button>
+                                <div id="rawMaterialsDropdown" class="dropdown-panel-hidden absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white p-2 shadow-xl custom-scrollbar"></div>
+                            </div>
+
+                            <div id="rawMaterialsSelected" class="mt-5 flex-1 space-y-3 overflow-y-auto pr-1 custom-scrollbar"></div>
+                        </section>
+
+                        <section class="flex min-h-[320px] flex-col rounded-[1.75rem] border border-gray-100 bg-gray-50 p-6">
+                            <div>
+                                <h4 class="text-sm font-black uppercase tracking-[0.2em] text-soft-black">Packaging Materials</h4>
+                                <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Select materials instantly</p>
+                            </div>
+
+                            <div class="relative mt-5">
+                                <button type="button" onclick="toggleDropdown('packagingMaterials')" class="flex w-full items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-left outline-none hover:border-moss-green">
+                                    <span id="packagingMaterialsTriggerText">Select packaging materials</span>
+                                    <span class="text-xs">▾</span>
+                                </button>
+                                <div id="packagingMaterialsDropdown" class="dropdown-panel-hidden absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white p-2 shadow-xl custom-scrollbar"></div>
+                            </div>
+
+                            <div id="packagingMaterialsSelected" class="mt-5 flex-1 space-y-3 overflow-y-auto pr-1 custom-scrollbar"></div>
+                        </section>
+
+                        <section class="flex min-h-[320px] flex-col rounded-[1.75rem] border border-gray-100 bg-gray-50 p-6">
+                            <div>
+                                <h4 class="text-sm font-black uppercase tracking-[0.2em] text-soft-black">Product</h4>
+                                <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Select one product with qty</p>
+                            </div>
+
+                            <div class="relative mt-5">
+                                <button type="button" onclick="toggleDropdown('products')" class="flex w-full items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-left outline-none hover:border-moss-green">
+                                    <span id="productsTriggerText">Select product</span>
+                                    <span class="text-xs">▾</span>
+                                </button>
+                                <div id="productsDropdown" class="dropdown-panel-hidden absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white p-2 shadow-xl custom-scrollbar"></div>
+                            </div>
+
+                            <div id="productsSelected" class="mt-5 flex-1 space-y-3 overflow-y-auto pr-1 custom-scrollbar"></div>
+                        </section>
+                    </div>
+
+                        <section class="flex min-h-[320px] flex-col rounded-[1.75rem] border border-gray-100 bg-gray-50 p-6">
+                            <div>
+                                <h4 class="text-sm font-black uppercase tracking-[0.2em] text-soft-black">Add Alternative</h4>
+                                <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Select alternative items instantly</p>
+                            </div>
+
+                            <div class="relative mt-5">
+                                <button type="button" onclick="toggleDropdown('alternatives')" class="flex w-full items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-left outline-none hover:border-moss-green">
+                                    <span id="alternativesTriggerText">Select alternatives</span>
+                                    <span class="text-xs">▾</span>
+                                </button>
+                                <div id="alternativesDropdown" class="dropdown-panel-hidden absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white p-2 shadow-xl custom-scrollbar"></div>
+                            </div>
+
+                            <div id="alternativesSelected" class="mt-5 flex-1 space-y-3 overflow-y-auto pr-1 custom-scrollbar"></div>
+                        </section>
+
+                    <section class="rounded-[1.75rem] border border-gray-100 bg-gray-50 p-6">
+                        <div>
+                            <h4 class="text-sm font-black uppercase tracking-[0.2em] text-soft-black">Summary</h4>
+                            <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Overview of the configured process</p>
+                        </div>
+
+                        <div id="processSummaryDisplay" class="mt-5 space-y-3"></div>
+                    </section>
+                </div>
+
+                <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button onclick="deleteCurrentProcess()" class="rounded-2xl border border-red-200 px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-red-500 hover:bg-red-50">
+                        Delete Process
+                    </button>
+                    <button onclick="saveFormulaConfig()" class="rounded-2xl bg-soft-black px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-moss-light transition-all">
+                        Save Formula
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.currentPageId = 'nav-process';
+    </script>
+    <script type="module" src="../components/ragsak_navigation.js"></script>
+
         const STORAGE_KEY = 'ragsak_custom_processes';
+        const MATERIALS_STORAGE_KEYS = {
+            rawMaterials: ['ragsak_raw_materials', 'ragsak_raw_material_registry', 'ragsak_raw_materials_registry'],
+            packagingMaterials: ['ragsak_packaging_materials', 'ragsak_packaging_material_registry', 'ragsak_packaging_materials_registry'],
+            products: ['ragsak_products', 'ragsak_product_registry', 'ragsak_finished_products'],
+            alternatives: ['ragsak_raw_materials', 'ragsak_raw_material_registry', 'ragsak_raw_materials_registry', 'ragsak_packaging_materials', 'ragsak_packaging_material_registry', 'ragsak_packaging_materials_registry', 'ragsak_products', 'ragsak_product_registry', 'ragsak_finished_products']
+        };
+        const fallbackSelections = {
+            rawMaterials: ['Flour', 'Sugar', 'Salt', 'Yeast', 'Cacao', 'Milk Powder'],
+            packagingMaterials: ['Bottle', 'Pouch', 'Box', 'Label Sticker', 'Cap', 'Shrink Wrap'],
+            products: ['Product Alpha', 'Product Beta', 'Product Gamma', 'Product Delta'],
+            alternatives: ['Alternative Flour', 'Alternative Sugar', 'Alternative Bottle', 'Alternative Pouch', 'Alternative Product Alpha']
+        };
+
+        let currentProcessIndex = null;
+        let chooserProcessIndex = null;
+
+        function readLocalStorageArray(keys = []) {
+            for (const key of keys) {
+                try {
+                    const raw = localStorage.getItem(key);
+                    if (!raw) continue;
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length) {
+                        return parsed;
+                    }
+                } catch (error) {
+                    console.warn(`Unable to read storage key: ${key}`, error);
+                }
+            }
+            return [];
+        }
+
+        function getItemName(entry) {
+            if (typeof entry === 'string') return entry;
+            return entry?.name || entry?.materialName || entry?.productName || entry?.title || entry?.label || '';
+        }
+
+        function getSelectionSource(type) {
+            const stored = readLocalStorageArray(MATERIALS_STORAGE_KEYS[type] || []).map(getItemName).filter(Boolean);
+            let merged = [...stored, ...(fallbackSelections[type] || [])];
+            return [...new Set(merged.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        }
+
+        function normalizeMaterialEntry(entry) {
+            if (typeof entry === 'string') {
+                return { name: entry, qty: '' };
+            }
+
+            return {
+                name: entry?.name || '',
+                qty: entry?.qty ?? ''
+            };
+        }
+
+        function normalizeProcess(process, fallbackName = '') {
+            if (typeof process === 'string') {
+                return {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    name: process || fallbackName,
+                    formula: '',
+                    formulaConfig: {
+                        rawMaterials: [],
+                        packagingMaterials: [],
+                        products: [],
+                        alternatives: []
+                    }
+                };
+            }
+
+            return {
+                id: process.id || Date.now() + Math.floor(Math.random() * 1000),
+                name: process.name || fallbackName,
+                formula: process.formula || '',
+                formulaConfig: {
+                    rawMaterials: (process.formulaConfig?.rawMaterials || []).map(normalizeMaterialEntry),
+                    packagingMaterials: (process.formulaConfig?.packagingMaterials || []).map(normalizeMaterialEntry),
+                    products: (process.formulaConfig?.products || []).map(item => {
+                        if (typeof item === 'string') return { name: item, qty: '' };
+                        return { name: item?.name || '', qty: item?.qty ?? '' };
+                    }).filter(item => item.name),
+                    alternatives: (process.formulaConfig?.alternatives || []).map(normalizeMaterialEntry).filter(item => item.name)
+                }
+            };
+        }
+
+        function getProcesses() {
+            const processes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || ['Process Alpha', 'Process Beta', 'Process Gamma', 'Process Delta'];
+            return processes.map((p, idx) => normalizeProcess(p, `Process ${idx + 1}`));
+        }
+
+        function saveProcesses(processes) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(processes));
+        }
 
         function createProcess() {
             const name = document.getElementById('procName').value.trim();
             const formula = document.getElementById('procFormula').value.trim();
-            
-            let processes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-            
-            if (processes.find(p => typeof p === 'string' ? p === name : p.name === name)) {
-                alert("Process already exists.");
+            const processes = getProcesses();
+
+            if (!name) {
+                alert('Please enter a process name.');
                 return;
             }
 
-            processes.push({ name: name, formula: formula, id: Date.now() });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(processes));
-            
+            if (processes.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+                alert('Process already exists.');
+                return;
+            }
+
+            processes.push({
+                id: Date.now(),
+                name,
+                formula,
+                formulaConfig: {
+                    rawMaterials: [],
+                    packagingMaterials: [],
+                    products: [],
+                    alternatives: []
+                }
+            });
+
+            saveProcesses(processes);
             document.getElementById('procName').value = '';
             document.getElementById('procFormula').value = '';
             renderProcesses();
         }
 
+        function getFormulaSummary(process) {
+            const config = process.formulaConfig || { rawMaterials: [], packagingMaterials: [], products: [], alternatives: [] };
+            const counts = [
+                `${config.rawMaterials.length} raw`,
+                `${config.packagingMaterials.length} packaging`,
+                `${config.products.length} products`,
+                `${config.alternatives.length} alternatives`
+            ];
+
+            if (
+                config.rawMaterials.length === 0 &&
+                config.packagingMaterials.length === 0 &&
+                config.products.length === 0 &&
+                config.alternatives.length === 0
+            ) {
+                return process.formula ? 'Formula only saved' : 'No configuration yet';
+            }
+
+            const productLabel = config.products[0]?.name ? ` • ${config.products[0].name}` : '';
+            return counts.join(' • ') + productLabel;
+        }
+
+        function getSelectionCountLabel(type, items) {
+            if (!items || items.length === 0) {
+                if (type === 'rawMaterials') return 'Select raw materials';
+                if (type === 'packagingMaterials') return 'Select packaging materials';
+                if (type === 'alternatives') return 'Select alternatives';
+                return 'Select product';
+            }
+
+            return `${items.length} selected`;
+        }
+
+        function updateDropdownTriggerText(type, items) {
+            const el = document.getElementById(`${type}TriggerText`);
+            if (!el) return;
+            el.textContent = getSelectionCountLabel(type, items);
+        }
+
+        function renderDropdownOptions(type) {
+            const container = document.getElementById(`${type}Dropdown`);
+            const options = getSelectionSource(type);
+            const processes = getProcesses();
+            const process = currentProcessIndex === null ? null : processes[currentProcessIndex];
+            const selected = process?.formulaConfig?.[type] || [];
+
+            const isChecked = (item) => {
+                return selected.some(entry => entry.name === item);
+            };
+
+            container.innerHTML = options.map(item => `
+                <label class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 hover:bg-gray-50">
+                    <input
+                        type="checkbox"
+                        ${isChecked(item) ? 'checked' : ''}
+                        onchange="toggleCheckboxSelection('${type}', '${item.replace(/'/g, "\\'")}', this.checked)"
+                        class="h-4 w-4 rounded border-gray-300 text-moss-green focus:ring-moss-green"
+                    >
+                    <span class="text-sm font-bold text-soft-black">${item}</span>
+                </label>
+            `).join('');
+        }
+
+        function closeAllDropdowns() {
+            ['rawMaterials', 'packagingMaterials', 'products', 'alternatives'].forEach(type => {
+                const panel = document.getElementById(`${type}Dropdown`);
+                if (panel) panel.classList.add('dropdown-panel-hidden');
+            });
+        }
+
+        function toggleDropdown(type) {
+            const panel = document.getElementById(`${type}Dropdown`);
+            const willOpen = panel.classList.contains('dropdown-panel-hidden');
+            closeAllDropdowns();
+            if (willOpen) {
+                renderDropdownOptions(type);
+                panel.classList.remove('dropdown-panel-hidden');
+            }
+        }
+
+        function toggleCheckboxSelection(type, item, checked) {
+            if (currentProcessIndex === null) return;
+
+            const processes = getProcesses();
+            const process = processes[currentProcessIndex];
+            process.formulaConfig = process.formulaConfig || {
+                rawMaterials: [],
+                packagingMaterials: [],
+                products: [],
+                alternatives: []
+            };
+
+            if (type === 'products') {
+                let currentItems = process.formulaConfig.products || [];
+                if (checked) {
+                    const existing = currentItems.find(entry => entry.name === item);
+                    currentItems = [{ name: item, qty: existing?.qty ?? '' }];
+                } else {
+                    currentItems = [];
+                }
+                process.formulaConfig.products = currentItems;
+            } else {
+                let currentItems = process.formulaConfig[type] || [];
+                const existingIndex = currentItems.findIndex(entry => entry.name === item);
+
+                if (checked && existingIndex < 0) {
+                    currentItems.push({ name: item, qty: '' });
+                } else if (!checked) {
+                    currentItems = currentItems.filter(entry => entry.name !== item);
+                }
+                process.formulaConfig[type] = currentItems;
+            }
+
+            saveProcesses(processes);
+            renderSelectedItems(type, process.formulaConfig[type]);
+            renderDropdownOptions(type);
+            updateDropdownTriggerText(type, process.formulaConfig[type]);
+            renderProcessSummary();
+        }
+
         function renderProcesses() {
             const body = document.getElementById('processTableBody');
-            let processes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || ["Process Alpha", "Process Beta", "Process Gamma", "Process Delta"];
-            
-            body.innerHTML = processes.map((p, idx) => {
-                const name = typeof p === 'string' ? p : p.name;
-                const formula = p.formula || 'No formula defined';
-                return `
+            const processes = getProcesses();
+
+            body.innerHTML = processes.map((process, idx) => `
                 <tr class="hover:bg-white/[0.02] transition">
-                    <td class="py-6 text-xs font-black text-white uppercase italic tracking-tighter">${name}</td>
-                    <td class="py-6 text-[10px] font-mono text-moss-light uppercase max-w-xs truncate">${formula}</td>
+                    <td class="py-6 text-xs font-black text-soft-black uppercase italic tracking-tighter">${process.name}</td>
+                    <td class="py-6 text-[10px] font-mono text-moss-light uppercase max-w-xs truncate">${getFormulaSummary(process)}</td>
                     <td class="py-6 text-right">
-                        <button onclick="deleteProcess(${idx})" class="text-[9px] font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest transition-colors">Delete</button>
+                        <button onclick="openFormulaChooserModal(${idx})" class="text-[9px] font-bold text-soft-black/40 hover:text-moss-green uppercase tracking-widest transition-colors">
+                            Formula
+                        </button>
                     </td>
-                </tr>`;
+                </tr>
+            `).join('');
+        }
+
+        function renderSelectedItems(type, items) {
+            const container = document.getElementById(`${type}Selected`);
+            if (!container) return;
+
+            updateDropdownTriggerText(type, items);
+
+            if (!items.length) {
+                container.innerHTML = '<p class="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">No items selected</p>';
+                return;
+            }
+
+            if (type === 'products') {
+                container.innerHTML = items.map(item => `
+                    <div class="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-xs font-black uppercase tracking-[0.16em] text-soft-black">${item.name}</p>
+                            <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Selected product</p>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                placeholder="0"
+                                value="${item.qty ?? ''}"
+                                onchange="updateSelectionQty('products', '${item.name.replace(/'/g, "\\'")}', this.value)"
+                                class="w-16 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-moss-green"
+                            >
+                            <button type="button" onclick="removeSelection('products', '${item.name.replace(/'/g, "\\'")}')" class="shrink-0 rounded-full bg-red-50 px-3 py-2 text-[9px] font-black uppercase tracking-[0.15em] text-red-500 hover:bg-red-100">
+                                Unselect
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const safeName = item.name.replace(/'/g, "\\'");
+                return `
+                    <div class="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-xs font-black uppercase tracking-[0.16em] text-soft-black">${item.name}</p>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                placeholder="0"
+                                value="${item.qty ?? ''}"
+                                onchange="updateSelectionQty('${type}', '${safeName}', this.value)"
+                                class="w-16 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-moss-green"
+                            >
+                            <button type="button" onclick="removeSelection('${type}', '${safeName}')" class="shrink-0 rounded-full bg-red-50 px-3 py-2 text-[9px] font-black uppercase tracking-[0.15em] text-red-500 hover:bg-red-100">
+                                Unselect
+                            </button>
+                        </div>
+                    </div>
+                `;
             }).join('');
         }
 
-        function deleteProcess(index) {
-            if(confirm("Deleting this will affect new registrations. Continue?")) {
-                let processes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-                processes.splice(index, 1);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(processes));
-                renderProcesses();
+        function renderProcessSummary() {
+            const container = document.getElementById('processSummaryDisplay');
+            if (!container || currentProcessIndex === null) return;
+
+            const process = getProcesses()[currentProcessIndex];
+            const config = process.formulaConfig || {
+                rawMaterials: [],
+                packagingMaterials: [],
+                products: [],
+                alternatives: []
+            };
+
+            const summaryCards = [
+                { label: 'Raw Materials', value: config.rawMaterials.length },
+                { label: 'Packaging Materials', value: config.packagingMaterials.length },
+                { label: 'Products', value: config.products.length },
+                { label: 'Alternatives', value: config.alternatives.length }
+            ];
+
+            const selectedProduct = config.products[0]?.name || 'No selected product';
+
+            container.innerHTML = `
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    ${summaryCards.map(card => `
+                        <div class="rounded-2xl bg-white px-4 py-4 shadow-sm">
+                            <p class="text-[9px] font-bold uppercase tracking-[0.15em] text-gray-400">${card.label}</p>
+                            <p class="mt-2 text-lg font-black uppercase tracking-[0.12em] text-soft-black">${card.value}</p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="rounded-2xl bg-white px-4 py-4 shadow-sm">
+                    <p class="text-[9px] font-bold uppercase tracking-[0.15em] text-gray-400">Selected Product</p>
+                    <p class="mt-2 text-xs font-black uppercase tracking-[0.16em] text-soft-black">${selectedProduct}</p>
+                </div>
+            `;
+        }
+
+        function processHasFormulaConfig(process) {
+            const config = process?.formulaConfig || {};
+            return (
+                (config.rawMaterials || []).length > 0 ||
+                (config.packagingMaterials || []).length > 0 ||
+                (config.products || []).length > 0 ||
+                (config.alternatives || []).length > 0
+            );
+        }
+
+        function renderFormulaChooser(process) {
+            const status = document.getElementById('formulaChooserStatus');
+            const hasConfig = processHasFormulaConfig(process);
+            const config = process.formulaConfig || {};
+            const selectedProduct = config.products?.[0];
+
+            if (!hasConfig) {
+                status.innerHTML = `
+                    <div class="rounded-2xl bg-white px-4 py-4 shadow-sm">
+                        <p class="text-xs font-black uppercase tracking-[0.16em] text-soft-black">No existing formulas</p>
+                        <p class="mt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+                            This process does not have a saved formula yet.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            const summaryBits = [
+                `${(config.rawMaterials || []).length} raw`,
+                `${(config.packagingMaterials || []).length} packaging`,
+                selectedProduct?.name ? `product: ${selectedProduct.name}` : 'no product',
+                `${(config.alternatives || []).length} alternatives`
+            ];
+
+            status.innerHTML = `
+                <div class="rounded-2xl bg-white px-4 py-4 shadow-sm">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-black uppercase tracking-[0.16em] text-soft-black">Existing formula</p>
+                            <p class="mt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+                                ${summaryBits.join(' • ')}
+                            </p>
+                            <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                <div class="rounded-xl bg-gray-50 px-3 py-2">
+                                    <p class="text-[9px] font-bold uppercase tracking-[0.15em] text-gray-400">Raw</p>
+                                    <p class="mt-1 text-xs font-black uppercase text-soft-black">${(config.rawMaterials || []).length}</p>
+                                </div>
+                                <div class="rounded-xl bg-gray-50 px-3 py-2">
+                                    <p class="text-[9px] font-bold uppercase tracking-[0.15em] text-gray-400">Packaging</p>
+                                    <p class="mt-1 text-xs font-black uppercase text-soft-black">${(config.packagingMaterials || []).length}</p>
+                                </div>
+                                <div class="rounded-xl bg-gray-50 px-3 py-2">
+                                    <p class="text-[9px] font-bold uppercase tracking-[0.15em] text-gray-400">Product Qty</p>
+                                    <p class="mt-1 text-xs font-black uppercase text-soft-black">${selectedProduct?.qty || '-'}</p>
+                                </div>
+                                <div class="rounded-xl bg-gray-50 px-3 py-2">
+                                    <p class="text-[9px] font-bold uppercase tracking-[0.15em] text-gray-400">Alternatives</p>
+                                    <p class="mt-1 text-xs font-black uppercase text-soft-black">${(config.alternatives || []).length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="proceedToFormulaModal('view')" class="shrink-0 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left hover:border-moss-green hover:bg-moss-green/5">
+                            <span class="mt-1 block text-xs font-black uppercase tracking-[0.12em] text-soft-black">View</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openFormulaChooserModal(index) {
+            chooserProcessIndex = index;
+            const process = getProcesses()[index];
+
+            document.getElementById('chooserProcessTitle').textContent = `${process.name} Formula`;
+            renderFormulaChooser(process);
+
+            const modal = document.getElementById('formulaChooserModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeFormulaChooserModal() {
+            chooserProcessIndex = null;
+            const modal = document.getElementById('formulaChooserModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function proceedToFormulaModal(mode) {
+            if (chooserProcessIndex === null) return;
+
+            const index = chooserProcessIndex;
+            const processes = getProcesses();
+            const process = processes[index];
+
+            if (mode === 'create') {
+                process.formulaConfig = {
+                    rawMaterials: [],
+                    packagingMaterials: [],
+                    products: [],
+                    alternatives: []
+                };
+
+                saveProcesses(processes);
+            }
+
+            closeFormulaChooserModal();
+            openFormulaModal(index);
+        }
+
+        function openFormulaModal(index) {
+            currentProcessIndex = index;
+            const process = getProcesses()[index];
+            if (!process.formulaConfig) {
+                process.formulaConfig = {
+                    rawMaterials: [],
+                    packagingMaterials: [],
+                    products: [],
+                    alternatives: []
+                };
+            }
+
+            document.getElementById('modalProcessTitle').textContent = `${process.name} Formula`;
+
+            ['rawMaterials', 'packagingMaterials', 'products', 'alternatives'].forEach(type => {
+                renderSelectedItems(type, process.formulaConfig?.[type] || []);
+                renderDropdownOptions(type);
+            });
+
+            renderProcessSummary();
+            closeAllDropdowns();
+
+            const modal = document.getElementById('formulaModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeFormulaModal() {
+            currentProcessIndex = null;
+            const modal = document.getElementById('formulaModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function updateSelectionQty(type, item, qty) {
+            if (currentProcessIndex === null) return;
+
+            const processes = getProcesses();
+            const process = processes[currentProcessIndex];
+            const currentItems = process.formulaConfig[type] || [];
+            const target = currentItems.find(entry => entry.name === item);
+
+            if (target) {
+                target.qty = qty;
+                saveProcesses(processes);
+                renderSelectedItems(type, process.formulaConfig[type]);
+                renderProcessSummary();
             }
         }
+
+        function removeSelection(type, item) {
+            if (currentProcessIndex === null) return;
+
+            const processes = getProcesses();
+            const process = processes[currentProcessIndex];
+
+            if (type === 'products') {
+                process.formulaConfig.products = (process.formulaConfig.products || []).filter(entry => entry.name !== item);
+            } else {
+                process.formulaConfig[type] = (process.formulaConfig[type] || []).filter(entry => entry.name !== item);
+            }
+
+            saveProcesses(processes);
+            renderSelectedItems(type, process.formulaConfig[type]);
+            renderDropdownOptions(type);
+            updateDropdownTriggerText(type, process.formulaConfig[type]);
+            renderProcessSummary();
+        }
+
+        function saveFormulaConfig() {
+            if (currentProcessIndex === null) return;
+
+            const processes = getProcesses();
+            const process = processes[currentProcessIndex];
+            process.formula = '';
+
+            saveProcesses(processes);
+            closeFormulaModal();
+            renderProcesses();
+        }
+
+        function deleteCurrentProcess() {
+            if (currentProcessIndex === null) return;
+
+            if (!confirm('Deleting this process will remove its formula configuration. Continue?')) {
+                return;
+            }
+
+            const processes = getProcesses();
+            processes.splice(currentProcessIndex, 1);
+            saveProcesses(processes);
+            closeFormulaModal();
+            renderProcesses();
+        }
+
+        document.getElementById('formulaChooserModal').addEventListener('click', function (event) {
+            if (event.target.id === 'formulaChooserModal') {
+                closeFormulaChooserModal();
+            }
+        });
+
+        document.getElementById('formulaModal').addEventListener('click', function (event) {
+            if (event.target.id === 'formulaModal') {
+                closeFormulaModal();
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            const dropdownTypes = ['rawMaterials', 'packagingMaterials', 'products', 'alternatives'];
+            const clickedInsideAny = dropdownTypes.some(type => {
+                const trigger = document.getElementById(`${type}TriggerText`)?.closest('button');
+                const panel = document.getElementById(`${type}Dropdown`);
+                return (trigger && trigger.contains(event.target)) || (panel && panel.contains(event.target));
+            });
+
+            if (!clickedInsideAny) {
+                closeAllDropdowns();
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', renderProcesses);
     </script>

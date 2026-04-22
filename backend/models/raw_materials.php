@@ -56,7 +56,11 @@ class Raw_Material {
         try {
             $rawMat = $data['rawMaterialID'];
 
-            $updateStmt = $this->conn->prepare("UPDATE tbl_rawMaterials SET quantity = ? WHERE rawMaterialID = ?");
+            $updateStmt = $this->conn->prepare("
+                UPDATE tbl_rawMaterials 
+                SET quantity = quantity + ? 
+                WHERE rawMaterialID = ?
+            ");
 
             $updateStmt->bind_param(
                 "ii",
@@ -68,6 +72,7 @@ class Raw_Material {
                 throw new Exception("Failed to update stock");
             }
 
+            $this->conn->commit();
             return true;
         } catch(Exception $e) {
             $this->conn->rollback();

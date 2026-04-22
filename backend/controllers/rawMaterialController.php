@@ -25,7 +25,7 @@ function createRawMaterial() {
 
     header('Content-Type: application/json');
 
-    if ($success) {
+    if ($success) { 
         http_response_code(201);
         echo json_encode([
             "status" => "success",
@@ -54,6 +54,7 @@ function stockRawMaterial() {
     if ($success) {
         http_response_code(201);
         echo json_encode([
+            "status" => "success",
             "message" => "Raw Material Stocked Successfully"
         ]);
     } else {

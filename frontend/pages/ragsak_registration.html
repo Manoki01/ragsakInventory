@@ -33,18 +33,34 @@
             <form id="registerForm" class="mt-8 space-y-5">
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Name</label>
-                    <input type="text" id="regUsername" required placeholder="Ex. Juan Dela Cruzr" class="input-field" autocomplete="off" />
-                    <p id="userHint" class="text-[8px] text-gray-400 uppercase mt-1 ml-1 font-bold">Lowercase letters, numbers, and dots only.</p>
+                    <input type="text" id="regUsername" required placeholder="Ex. Juan Dela Cruzr" class="input-field" autocomplete="off" aria-label="Username" aria-describedby="userHint" />
+                    <p id="userHint" class="text-[8px] text-gray-400 uppercase mt-1 ml-1 font-bold">At least 4 characters long.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Passcode</label>
-                        <input type="password" id="regPassword" required placeholder="••••••••" class="input-field" />
+                        <div class="relative">
+                            <input type="password" id="regPassword" required placeholder="••••••••" class="input-field pr-10" aria-label="Password" aria-describedby="passwordHelp" />
+                            <button type="button" id="toggleRegPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-moss-green" aria-label="Toggle password visibility">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Confirm</label>
-                        <input type="password" id="confirmPassword" required placeholder="••••••••" class="input-field" />
+                        <div class="relative">
+                            <input type="password" id="confirmPassword" required placeholder="••••••••" class="input-field pr-10" aria-label="Confirm Password" />
+                            <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-moss-green" aria-label="Toggle confirm password visibility">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -61,7 +77,12 @@
 
                 <div id="errorMsg" class="text-[10px] font-bold text-red-600 uppercase text-center hidden"></div>
 
-                <button type="submit" id="regBtn" class="w-full rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-moss-green active:scale-95 shadow-lg">
+                <div class="flex items-center justify-center mb-4">
+                    <input type="checkbox" id="regCaptcha" required class="mr-2" aria-label="Verify you are not a robot" />
+                    <label for="regCaptcha" class="text-[10px] font-bold uppercase tracking-widest text-moss-green">I'm not a robot</label>
+                </div>
+
+                <button type="submit" id="regBtn" class="w-full rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-moss-green active:scale-95 shadow-lg" aria-label="Submit registration form">
                     Register Personnel
                 </button>
             </form>
@@ -78,15 +99,77 @@
         const regForm = document.getElementById('registerForm');
         const usernameInput = document.getElementById('regUsername');
         const errorDiv = document.getElementById('errorMsg');
+        const toggleRegPasswordBtn = document.getElementById('toggleRegPassword');
+        const toggleConfirmPasswordBtn = document.getElementById('toggleConfirmPassword');
 
-        regForm.addEventListener('submit', (e) => {
+        // Password visibility toggles
+        toggleRegPasswordBtn.addEventListener('click', () => {
+            const input = document.getElementById('regPassword');
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
+            const icon = toggleRegPasswordBtn.querySelector('svg');
+            if (type === 'text') {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+            }
+        });
+
+        toggleConfirmPasswordBtn.addEventListener('click', () => {
+            const input = document.getElementById('confirmPassword');
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
+            const icon = toggleConfirmPasswordBtn.querySelector('svg');
+            if (type === 'text') {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+            }
+        });
+
+        regForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             errorDiv.classList.add('hidden');
 
-            const username = usernameInput.value;
+            // Simple rate limiting: max 3 registration attempts per hour
+            const now = Date.now();
+            const attempts = JSON.parse(localStorage.getItem('regAttempts') || '[]');
+            const recentAttempts = attempts.filter(time => now - time < 3600000); // 1 hour
+            if (recentAttempts.length >= 3) {
+                errorDiv.innerText = "Too many registration attempts. Please try again later.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            recentAttempts.push(now);
+            localStorage.setItem('regAttempts', JSON.stringify(recentAttempts));
+
+            const username = usernameInput.value.trim();
             const password = document.getElementById('regPassword').value;
             const confirm = document.getElementById('confirmPassword').value;
             const role = document.getElementById('regRole').value;
+
+            // Validate CAPTCHA
+            const captcha = document.getElementById('regCaptcha');
+            if (!captcha.checked) {
+                errorDiv.innerText = "Please verify you are not a robot.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            // Validate username: at least 4 characters
+            if (username.length < 4 || username.length > 50) {
+                errorDiv.innerText = "Username must be 4-50 characters long.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            // Validate password: at least 6 characters, one uppercase, one lowercase, one number
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+            if (!passwordRegex.test(password)) {
+                errorDiv.innerText = "Password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, and one number.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
 
             // Simple Validation
             if (password !== confirm) {
@@ -95,12 +178,11 @@
                 return;
             }
 
-            /* // Check if username exists
-            if (users.some(u => u.username === username)) {
-                errorDiv.innerText = "Username already exists in node";
+            if (!role || role === '-- Select an Option --') {
+                errorDiv.innerText = "Please select a role.";
                 errorDiv.classList.remove('hidden');
                 return;
-            } */
+            }
 
             let data = {
                 username,
@@ -110,10 +192,12 @@
 
             console.log("Passing data:", data);
 
-            if(data.username && data.password && data.role) {
-                registerUsers(data);
+            const response = await registerUsers(data);
+            if (response.status === "success") {
+                window.location.href = '../pages/ragsak_home.html';
             } else {
-                alert("Please fill in all required fields");
+                errorDiv.innerText = response.message || "Registration failed";
+                errorDiv.classList.remove('hidden');
             }
         });
     </script>

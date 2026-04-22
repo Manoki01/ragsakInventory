@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '../../config/database.php';
+require_once __DIR__ . '/../config/database.php';
 
 class Product {
     private $conn;
@@ -20,8 +20,7 @@ class Product {
         p.productPrice
         FROM tbl_products p
         INNER JOIN tbl_processFlow pf ON p.productID = pf.productID
-        INNER JOIN tbl_productStock ps ON pf.flowID = ps.flowID
-        INNER JOIN tbl_process pp ON pp.processID = pf.processID";
+        INNER JOIN tbl_productStock ps ON pf.flowID = ps.flowID";
 
         $result = $this->conn->query($query);
 
@@ -52,7 +51,6 @@ class Product {
                 throw new Exception("Failed to add Product.");
             }
 
-            // Get the inserted product ID
             $productID = $this->conn->insert_id;
             
 
@@ -73,7 +71,7 @@ class Product {
                 $stmt3->bind_param('ii', $flowID, $quantity);
 
                 if(!$stmt3->execute()) {
-                    throw new Exception(("Failed to add Product Processes."));
+                    throw new Exception("Failed to add Product Processes.");
                 }
 
                 $flowOrder++;
@@ -89,6 +87,7 @@ class Product {
     }
 
     public function stockProduct($data) {
+        session_start();
         $this->conn->begin_transaction();
 
         try {
@@ -127,8 +126,55 @@ class Product {
                     $flowID
                 );
 
+                $status = "success";
                 if(!$updateStmt->execute()) {
+                    $status = "failed";
                     throw new Exception("Failed to update stock");
+                }
+
+                $action = "Stock In";
+                $userID = $_SESSION['userID'];
+
+                $transactionStmt = $this->conn->prepare("INSERT INTO tbl_prodTransactions (
+                userID, 
+                flowID, 
+                status, 
+                quantity, 
+                action) 
+                VALUES (?, ?, ?, ?, ?)");
+
+                $transactionStmt->bind_param(
+                    'iisis',
+                    $userID,
+                    $flowID,
+                    $status,
+                    $data['quantity'],
+                    $action
+                );
+
+                if(!$transactionStmt->execute()) {
+                    throw new Exception("Failed to log transaction");
+                }
+
+                $action = "Increase";
+                $reason = "Stock In";
+                $changelogStmt = $this->conn->prepare("INSERT INTO tbl_prodChangelogs (
+                flowID,
+                action,
+                quantity,
+                reason
+                ) VALUES (?, ?, ?, ?)");
+
+                $changelogStmt->bind_param(
+                    'isis',
+                    $flowID,
+                    $action,
+                    $data['quantity'],
+                    $reason
+                );
+
+                if(!$changelogStmt->execute()) {
+                    throw new Exception("Failed to log changelog");
                 }
             }
             

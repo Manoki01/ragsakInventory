@@ -7,7 +7,10 @@ function getPackaging() {
 
     $data = $packaging->getAll();
 
-    echo json_encode($data);
+    echo json_encode([
+        "status" => "success",
+        "data" => $data
+    ]);
 }
 
 function createPackaging() {
@@ -51,6 +54,7 @@ function stockPackaging() {
     if ($success) {
         http_response_code(201);
         echo json_encode([
+            "status" => "success",
             "message" => "Packaging Stocked Successfully"
         ]);
     } else {

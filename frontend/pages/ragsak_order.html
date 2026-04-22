@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Management | Ragsak</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <style type="text/tailwindcss">
@@ -29,83 +29,106 @@
 
         #orderModal:not(.hidden), #viewModal:not(.hidden) { @apply !flex items-center justify-center; }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
         .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green rounded; }
 
         #toast-container {
-            @apply fixed top-10 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 pointer-events-none;
+            @apply fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 pointer-events-none px-4;
         }
         .toast-card {
-            @apply bg-soft-black text-white px-8 py-4 rounded-2xl shadow-2xl border-l-4 flex items-center gap-4 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-auto;
+            @apply bg-soft-black text-white px-6 py-4 rounded-2xl shadow-2xl border-l-4 flex items-center gap-4 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-auto max-w-full;
         }
         .toast-card.show { @apply opacity-100 translate-y-0; }
+
+        input:disabled { @apply bg-gray-100 cursor-not-allowed opacity-80; }
     </style>
 </head>
 <body>
-
     <div id="toast-container"></div>
+    <div id="sidebar-container"></div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-8">
-        <div class="lg:col-span-1">
-            <div id="sidebar-container"></div>
-        </div>
-
-        <div class="flex h-screen flex-col lg:col-span-7 px-8 pt-10 pb-6">
-            <header class="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+    <main class="min-h-screen lg:pl-64">
+        <div class="flex min-h-screen flex-col px-4 pt-6 pb-6 sm:px-6 lg:px-8 lg:pt-10 overflow-hidden">
+            <header class="mb-8 flex flex-col gap-5 md:mb-10 md:flex-row md:items-start md:justify-between">
                 <div>
-                    <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">Order Fulfillment</h1>
-                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">Customer Pipeline • Ragsak Farm</p>
+                    <h1 class="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">
+                        Order Fulfillment
+                    </h1>
+                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">
+                        Customer Pipeline • Ragsak Farm
+                    </p>
                 </div>
-                <div class="relative">
-                    <input type="text" id="orderSearch" placeholder="Search orders..." 
-                        class="h-11 w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400">
+
+                <div class="relative w-full md:w-auto">
+                    <input
+                        type="text"
+                        id="orderSearch"
+                        placeholder="Search orders..."
+                        class="h-11 w-full md:w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400"
+                    >
                 </div>
             </header>
 
-            <div class="flex-1 overflow-hidden bg-soft-black rounded-3xl p-6 shadow-2xl flex flex-col">
-                <div class="flex items-center justify-between mb-6 px-2">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Active Sales Orders</p>
-                    <button onclick="openOrderModal()" class="bg-white/10 hover:bg-white/20 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all">Create New Order</button>
+            <div class="flex-1 overflow-hidden bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-100 flex flex-col min-h-[420px]">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 px-2">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">
+                        Active Sales Orders
+                    </p>
+                    <button onclick="openOrderModal()" class="bg-soft-black hover:bg-moss-light text-white text-[9px] font-black px-4 py-3 rounded-lg uppercase tracking-widest transition-all shadow-md">
+                        Create New Order
+                    </button>
                 </div>
-                
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+
+                <div class="flex-1 overflow-auto custom-scrollbar pr-2">
                     <table class="w-full text-left min-w-[800px] table-fixed">
-                        <thead class="sticky top-0 bg-soft-black z-10">
-                            <tr class="border-b border-white/5">
-                                <th class="pb-6 px-2 text-[10px] font-bold uppercase tracking-widest text-white/60">Customer</th>
-                                <th class="pb-6 text-[10px] font-bold uppercase tracking-widest text-white/60">Product (Process)</th>
-                                <th class="pb-6 w-[100px] text-center text-[10px] font-bold uppercase text-white/60">Qty</th> 
-                                <th class="pb-6 w-[160px] text-center text-[10px] font-bold uppercase text-white/60">Due Date</th>
-                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-white/60 pr-2">Ctrl</th>
+                        <thead class="sticky top-0 z-10">
+                            <tr class="border-b border-gray-200">
+                                <th class="pb-6 pt-2 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Customer</th>
+                                <th class="pb-6 pt-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Product (Process)</th>
+                                <th class="pb-6 pt-2 w-[100px] text-center text-[10px] font-bold uppercase text-gray-600">Qty</th>
+                                <th class="pb-6 pt-2 w-[140px] text-center text-[10px] font-bold uppercase text-gray-600">Due Date</th>
+                                <th class="pb-6 pt-2 w-[140px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">Control</th>
                             </tr>
                         </thead>
-                        <tbody id="orderTableBody" class="divide-y divide-white/5"></tbody>
+                        <tbody id="orderTableBody" class="divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div id="orderModal" class="hidden fixed inset-0 bg-soft-black/30 z-[60] p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-moss-green">
-            <div class="p-10">
-                <h2 class="text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">New Sales Order</h2>
-                
+    <div id="orderModal" class="hidden fixed inset-0 bg-soft-black/30 z-[60] p-3 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-moss-green max-h-[95vh]">
+            <div class="p-5 sm:p-8 lg:p-10 max-h-[95vh] overflow-y-auto">
+                <h2 id="modalTitle" class="text-xl sm:text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">
+                    New Sales Order
+                </h2>
+
                 <div class="space-y-6">
+                    <input type="hidden" id="editOrderId">
+
                     <div>
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Customer Name</label>
                         <input type="text" id="custName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="Enter name...">
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Select Product & Process</label>
-                            <select id="prodSelect" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all appearance-none">
-                                </select>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Select Product</label>
+                            <select id="prodSelect" onchange="updateAvailableStock()" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all appearance-none"></select>
                         </div>
+
                         <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Order Quantity</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Current Stock</label>
+                            <div class="relative">
+                                <input type="text" id="availableQty" disabled class="w-full border-b-2 border-gray-200 py-4 px-2 text-sm font-black text-soft-black outline-none" value="0">
+                                <span id="unitLabel" class="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-gray-400 uppercase">Unit</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Order Amount</label>
                             <input type="number" id="orderQty" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="0">
                         </div>
                     </div>
@@ -115,156 +138,180 @@
                         <input type="date" id="dueDate" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all">
                     </div>
 
-                    <div class="pt-6 grid grid-cols-2 gap-3">
-                        <button onclick="commitOrder()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-widest shadow-xl">Confirm Order</button>
-                        <button onclick="closeOrderModal()" class="py-5 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">Cancel</button>
+                    <div class="pt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button onclick="commitOrder()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-moss-light transition-all uppercase tracking-widest shadow-xl">
+                            Confirm Entry
+                        </button>
+                        <button onclick="closeOrderModal()" class="py-5 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
+                            Abort
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="viewModal" class="hidden fixed inset-0 bg-soft-black/30 z-[70] p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl p-10 text-white border-b-[14px] border-moss-green">
-            <p class="text-[10px] font-bold text-moss-light uppercase tracking-[0.3em] mb-2">Transaction Receipt</p>
-            <h2 id="viewCust" class="text-3xl text-black italic uppercase tracking-tighter mb-8 leading-none">Customer</h2>
-            
-            <div class="space-y-4 border-t border-white/10 pt-6">
-                <div class="flex justify-between items-center">
-                    <span class="text-[10px] font-bold text-black uppercase tracking-widest">Product Details</span>
-                    <span id="viewProd" class="text-sm text-black font-bold text-moss-light">--</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-[10px] font-bold text-black uppercase tracking-widest">Ordered Amount</span>
-                    <span id="viewQty" class="text-sm text-black font-bold">--</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-[10px] font-bold text-black uppercase tracking-widest">Fulfillment Date</span>
-                    <span id="viewDate" class="text-sm text-black font-bold">--</span>
-                </div>
-            </div>
-
-            <button onclick="closeViewModal()" class="mt-10 w-full bg-white/10 py-4 rounded-xl text-[10px] text-black uppercase tracking-widest hover:bg-black/20 transition-all">Close Summary</button>
-        </div>
-    </div>
-
-    <script src="../components/ragsak_navigation.js"></script>
-
     <script>
+        window.currentPageId = 'nav-orders';
+    </script>
+    <script type="module" src="../components/ragsak_navigation.js"></script>
         const ORDER_KEY = 'ragsak_orders_data';
-        const PRODUCT_KEY = 'ragsak_products_inv'; // FIXED KEY
-        
-        injectNavigation('nav-orders');
+        const PRODUCT_KEY = 'ragsak_products_inv';
 
         let orders = JSON.parse(localStorage.getItem(ORDER_KEY)) || [];
 
         function loadProducts() {
-            const rawData = localStorage.getItem(PRODUCT_KEY);
-            const products = JSON.parse(rawData) || [];
+            const products = JSON.parse(localStorage.getItem(PRODUCT_KEY)) || [];
             const select = document.getElementById('prodSelect');
-            
-            if (products.length === 0) {
-                select.innerHTML = '<option value="">No products available in inventory</option>';
-                return;
-            }
+            select.innerHTML = '<option value="" disabled selected>Choose Product...</option>' +
+                products.map(p => `<option value="${p.id}">${p.name} [${p.process}]</option>`).join('');
+        }
 
-            // Populates with Name, Process, and current stock for clarity
-            select.innerHTML = products.map(p => `
-                <option value="${p.id}">
-                    ${p.name} [${p.process}] — ${p.qty} ${p.unit} in stock
-                </option>
-            `).join('');
+        function updateAvailableStock() {
+            const prodId = document.getElementById('prodSelect').value;
+            const products = JSON.parse(localStorage.getItem(PRODUCT_KEY)) || [];
+            const selectedItem = products.find(p => p.id == prodId);
+            if (selectedItem) {
+                document.getElementById('availableQty').value = selectedItem.qty;
+                document.getElementById('unitLabel').innerText = selectedItem.unit || 'QTY';
+            }
         }
 
         function renderOrders() {
             const body = document.getElementById('orderTableBody');
             body.innerHTML = orders.map(order => `
-                <tr class="hover:bg-white/5 transition-colors group">
-                    <td class="px-2 py-4 text-xs font-bold text-white uppercase tracking-tight">${order.customer}</td>
-                    <td class="py-4">
-                        <span class="text-xs font-bold text-white">${order.productName}</span>
-                        <span class="text-[9px] font-bold text-moss-light uppercase ml-2">[${order.process}]</span>
+                <tr class="group hover:bg-gray-50/50 transition-colors">
+                    <td class="py-6 px-2 text-sm font-bold text-soft-black uppercase tracking-tight italic">${order.customer}</td>
+                    <td class="py-6">
+                        <span class="text-xs font-bold text-soft-black">${order.productName}</span>
+                        <span class="text-[9px] font-black uppercase text-white bg-soft-black border border-soft-black px-2 py-0.5 rounded ml-2">
+                            ${order.process}
+                        </span>
                     </td>
-                    <td class="py-4 text-center text-xs font-black text-white">${order.qty}</td>
-                    <td class="py-4 text-center text-[10px] font-bold text-white/40 uppercase tracking-widest">${order.date}</td>
-                    <td class="py-4 text-right pr-2">
-                        <button onclick="viewOrder('${order.id}')" class="text-white/20 hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest">View</button>
+                    <td class="py-6 text-center text-sm font-black text-soft-black">${order.qty}</td>
+                    <td class="py-6 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">${order.date}</td>
+                    <td class="py-6 text-right pr-2">
+                        <div class="flex justify-end gap-3">
+                            <button onclick="editOrder('${order.id}')" class="text-soft-black/40 hover:text-moss-green text-[9px] font-black uppercase tracking-widest transition-colors">
+                                Edit
+                            </button>
+                            <button onclick="deleteOrder('${order.id}')" class="text-red-300 hover:text-red-600 text-[9px] font-black uppercase tracking-widest transition-colors">
+                                Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
         }
 
+        function editOrder(id) {
+            const order = orders.find(o => o.id == id);
+            if (!order) return;
+
+            loadProducts();
+            document.getElementById('modalTitle').innerText = "Update Sales Order";
+            document.getElementById('editOrderId').value = order.id;
+            document.getElementById('custName').value = order.customer;
+            document.getElementById('prodSelect').value = order.productId;
+            document.getElementById('orderQty').value = order.qty;
+            document.getElementById('dueDate').value = order.date;
+
+            updateAvailableStock();
+            document.getElementById('orderModal').classList.remove('hidden');
+        }
+
         function commitOrder() {
+            const editId = document.getElementById('editOrderId').value;
             const customer = document.getElementById('custName').value.trim();
             const prodId = document.getElementById('prodSelect').value;
-            const qtyRequested = parseFloat(document.getElementById('orderQty').value);
+            const newQty = parseFloat(document.getElementById('orderQty').value);
             const date = document.getElementById('dueDate').value;
 
-            if (!customer || !prodId || !qtyRequested || !date) {
-                showToast("Fill all details", "border-red-600");
-                return;
-            }
+            if (!customer || !prodId || !newQty || !date) { showToast("Missing Fields", "error"); return; }
 
             let products = JSON.parse(localStorage.getItem(PRODUCT_KEY)) || [];
+
+            if (editId) {
+                const oldOrder = orders.find(o => o.id == editId);
+                const oldProdIndex = products.findIndex(p => p.id == oldOrder.productId);
+                if (oldProdIndex > -1) products[oldProdIndex].qty += oldOrder.qty;
+            }
+
             const pIndex = products.findIndex(p => p.id == prodId);
-
-            if (pIndex === -1) {
-                showToast("Product not found", "border-red-600");
+            if (products[pIndex].qty < newQty) {
+                showToast("Insufficient Stock", "error");
+                renderOrders();
                 return;
             }
 
-            if (products[pIndex].qty < qtyRequested) {
-                showToast(`Low stock: ${products[pIndex].qty} available`, "border-red-600");
-                return;
-            }
-
-            // SUBTRACT FROM PRODUCTS INVENTORY
-            products[pIndex].qty -= qtyRequested;
+            products[pIndex].qty -= newQty;
             localStorage.setItem(PRODUCT_KEY, JSON.stringify(products));
 
-            // CREATE ORDER RECORD
-            const newOrder = {
-                id: Date.now(),
+            const orderData = {
+                id: editId || Date.now(),
                 customer,
                 productId: prodId,
                 productName: products[pIndex].name,
                 process: products[pIndex].process,
-                qty: qtyRequested,
+                qty: newQty,
                 date
             };
 
-            orders.unshift(newOrder);
-            localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
+            if (editId) {
+                const idx = orders.findIndex(o => o.id == editId);
+                orders[idx] = orderData;
+            } else {
+                orders.unshift(orderData);
+            }
 
-            showToast("Order Logged & Stock Deducted", "border-moss-green");
+            localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
+            showToast(editId ? "Order Updated" : "Order Authorized", "success");
             renderOrders();
             closeOrderModal();
         }
 
-        function viewOrder(id) {
+        function deleteOrder(id) {
+            if (!confirm("Delete this order and return stock?")) return;
             const order = orders.find(o => o.id == id);
-            if (!order) return;
-            
-            document.getElementById('viewCust').innerText = order.customer;
-            document.getElementById('viewProd').innerText = `${order.productName} (${order.process})`;
-            document.getElementById('viewQty').innerText = order.qty;
-            document.getElementById('viewDate').innerText = order.date;
-            
-            document.getElementById('viewModal').classList.remove('hidden');
+            let products = JSON.parse(localStorage.getItem(PRODUCT_KEY)) || [];
+            const pIndex = products.findIndex(p => p.id == order.productId);
+
+            if (pIndex > -1) {
+                products[pIndex].qty += order.qty;
+                localStorage.setItem(PRODUCT_KEY, JSON.stringify(products));
+            }
+
+            orders = orders.filter(o => o.id != id);
+            localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
+            renderOrders();
+            showToast("Order Removed", "success");
         }
 
-        function showToast(msg, borderClass) {
+        function showToast(msg, type) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `toast-card show ${borderClass}`;
-            toast.innerHTML = `<p class="text-[10px] font-black uppercase tracking-widest text-white">${msg}</p>`;
+            toast.className = `toast-card show ${type === 'success' ? 'border-moss-green' : 'border-red-600'}`;
+            toast.innerHTML = `<p class="text-[10px] font-black uppercase tracking-widest">${msg}</p>`;
             container.appendChild(toast);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
         }
 
-        function openOrderModal() { loadProducts(); document.getElementById('orderModal').classList.remove('hidden'); }
-        function closeOrderModal() { document.getElementById('orderModal').classList.add('hidden'); }
-        function closeViewModal() { document.getElementById('viewModal').classList.add('hidden'); }
+        function openOrderModal() {
+            document.getElementById('modalTitle').innerText = "New Sales Order";
+            document.getElementById('editOrderId').value = "";
+            document.getElementById('custName').value = "";
+            document.getElementById('orderQty').value = "";
+            document.getElementById('dueDate').value = "";
+            loadProducts();
+            document.getElementById('orderModal').classList.remove('hidden');
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.add('hidden');
+        }
 
         renderOrders();
     </script>

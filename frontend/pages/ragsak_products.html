@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Inventory | Ragsak</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <style type="text/tailwindcss">
@@ -27,31 +27,31 @@
             }
         }
 
-        /* Status Pill Styles */
         .status-pill { @apply inline-block w-28 text-center py-1 rounded text-[9px] font-bold uppercase tracking-tighter; }
         .status-green { @apply bg-moss-green text-white; }
-        .status-yellow { @apply border border-orange-500/50 text-orange-500; }
+        .status-yellow { @apply border border-moss-green/50 text-moss-light; }
         .status-red { @apply border border-red-900/50 text-red-500; }
 
         #productModal:not(.hidden) { @apply !flex items-center justify-center; }
 
         .modal-active { animation: modalIn 0.2s ease-out forwards; }
-        @keyframes modalIn { 
-            from { opacity: 0; transform: scale(0.98); } 
-            to { opacity: 1; transform: scale(1); } 
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
         }
 
-        /* Toast Styles */
         #toast-container {
             @apply fixed top-10 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 pointer-events-none;
         }
+
         .toast-card {
             @apply bg-soft-black text-white px-8 py-4 rounded-2xl shadow-2xl border-l-4 flex items-center gap-4 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-auto;
         }
+
         .toast-card.show { @apply opacity-100 translate-y-0; }
         .toast-success { @apply border-moss-green; }
         .toast-error { @apply border-red-600; }
-                
+
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
         .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green rounded; }
@@ -61,69 +61,90 @@
 
     <div id="toast-container"></div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-8">
-        <div class="lg:col-span-1">
-            <div id="sidebar-container"></div>
-        </div>
+    <!-- Navigation gets injected here -->
+    <div id="sidebar-container"></div>
 
-        <div class="flex h-screen flex-col lg:col-span-7 px-8 pt-10 pb-6">
-            <header class="flex flex-col md:flex-row justify-between items-start mb-10 gap-6">
+    <!-- Main page wrapper -->
+    <main class="min-h-screen lg:pl-64">
+        <div class="flex min-h-screen flex-col px-4 pt-4 pb-6 md:px-8 md:pt-8 lg:px-8 lg:pt-10">
+
+            <header class="flex flex-col md:flex-row justify-between items-start mb-8 lg:mb-10 gap-6">
                 <div>
-                    <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">Product List</h1>
-                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">Product Management • Ragsak Farm</p>
+                    <h1 class="text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">
+                        Product List
+                    </h1>
+                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">
+                        Product Management • Ragsak Farm
+                    </p>
                 </div>
-                <div class="relative">
-                    <input type="text" id="inventorySearch" placeholder="Search products..." 
-                        class="h-11 w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400">
+
+                <div class="relative w-full md:w-auto">
+                    <input
+                        type="text"
+                        id="inventorySearch"
+                        placeholder="Search products..."
+                        class="h-11 w-full md:w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400"
+                    >
                 </div>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-moss-green">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 lg:mb-10">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black">
                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Net Inventory Value</p>
-                    <h2 id="grandTotal" class="text-4xl font-black italic tracking-tighter">₱0.00</h2>
+                    <h2 id="grandTotal" class="text-4xl font-black italic tracking-tighter text-soft-black">₱0.00</h2>
                 </div>
+
                 <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black">
                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-widest">Product Entries</p>
-                    <h2 id="skuCount" class="text-4xl font-black italic tracking-tighter">00</h2>
+                    <h2 id="skuCount" class="text-4xl font-black italic tracking-tighter text-soft-black">00</h2>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-hidden bg-soft-black rounded-3xl p-6 shadow-2xl flex flex-col">
-                <div class="flex items-center justify-between mb-6 px-2">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Authorized Resource Database</p>
-                    <button id="modalOpen" class="bg-white/10 hover:bg-white/20 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all">Add Stocks Entry</button>
+            <section class="flex-1 overflow-hidden bg-white rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col min-h-[500px]">
+                <div class="flex items-center justify-between mb-6 px-2 gap-4">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">
+                        Authorized Resource Database
+                    </p>
+
+                    <button
+                        id="modalOpen"
+                        class="bg-soft-black hover:bg-moss-light text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all shrink-0"
+                    >
+                        Add Stocks Entry
+                    </button>
                 </div>
-                
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+
+                <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar pr-2">
                     <table class="w-full text-left min-w-[900px] table-fixed">
-                        <thead class="sticky top-0 bg-soft-black z-10">
-                            <tr class="border-b border-white/5">
-                                <th class="pb-6 px-2 w-[180px] text-[10px] font-bold uppercase tracking-widest text-white/60">Process</th>
-                                <th class="pb-6 text-[10px] font-bold uppercase tracking-widest text-white/60">Item Name</th>
-                                <th class="pb-6 w-[100px] text-center text-[10px] font-bold uppercase text-white/60">Stock</th> 
-                                <th class="pb-6 w-[140px] text-center text-[10px] font-bold uppercase text-white/60">Status</th>
-                                <th class="pb-6 w-[140px] text-right text-[10px] font-bold uppercase text-white/60">Unit Price</th>
-                                <th class="pb-6 w-[160px] text-right text-[10px] font-bold uppercase text-white/60">Est. Value</th>
-                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-white/60 pr-2">Ctrl</th>
+                        <thead class="sticky top-0 bg-white z-10">
+                            <tr class="border-b border-gray-200">
+                                <th class="pb-6 pt-2 px-2 w-[180px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Process</th>
+                                <th class="pb-6 text-[10px] font-bold uppercase tracking-widest text-gray-600">Item Name</th>
+                                <th class="pb-6 w-[100px] text-center text-[10px] font-bold uppercase text-gray-600">Stock</th>
+                                <th class="pb-6 w-[140px] text-center text-[10px] font-bold uppercase text-gray-600">Status</th>
+                                <th class="pb-6 w-[140px] text-right text-[10px] font-bold uppercase text-gray-600">Unit Price</th>
+                                <th class="pb-6 w-[160px] text-right text-[10px] font-bold uppercase text-gray-600">Est. Value</th>
+                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">Ctrl</th>
                             </tr>
                         </thead>
-                        <tbody id="inventoryBody" class="divide-y divide-white/5"></tbody>
+                        <tbody id="inventoryBody" class="divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </div>
-    </div>
+    </main>
 
     <div id="productModal" class="hidden fixed inset-0 bg-soft-black/30 z-[60] p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-moss-green">
+        <div class="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black">
             <div class="p-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
-                <h2 id="modalTitle" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">Stock In</h2>
-                
+                <h2 id="modalTitle" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">
+                    Stock In
+                </h2>
+
                 <div class="space-y-8">
                     <input type="hidden" id="prodId">
                     <input type="hidden" id="prodPrice" value="0">
-                    
+
                     <div class="group">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Process Type</label>
                         <select id="prodProcess" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all appearance-none">
@@ -133,18 +154,35 @@
                     <div class="grid grid-cols-12 gap-4 items-end">
                         <div class="col-span-12 md:col-span-6 group relative">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Item Name</label>
-                            <input type="text" id="prodName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="Search or type name..." autocomplete="off">
+                            <input
+                                type="text"
+                                id="prodName"
+                                class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all"
+                                placeholder="Search or type name..."
+                                autocomplete="off"
+                            >
                             <ul id="predictiveResults" class="absolute z-50 w-full bg-white shadow-2xl rounded-b-xl border border-gray-100 hidden max-h-40 overflow-y-auto custom-scrollbar top-full mt-1"></ul>
                         </div>
 
                         <div class="col-span-6 md:col-span-3 group">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Quantity</label>
-                            <input type="number" id="prodQty" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="0">
+                            <input
+                                type="number"
+                                id="prodQty"
+                                class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all"
+                                placeholder="0"
+                            >
                         </div>
 
                         <div class="col-span-6 md:col-span-3 group">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Unit</label>
-                            <input type="text" id="prodUnit" disabled class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="kg / bags">
+                            <input
+                                type="text"
+                                id="prodUnit"
+                                disabled
+                                class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all"
+                                placeholder="kg / bags"
+                            >
                         </div>
                     </div>
 
@@ -166,9 +204,10 @@
         </div>
     </div>
 
-    <script src="../components/ragsak_navigation.js"></script>
-    
-    <script type="module">
+    <script>
+        window.currentPageId = 'nav-products';
+    </script>
+    <script type="module" src="../components/ragsak_navigation.js"></script>
         import { getProcesses } from '../assets/js/api.js';
         import { loadProducts } from "../assets/js/products.js";
         import { checkStockStatus } from '../assets/js/utils.js';
@@ -181,10 +220,8 @@
         const closeModal = document.getElementById('modalClose');
         const closeCommit = document.getElementById('commitClose');
         const openCommit = document.getElementById('commitOpen');
-        
-        let selectedProductID;
 
-        injectNavigation('nav-products');
+        let selectedProductID;
 
         window.inventoryData = [];
 
@@ -198,9 +235,7 @@
                 }
 
                 window.inventoryData = response.data;
-
                 renderProducts();
-
             } catch (err) {
                 console.error("Load products error:", err);
             }
@@ -215,7 +250,6 @@
             data = [...data].sort((a, b) => {
                 const processCompare = (a.processName || "").localeCompare(b.processName || "");
                 if (processCompare !== 0) return processCompare;
-
                 return (a.productName || "").localeCompare(b.productName || "");
             });
 
@@ -231,14 +265,13 @@
             Object.keys(grouped).forEach(processName => {
                 const headerRow = document.createElement("tr");
                 headerRow.innerHTML = `
-                    <td colspan="7" class="py-4 px-2 text-xs font-black uppercase tracking-widest text-moss-light bg-white/5">
+                    <td colspan="7" class="py-4 px-2 text-xs font-black uppercase tracking-widest text-moss-green bg-moss-green/10">
                         ${processName}
                     </td>
                 `;
                 tbody.appendChild(headerRow);
 
                 grouped[processName].forEach(item => {
-
                     const status = checkStockStatus(item.quantity);
                     const isFinished = (item.processName || "") === "Finished Product";
                     const unitPrice = isFinished ? (item.productPrice || 0) : 0;
@@ -247,17 +280,14 @@
                     total += value;
 
                     const row = document.createElement("tr");
-                    row.className = "border-b border-white/5 text-white/80";
+                    row.className = "border-b border-gray-200 text-soft-black hover:bg-white/[0.02] transition-colors group";
 
                     row.innerHTML = `
-                        <td class="py-4 text-[10px] uppercase pl-6">—</td>
-
-                        <td class="py-4 text-xs font-bold">${item.productName}</td>
-
-                        <td class="py-4 text-center text-xs">
+                        <td class="py-4 text-[10px] uppercase pl-6 text-soft-black/40">—</td>
+                        <td class="py-4 text-xs font-bold text-soft-black">${item.productName}</td>
+                        <td class="py-4 text-center text-xs text-soft-black/60 font-mono">
                             ${item.quantity} ${item.unitType}
                         </td>
-
                         <td class="py-4 text-center">
                             <span class="status-pill ${
                                 status === "Out of Stock" ? "status-red" :
@@ -267,23 +297,20 @@
                                 ${status}
                             </span>
                         </td>
-
-                        <td class="py-4 text-right text-xs">
+                        <td class="py-4 text-right text-xs text-soft-black/60 font-mono">
                             ₱${parseFloat(unitPrice || 0).toLocaleString("en-PH", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             })}
                         </td>
-
-                        <td class="py-4 text-right text-xs font-bold">
+                        <td class="py-4 text-right text-xs font-bold text-soft-black">
                             ₱${value.toLocaleString("en-PH", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             })}
                         </td>
-
                         <td class="py-4 text-right text-xs pr-2">
-                            <button class="text-white/40 hover:text-white">Edit</button>
+                            <button class="text-soft-black/40 hover:text-moss-green transition-colors">Edit</button>
                         </td>
                     `;
 
@@ -302,25 +329,23 @@
 
         const searchInput = document.getElementById("inventorySearch");
 
-            searchInput.addEventListener("input", function () {
-                const query = this.value.toLowerCase().trim();
+        searchInput.addEventListener("input", function () {
+            const query = this.value.toLowerCase().trim();
+            const allItems = window.inventoryData || [];
 
-                const allItems = window.inventoryData || [];
+            if (query.length === 0) {
+                renderProducts(allItems);
+                return;
+            }
 
-                if (query.length === 0) {
-                    renderProducts(allItems);
-                    return;
-                }
+            const filtered = allItems.filter(item =>
+                item.productName.toLowerCase().includes(query) ||
+                (item.processName || "").toLowerCase().includes(query)
+            );
 
-                const filtered = allItems.filter(item =>
-                    item.productName.toLowerCase().includes(query) ||
-                    (item.processName || "").toLowerCase().includes(query)
-                );
+            renderProducts(filtered);
+        });
 
-                renderProducts(filtered);
-            });
-
-        // Predictive Search Logic (FIXED Undefined)
         prodNameInput.addEventListener('input', function () {
             const query = this.value.toLowerCase().trim();
             const selectedProcessID = Number(document.getElementById('prodProcess').value);
@@ -340,9 +365,7 @@
                 Number(item.processID) === selectedProcessID
             );
 
-            const uniqueNames = [...new Set(
-                currentItems.map(item => item.productName)
-            )];
+            const uniqueNames = [...new Set(currentItems.map(item => item.productName))];
 
             const matches = uniqueNames.filter(name =>
                 name.toLowerCase().includes(query)
@@ -357,7 +380,7 @@
                 const itemData = currentItems.find(i => i.productName === name);
 
                 return `
-                    <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors"
+                    <li class="px-4 py-3 hover:bg-moss-green/10 cursor-pointer border-b border-gray-50 text-xs font-bold uppercase transition-colors text-soft-black"
                         data-id="${itemData.productID}"
                         data-name="${name}"
                         data-unit="${itemData.unitType || ''}">
@@ -395,24 +418,34 @@
 
             closeCommit.disabled = true;
 
-             let data = {
+            let data = {
                 productID: selectedProductID,
                 quantity: qtyInput,
                 processID: prodProc
             };
 
             handleCloseCommit(data);
-
             closeCommit.disabled = false;
-           
         });
 
         async function handleCloseCommit(data) {
-            console.log(data);
-            await stockinProduct(data);
-            closeProductModal();
-            await getProducts();
-            showToast("Stock In Successful", "success");
+            const response = await stockinProduct(data);
+            const procEl = document.getElementById('prodProcess');
+            const nameEl = document.getElementById('prodName');
+            const qtyEl = document.getElementById('prodQty');
+
+            selectedProductID = null;
+            procEl.value = '';
+            nameEl.value = '';
+            qtyEl.value = '';
+
+            if (response) {
+                closeProductModal();
+                await getProducts();
+                showToast("Stock In Successful", "success");
+            } else {
+                showToast("Stock In Failed", "error");
+            }
         }
 
         openCommit.addEventListener('click', () => {
@@ -426,38 +459,43 @@
 
             openCommit.disabled = true;
 
-             let data = {
+            let data = {
                 productID: selectedProductID,
                 quantity: qtyInput,
                 processID: prodProc
             };
 
             handleOpenCommit(data);
-
             openCommit.disabled = false;
-           
         });
 
-        function handleOpenCommit(data) {
-            const procEl = document.getElementById('prodProcess')
+        async function handleOpenCommit(data) {
+            const procEl = document.getElementById('prodProcess');
             const nameEl = document.getElementById('prodName');
             const qtyEl = document.getElementById('prodQty');
+            const response = await stockinProduct(data);
 
-            console.log(data);
-            stockinProduct(data);
-            selectedProductID = null; 
-            procEl.value = '';  
+            selectedProductID = null;
+            procEl.value = '';
             nameEl.value = '';
             qtyEl.value = '';
-            nameEl.focus(); 
-            showToast("Stock In Sccessful", "success");
+
+            if (response) {
+                await getProducts();
+                nameEl.focus();
+                showToast("Stock In Successful", "success");
+            } else {
+                showToast("Stock In Failed", "error");
+            }
         }
 
         async function syncProcessDropdown() {
             const processSelect = document.getElementById('prodProcess');
             const response = await getProcesses();
             const processes = response.data;
+
             processSelect.innerHTML = '<option value="" disabled selected>Select Production Phase</option>';
+
             processes.forEach(p => {
                 const name = (typeof p === 'object') ? p.processName : p;
                 const option = document.createElement('option');
@@ -468,11 +506,10 @@
         }
 
         openModal.addEventListener('click', () => {
-                clearForm(); 
-                syncProcessDropdown();
-                document.getElementById('productModal').classList.remove('hidden');
-         });
-            
+            clearForm();
+            syncProcessDropdown();
+            document.getElementById('productModal').classList.remove('hidden');
+        });
 
         closeModal.addEventListener('click', () => {
             closeProductModal();
@@ -482,7 +519,6 @@
             document.getElementById('productModal').classList.add('hidden');
             suggestionsUl.classList.add('hidden');
         }
-            
 
         function clearForm() {
             document.getElementById('prodId').value = '';
@@ -499,9 +535,9 @@
                 suggestionsUl.classList.add('hidden');
             }
         });
-        
+
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Escape') closeProductModal();
         });
 
         getProducts();

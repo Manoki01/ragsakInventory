@@ -1,0 +1,13 @@
+{
+    "name": "ragsak/inventory-backend",
+    "description": "Backend for Ragsak Inventory System",
+    "type": "project",
+    "require": {
+        "firebase/php-jwt": "^6.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ragsak\\": "src/"
+        }
+    }
+}
