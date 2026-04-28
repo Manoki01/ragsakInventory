@@ -146,10 +146,7 @@
                 icon: 'info',
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#4A5D23',
-                didClose: () => {
-                    // Clear any remaining session data
-                    localStorage.clear();
-                }
+                didClose: () => {}
             });
         }
 
@@ -236,8 +233,6 @@
             setTimeout(() => {
 
                 if (response.status === "success") {
-                    localStorage.setItem('jwt', response.token);
-
                     btnText.innerHTML = "Access Granted";
                     submitBtn.classList.replace('bg-soft-black', 'bg-moss-green');
 

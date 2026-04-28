@@ -1,123 +1,118 @@
-const API_URL = "http://localhost/ragsakInventory/backend/index.php?route=";
+function getAppBasePath() {
+    const pathname = window.location.pathname;
 
-function getAuthHeaders() {
-    const token = localStorage.getItem('jwt');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    if (pathname.includes('/frontend/')) {
+        return pathname.split('/frontend/')[0];
+    }
+
+    return pathname.replace(/\/[^/]*$/, '');
+}
+
+const API_URL = `${window.location.origin}${getAppBasePath()}/backend/index.php?route=`;
+
+async function apiRequest(route, options = {}) {
+    const response = await fetch(API_URL + route, {
+        credentials: 'same-origin',
+        ...options,
+        headers: {
+            ...(options.headers || {})
+        }
+    });
+
+    return await response.json();
 }
 
 //Products
     export async function getProducts() {
-        const response = await fetch(API_URL + "products", {
-            headers: getAuthHeaders()
-        });
-
-        return await response.json();
+        return await apiRequest("products");
     }
 
     export async function createProduct(data) {
-        const response = await fetch(API_URL + "products&action=create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-            body: JSON.stringify(data)
-        });
-
-        return await response.json();
-    }
-
-    export async function stockProduct(data) {
-        const response = await fetch(API_URL + "products&action=stock", {
-            method: "POST",
-            headers: { "Content-Type" : "application/json", ...getAuthHeaders() },
-            body: JSON.stringify(data)
-        });
-
-        return await response.json();
-    }
-
-//Raw Materials
-    export async function getRawMaterials() {
-        const response = await fetch(API_URL + "raw_materials", {
-            headers: getAuthHeaders()
-        });
-
-        return await response.json();
-    }
-
-    export async function createRawMaterial(data) {
-        const response = await fetch(API_URL + "raw_materials&action=create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-            body: JSON.stringify(data)
-        });
-
-        return await response.json();
-    }
-
-    export async function stockRawMaterial(data) {
-        const response = await fetch(API_URL + "raw_materials&action=stock", {
-            method: "POST",
-            headers: { "Content-Type" : "application/json", ...getAuthHeaders() },
-            body: JSON.stringify(data)
-        });
-
-        return await response.json();
-    }
-
-//Packaging
-    export async function getPackaging() {
-        const response = await fetch(API_URL + "packaging", {
-            headers: getAuthHeaders()
-        });
-
-        return await response.json();
-    }
-
-    export async function createPackaging(data) {
-        const response = await fetch(API_URL + "packaging&action=create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-            body: JSON.stringify(data)
-        });
-
-        return await response.json();
-    }
-
-    export async function stockPackaging(data) {
-        const response = await fetch(API_URL + "packaging&action=stock", {
-            method: "POST",
-            headers: { "Content-Type" : "application/json", ...getAuthHeaders() },
-            body: JSON.stringify(data)
-        });
-
-        return await response.json();
-    }
-
-//Processes
-    export async function getProcesses() {
-        const response = await fetch(API_URL + "process", {
-            headers: getAuthHeaders()
-        });
-
-        return await response.json();
-    }
-
-//Users
-    export async function userLogin(data) {
-        const response = await fetch(API_URL + "users&action=login", {
-            method: "POST",
-            headers: { "Content-Type" : "application/json" },
-            body: JSON.stringify(data)
-        });
-
-        return await response.json();
-    }
-
-    export async function userRegister(data) {
-        const response = await fetch(API_URL + "users&action=register", {
+        return await apiRequest("products&action=create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         });
+    }
 
-        return await response.json();
+    export async function stockProduct(data) {
+        return await apiRequest("products&action=stock", {
+            method: "POST",
+            headers: { "Content-Type" : "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+//Raw Materials
+    export async function getRawMaterials() {
+        return await apiRequest("raw_materials");
+    }
+
+    export async function createRawMaterial(data) {
+        return await apiRequest("raw_materials&action=create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function stockRawMaterial(data) {
+        return await apiRequest("raw_materials&action=stock", {
+            method: "POST",
+            headers: { "Content-Type" : "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+//Packaging
+    export async function getPackaging() {
+        return await apiRequest("packaging");
+    }
+
+    export async function createPackaging(data) {
+        return await apiRequest("packaging&action=create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function stockPackaging(data) {
+        return await apiRequest("packaging&action=stock", {
+            method: "POST",
+            headers: { "Content-Type" : "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+//Processes
+    export async function getProcesses() {
+        return await apiRequest("process");
+    }
+
+//Users
+    export async function userLogin(data) {
+        return await apiRequest("users&action=login", {
+            method: "POST",
+            headers: { "Content-Type" : "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function userRegister(data) {
+        return await apiRequest("users&action=register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function getCurrentUser() {
+        return await apiRequest("users&action=me");
+    }
+
+    export async function userLogout() {
+        return await apiRequest("users&action=logout", {
+            method: "POST"
+        });
     }

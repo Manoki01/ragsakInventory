@@ -7,6 +7,16 @@ use Firebase\JWT\Key;
 
 header('Content-Type: application/json'); // always return JSON
 
+set_exception_handler(function ($exception) {
+    http_response_code(500);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Internal server error"
+    ]);
+    error_log($exception->getMessage());
+    exit;
+});
+
 function getAuthorizationHeader() {
     if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
         return $_SERVER['HTTP_AUTHORIZATION'];
@@ -27,28 +37,61 @@ function getAuthorizationHeader() {
     return null;
 }
 
-function validateJWT() {
+function getBearerToken() {
     $authHeader = getAuthorizationHeader();
 
-    if (!$authHeader) {
-        http_response_code(401);
-        echo json_encode(["status" => "error", "message" => "No token provided"]);
-        exit;
+    if ($authHeader && preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+        return $matches[1];
     }
 
-    if (!preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
-        http_response_code(401);
-        echo json_encode(["status" => "error", "message" => "Invalid token format"]);
-        exit;
+    if (!empty($_COOKIE['ragsak_auth'])) {
+        return $_COOKIE['ragsak_auth'];
     }
 
-    $token = $matches[1];
+    return null;
+}
+
+function getCurrentAuthUser() {
+    return $GLOBALS['currentAuthUser'] ?? null;
+}
+
+function validateJWT() {
+    $token = getBearerToken();
+
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(["status" => "error", "message" => "Authentication required"]);
+        exit;
+    }
     $secretKey = getJwtSecret();
 
     try {
         $decoded = JWT::decode($token, new Key($secretKey, 'HS256'));
+        $now = time();
+        $sessionStartedAt = isset($decoded->session_started)
+            ? (int) $decoded->session_started
+            : (isset($decoded->iat) ? (int) $decoded->iat : $now);
+
+        if (($now - $sessionStartedAt) > getJwtMaxSessionSeconds()) {
+            clearAuthCookie();
+            http_response_code(401);
+            echo json_encode(["status" => "error", "message" => "Session expired"]);
+            exit;
+        }
+
+        $expiresAt = isset($decoded->exp) ? (int) $decoded->exp : 0;
+        if ($expiresAt > 0 && ($expiresAt - $now) <= getJwtRenewThresholdSeconds()) {
+            issueAuthToken([
+                'sub' => isset($decoded->sub) ? (int) $decoded->sub : null,
+                'username' => $decoded->username ?? null,
+                'role' => $decoded->role ?? null
+            ], $sessionStartedAt);
+        }
+
+        $GLOBALS['currentAuthUser'] = $decoded;
         return $decoded;
     } catch (Exception $e) {
+        clearAuthCookie();
         http_response_code(401);
         echo json_encode(["status" => "error", "message" => "Invalid token"]);
         exit;
@@ -130,5 +173,14 @@ switch($request) {
 
         if($method == "POST" && $action == "register") {
             registerUsers();
+        }
+
+        if($method == "GET" && $action == "me") {
+            validateJWT();
+            getAuthenticatedUser();
+        }
+
+        if($method == "POST" && $action == "logout") {
+            logoutUser();
         }
 }

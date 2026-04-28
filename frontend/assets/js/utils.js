@@ -1,3 +1,5 @@
+import { getCurrentUser, userLogout } from "./api.js";
+
 export function checkStockStatus(quantity, lowStockLimit = 50) {
 
     quantity = Number(quantity);
@@ -21,8 +23,6 @@ export function checkStockStatus(quantity, lowStockLimit = 50) {
 let inactivityTimer;
 
 export function startSessionManagement() {
-    if (!localStorage.getItem('jwt')) return;
-
     resetInactivityTimer();
 
     // Attach to events
@@ -38,14 +38,25 @@ function resetInactivityTimer() {
     }, 10 * 60 * 1000); // 10 minutes
 }
 
-export function logout(isInactive = false) {
+export async function logout(isInactive = false) {
     if (isInactive) {
         sessionStorage.setItem('inactivityLogout', 'true');
     }
-    localStorage.removeItem('jwt');
+
+    try {
+        await userLogout();
+    } catch (error) {
+        console.error("Logout failed", error);
+    }
+
     window.location.href = '../../index.html';
 }
 
-export function isLoggedIn() {
-    return !!localStorage.getItem('jwt');
+export async function isLoggedIn() {
+    try {
+        const response = await getCurrentUser();
+        return response.status === "success";
+    } catch (error) {
+        return false;
+    }
 }

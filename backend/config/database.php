@@ -17,7 +17,7 @@ class Database {
         );
 
         if($conn->connect_error) {
-            die('Database connection failed');
+            throw new RuntimeException('Database connection failed');
         }
 
         return $conn;

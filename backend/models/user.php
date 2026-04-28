@@ -10,10 +10,9 @@ class User {
     }
 
     public function login($data) {
-        session_start();
-
         $stmt = $this->conn->prepare("SELECT 
             u.userID, 
+            u.username,
             u.role,
             p.password
             FROM tbl_user u
@@ -34,17 +33,19 @@ class User {
         }
 
         $hashedPassword = '';
-        $stmt->bind_result($userID, $role, $hashedPassword);
+        $username = '';
+        $stmt->bind_result($userID, $username, $role, $hashedPassword);
         $stmt->fetch();
 
         if (!password_verify($data['password'], $hashedPassword)) {
             return false;
         }
 
-        $_SESSION['userID'] = $userID;
-        $_SESSION['role'] = $role;
-
-        return true;
+        return [
+            'userID' => (int) $userID,
+            'username' => $username,
+            'role' => $role
+        ];
     }
 
     public function registration($data) {
@@ -77,7 +78,7 @@ class User {
             return true;
         } catch(Exception $e) {
             $this->conn->rollback();
-            echo "Transaction failed: " . $e->getMessage();
+            error_log("Transaction failed: " . $e->getMessage());
             return false;
         }
     }

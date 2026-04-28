@@ -87,12 +87,12 @@ class Product {
     }
 
     public function stockProduct($data) {
-        session_start();
         $this->conn->begin_transaction();
 
         try {
             $process = $data['processID'];
             $product = $data['productID'];
+            $userID = $data['userID'];
 
             $checkStmt = $this->conn->prepare("
             SELECT ps.flowID, ps.quantity FROM tbl_productStock ps
@@ -133,7 +133,6 @@ class Product {
                 }
 
                 $action = "Stock In";
-                $userID = $_SESSION['userID'];
 
                 $transactionStmt = $this->conn->prepare("INSERT INTO tbl_prodTransactions (
                 userID, 

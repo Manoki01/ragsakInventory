@@ -1,8 +1,6 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/jwt.php';
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 require_once __DIR__ . '../../models/user.php';
 
@@ -39,26 +37,22 @@ function getLogin() {
         exit;
     }
 
-    $success = $user->login($input);
+    $authenticatedUser = $user->login($input);
 
     header('Content-Type: application/json');
 
-    if ($success) {
-        $secretKey = getJwtSecret(); // Use env var in production
-        $issuedAt = time();
-        $expirationTime = $issuedAt + 3600; // 1 hour
-        $payload = [
-            'iat' => $issuedAt,
-            'exp' => $expirationTime,
-            'user' => $input['username']
-        ];
-        $jwt = JWT::encode($payload, $secretKey, 'HS256');
+    if ($authenticatedUser) {
+        issueAuthToken([
+            'sub' => $authenticatedUser['userID'],
+            'username' => $authenticatedUser['username'],
+            'role' => $authenticatedUser['role']
+        ]);
         
         http_response_code(200);
         echo json_encode([
             "status" => "success",
             "message" => "Login Successful",
-            "token" => $jwt
+            "user" => $authenticatedUser
         ]);
     } else {
         http_response_code(401);
@@ -67,6 +61,30 @@ function getLogin() {
             "message" => "Invalid credentials"
         ]);
     }
+}
+
+function getAuthenticatedUser() {
+    $decodedUser = getCurrentAuthUser();
+
+    http_response_code(200);
+    echo json_encode([
+        "status" => "success",
+        "user" => [
+            "userID" => isset($decodedUser->sub) ? (int) $decodedUser->sub : null,
+            "username" => $decodedUser->username ?? null,
+            "role" => $decodedUser->role ?? null
+        ]
+    ]);
+}
+
+function logoutUser() {
+    clearAuthCookie();
+
+    http_response_code(200);
+    echo json_encode([
+        "status" => "success",
+        "message" => "Logout successful"
+    ]);
 }
 
 function registerUsers() {

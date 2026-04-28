@@ -2,6 +2,41 @@
 
 require_once __DIR__ . '../../models/products.php';
 
+function failValidation($message) {
+    http_response_code(422);
+    echo json_encode([
+        "status" => "error",
+        "message" => $message
+    ]);
+    exit;
+}
+
+function validatePositiveInt($value, $fieldName) {
+    if (filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value <= 0) {
+        failValidation($fieldName . " must be a positive whole number");
+    }
+
+    return (int) $value;
+}
+
+function validateNonEmptyText($value, $fieldName, $maxLength = 100) {
+    $value = trim((string) $value);
+
+    if ($value === '' || strlen($value) > $maxLength) {
+        failValidation($fieldName . " is invalid");
+    }
+
+    return $value;
+}
+
+function validateMoney($value, $fieldName) {
+    if (!is_numeric($value) || (float) $value < 0) {
+        failValidation($fieldName . " must be a valid non-negative number");
+    }
+
+    return (float) $value;
+}
+
 function getProducts() {
     $product = new Product();
 
@@ -20,10 +55,23 @@ function createProduct() {
     );
     
     if (!$input) {
-    http_response_code(400); // Bad Request
-    echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
-    exit;
-}
+        http_response_code(400); // Bad Request
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $processes = $input['processes'] ?? null;
+    if (!is_array($processes) || count($processes) === 0) {
+        failValidation("At least one valid process is required");
+    }
+
+    $input['unitName'] = validateNonEmptyText($input['unitName'] ?? '', 'Product name');
+    $input['unitType'] = validateNonEmptyText($input['unitType'] ?? '', 'Unit type', 50);
+    $input['unitPrice'] = validateMoney($input['unitPrice'] ?? null, 'Unit price');
+    $input['processes'] = array_values(array_unique(array_map(
+        fn ($processId) => validatePositiveInt($processId, 'Process ID'),
+        $processes
+    )));
 
     $product = new Product();
 
@@ -50,6 +98,24 @@ function stockProduct() {
         file_get_contents("php://input"),
         true
     );
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $input['productID'] = validatePositiveInt($input['productID'] ?? null, 'Product ID');
+    $input['processID'] = validatePositiveInt($input['processID'] ?? null, 'Process ID');
+    $input['quantity'] = validatePositiveInt($input['quantity'] ?? null, 'Quantity');
+    $authenticatedUser = getCurrentAuthUser();
+    $input['userID'] = isset($authenticatedUser->sub) ? (int) $authenticatedUser->sub : 0;
+
+    if ($input['userID'] <= 0) {
+        http_response_code(401);
+        echo json_encode(["status" => "error", "message" => "Authentication required"]);
+        exit;
+    }
 
     $product = new Product();
 

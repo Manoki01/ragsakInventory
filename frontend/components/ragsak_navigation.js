@@ -163,16 +163,25 @@ function injectNavigation(currentPageId) {
         });
     });
 
-    // Session management
-    if (!isLoggedIn()) {
-        window.location.href = '../../index.html';
-    } else {
-        startSessionManagement();
+}
+
+async function initNavigation() {
+    if (!window.currentPageId) {
+        return;
     }
+
+    injectNavigation(window.currentPageId);
+
+    if (!(await isLoggedIn())) {
+        window.location.href = '../../index.html';
+        return;
+    }
+
+    startSessionManagement();
 }
 
 if (window.currentPageId) {
-    injectNavigation(window.currentPageId);
+    initNavigation();
 }
 
 // Make logout global for onclick

@@ -1,5 +1,7 @@
 <?php
 
+use Firebase\JWT\JWT;
+
 function loadBackendEnv($filePath) {
     if (!is_readable($filePath)) {
         return;
@@ -78,4 +80,62 @@ function getRequiredEnv($name) {
     }
 
     return $value;
+}
+
+function isHttpsRequest() {
+    return (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+        (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443)
+    );
+}
+
+function setAuthCookie($token, $expiresAt) {
+    setcookie('ragsak_auth', $token, [
+        'expires' => $expiresAt,
+        'path' => '/',
+        'domain' => '',
+        'secure' => isHttpsRequest(),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+}
+
+function clearAuthCookie() {
+    setcookie('ragsak_auth', '', [
+        'expires' => time() - 3600,
+        'path' => '/',
+        'domain' => '',
+        'secure' => isHttpsRequest(),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+}
+
+function getJwtTtlSeconds() {
+    return 3600;
+}
+
+function getJwtRenewThresholdSeconds() {
+    return 900;
+}
+
+function getJwtMaxSessionSeconds() {
+    return 28800;
+}
+
+function issueAuthToken(array $claims, $sessionStartedAt = null) {
+    $issuedAt = time();
+    $sessionStartedAt = $sessionStartedAt ?? $issuedAt;
+    $expirationTime = $issuedAt + getJwtTtlSeconds();
+
+    $payload = array_merge($claims, [
+        'iat' => $issuedAt,
+        'exp' => $expirationTime,
+        'session_started' => $sessionStartedAt
+    ]);
+
+    $jwt = JWT::encode($payload, getJwtSecret(), 'HS256');
+    setAuthCookie($jwt, $expirationTime);
+
+    return $jwt;
 }
