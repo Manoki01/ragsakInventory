@@ -135,7 +135,7 @@
     </div>
 
     <script type="module">
-        import { loginUser } from './assets/js/users.js';
+        import { loginUser } from './frontend/assets/js/users.js';
 
         // Check for inactivity logout
         if (sessionStorage.getItem('inactivityLogout')) {
@@ -231,8 +231,6 @@
         });
 
         async function handleLogin(data) {
-            console.log("Passing data:", data);
-            
             const response = await loginUser(data);
 
             setTimeout(() => {
@@ -244,7 +242,7 @@
                     submitBtn.classList.replace('bg-soft-black', 'bg-moss-green');
 
                     setTimeout(() => {
-                        window.location.href = "pages/ragsak_home.html";
+                        window.location.href = "frontend/pages/ragsak_home.html";
                     }, 800);
 
                 } else {

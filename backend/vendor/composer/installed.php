@@ -3,7 +3,7 @@
         'name' => 'ragsak/inventory-backend',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'dadc210c009d38f656174435401d57f94e39eace',
+        'reference' => '63149f77f7a6869aa6bca1a6e67e513ed74ad444',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'firebase/php-jwt' => array(
-            'pretty_version' => 'v6.11.1',
-            'version' => '6.11.1.0',
-            'reference' => 'd1e91ecf8c598d073d0995afa8cd5c75c6e19e66',
+            'pretty_version' => 'v7.0.5',
+            'version' => '7.0.5.0',
+            'reference' => '47ad26bab5e7c70ae8a6f08ed25ff83631121380',
             'type' => 'library',
             'install_path' => __DIR__ . '/../firebase/php-jwt',
             'aliases' => array(),
@@ -22,7 +22,7 @@
         'ragsak/inventory-backend' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'dadc210c009d38f656174435401d57f94e39eace',
+            'reference' => '63149f77f7a6869aa6bca1a6e67e513ed74ad444',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

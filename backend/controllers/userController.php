@@ -11,7 +11,7 @@ function getLogin() {
     $input = json_decode(
         file_get_contents("php://input"),
         true
-    );
+    );  
 
     if (!$input) {
         http_response_code(400); // Bad Request
@@ -43,7 +43,7 @@ function getLogin() {
     header('Content-Type: application/json');
 
     if ($success) {
-        $secretKey = 'your-secret-key-here'; // Use env var in production
+        $secretKey = 'your-256-bit-secret-key-here-for-jwt-auth'; // Use env var in production
         $issuedAt = time();
         $expirationTime = $issuedAt + 3600; // 1 hour
         $payload = [
@@ -52,7 +52,7 @@ function getLogin() {
             'user' => $input['username']
         ];
         $jwt = JWT::encode($payload, $secretKey, 'HS256');
-
+        
         http_response_code(200);
         echo json_encode([
             "status" => "success",

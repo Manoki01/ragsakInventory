@@ -3,7 +3,7 @@
     "description": "Backend for Ragsak Inventory System",
     "type": "project",
     "require": {
-        "firebase/php-jwt": "^6.10"
+        "firebase/php-jwt": "^7.0"
     },
     "autoload": {
         "psr-4": {

@@ -43,7 +43,7 @@ export function logout(isInactive = false) {
         sessionStorage.setItem('inactivityLogout', 'true');
     }
     localStorage.removeItem('jwt');
-    window.location.href = '../index.html';
+    window.location.href = '../../index.html';
 }
 
 export function isLoggedIn() {

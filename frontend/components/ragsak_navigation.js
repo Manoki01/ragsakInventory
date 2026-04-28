@@ -99,7 +99,6 @@ function applyActiveNavState(currentPageId) {
 }
 
 function injectNavigation(currentPageId) {
-    console.log("Injecting navigation for page:", currentPageId);
     const container = document.getElementById('sidebar-container');
     if (!container) return;
 
