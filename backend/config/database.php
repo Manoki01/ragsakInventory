@@ -1,17 +1,19 @@
 <?php
 
-class Database {
-    private static $host = 'localhost';
-    private static $user = 'inventory_user';
-    private static $pass = 'ragsakInventory123';
-    private static $db = 'ragsak_inventoryDB';
+require_once __DIR__ . '/jwt.php';
 
+class Database {
     public static function connect() {
+        $host = getRequiredEnv('DB_HOST');
+        $user = getRequiredEnv('DB_USER');
+        $pass = getRequiredEnv('DB_PASS');
+        $db = getRequiredEnv('DB_NAME');
+
         $conn = new mysqli(
-            self::$host,
-            self::$user,
-            self::$pass,
-            self::$db
+            $host,
+            $user,
+            $pass,
+            $db
         );
 
         if($conn->connect_error) {

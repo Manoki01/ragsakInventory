@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../config/jwt.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -43,7 +44,7 @@ function getLogin() {
     header('Content-Type: application/json');
 
     if ($success) {
-        $secretKey = 'your-256-bit-secret-key-here-for-jwt-auth'; // Use env var in production
+        $secretKey = getJwtSecret(); // Use env var in production
         $issuedAt = time();
         $expirationTime = $issuedAt + 3600; // 1 hour
         $payload = [

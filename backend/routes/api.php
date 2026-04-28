@@ -1,26 +1,50 @@
 <?php
 require_once __DIR__ . '../../vendor/autoload.php';
+require_once __DIR__ . '/../config/jwt.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 header('Content-Type: application/json'); // always return JSON
 
+function getAuthorizationHeader() {
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        return $_SERVER['HTTP_AUTHORIZATION'];
+    }
+
+    if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    }
+
+    if (function_exists('getallheaders')) {
+        foreach (getallheaders() as $name => $value) {
+            if (strtolower($name) === 'authorization') {
+                return $value;
+            }
+        }
+    }
+
+    return null;
+}
+
 function validateJWT() {
-    $headers = getallheaders();
-    if (!isset($headers['Authorization'])) {
+    $authHeader = getAuthorizationHeader();
+
+    if (!$authHeader) {
         http_response_code(401);
         echo json_encode(["status" => "error", "message" => "No token provided"]);
         exit;
     }
-    $authHeader = $headers['Authorization'];
+
     if (!preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
         http_response_code(401);
         echo json_encode(["status" => "error", "message" => "Invalid token format"]);
         exit;
     }
+
     $token = $matches[1];
-    $secretKey = 'your-secret-key-here';
+    $secretKey = getJwtSecret();
+
     try {
         $decoded = JWT::decode($token, new Key($secretKey, 'HS256'));
         return $decoded;
