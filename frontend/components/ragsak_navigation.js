@@ -165,7 +165,7 @@ function injectNavigation(currentPageId) {
 
     // Session management
     if (!isLoggedIn()) {
-        window.location.href = '../index.html';
+        window.location.href = '../../index.html';
     } else {
         startSessionManagement();
     }
