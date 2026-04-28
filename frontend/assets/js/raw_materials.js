@@ -23,12 +23,22 @@ export async function addRawMaterial(data) {
         const response = await createRawMaterial(data);
 
         if(response.status === "success") {
-            return true;
+            return {
+                success: true,
+                message: response.message || "Raw material added successfully"
+            };
         } else {
-            return false;
+            return {
+                success: false,
+                message: response.message || "Failed to add raw material"
+            };
         }
     } catch(error) {
         console.error("Failed to add raw material", error);
+        return {
+            success: false,
+            message: "Network error while adding raw material"
+        };
     }
 }
 

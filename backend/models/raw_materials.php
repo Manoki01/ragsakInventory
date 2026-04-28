@@ -17,6 +17,25 @@ class Raw_Material {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
+    public function rawMaterialExistsIgnoreCase($rawMaterialName) {
+        $stmt = $this->conn->prepare("
+            SELECT rawMaterialID
+            FROM tbl_rawMaterials
+            WHERE LOWER(rawMaterialName) = LOWER(?)
+            LIMIT 1
+        ");
+
+        $stmt->bind_param("s", $rawMaterialName);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to validate raw material name");
+        }
+
+        $stmt->store_result();
+
+        return $stmt->num_rows > 0;
+    }
+
     public function createRawMaterial($data) {
         $this->conn->begin_transaction();
 

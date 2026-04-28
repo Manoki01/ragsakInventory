@@ -75,6 +75,15 @@ function createProduct() {
 
     $product = new Product();
 
+    if ($product->productExistsIgnoreCase($input['unitName'])) {
+        http_response_code(409);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Product already exists"
+        ]);
+        exit;
+    }
+
     $success = $product->createProduct($input);
 
     header('Content-Type: application/json');

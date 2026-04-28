@@ -17,6 +17,25 @@ class Packaging {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
+    public function packagingExistsIgnoreCase($packagingName) {
+        $stmt = $this->conn->prepare("
+            SELECT packagingID
+            FROM tbl_packaging
+            WHERE LOWER(packagingName) = LOWER(?)
+            LIMIT 1
+        ");
+
+        $stmt->bind_param("s", $packagingName);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to validate packaging name");
+        }
+
+        $stmt->store_result();
+
+        return $stmt->num_rows > 0;
+    }
+
     public function createPackaging($data) {
         $this->conn->begin_transaction();
 

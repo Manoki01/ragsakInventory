@@ -92,6 +92,15 @@ function createRawMaterial() {
 
     $rawMaterial = new Raw_Material();
 
+    if ($rawMaterial->rawMaterialExistsIgnoreCase($input['unitName'])) {
+        http_response_code(409);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Raw material already exists"
+        ]);
+        exit;
+    }
+
     $success = $rawMaterial->createRawMaterial($input);
 
     header('Content-Type: application/json');

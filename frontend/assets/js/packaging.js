@@ -24,12 +24,22 @@ export async function addPackaging(data) {
         const response = await createPackaging(data);
 
         if(response.status === "success") {
-            return true;
+            return {
+                success: true,
+                message: response.message || "Packaging added successfully"
+            };
         } else {
-            return false;
+            return {
+                success: false,
+                message: response.message || "Failed to add packaging"
+            };
         }
     } catch(error) {
         console.error("Failed to add packaging", error);
+        return {
+            success: false,
+            message: "Network error while adding packaging"
+        };
     }
 }
 

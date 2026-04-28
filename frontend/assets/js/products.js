@@ -23,13 +23,22 @@ export async function addProduct(data) {
         const response = await createProduct(data);
 
         if(response.status === "success") {
-            return true;
+            return {
+                success: true,
+                message: response.message || "Product added successfully"
+            };
         } else {
-            return false;
+            return {
+                success: false,
+                message: response.message || "Failed to add product"
+            };
         }
     } catch(error) {
         console.error("Failed to add product", error);
-        return false;
+        return {
+            success: false,
+            message: "Network error while adding product"
+        };
     }
 }
 

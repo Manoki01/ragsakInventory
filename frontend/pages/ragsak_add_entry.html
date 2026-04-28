@@ -343,11 +343,11 @@
 
         intakeForm.addEventListener("submit", e => {
             e.preventDefault();
-            document.getElementById('submitBtn').disabled;
             processIntake();
         });
 
         async function processIntake() {
+            const submitBtn = document.getElementById("submitBtn");
             const targetDb = document.getElementById("targetDb").value;
 
             const unitName = document.getElementById("itemName").value.trim();
@@ -383,54 +383,55 @@
             console.log("Passing data:", data);
 
             if (!unitName || !unitType || isNaN(unitPrice)) {
-                alert("Please fill in all required fields");
+                showToast("Please fill in all required fields", "error");
                 return;
             }
 
             if (targetDb === "ragsak_products_inv" && (!data.processes || data.processes.length === 0)) {
-                alert("Please select at least one process");
+                showToast("Please select at least one process", "error");
                 return;
             }
 
             if (targetDb !== "ragsak_products_inv" && !data.materialType) {
-                alert("Please select Main or Alternative");
+                showToast("Please select Main or Alternative", "error");
                 return;
             }
 
-            let  response
-            switch (targetDb) {
-                case "ragsak_products_inv":
-                    response = await addProduct(data);
-                    if (response) {
-                        showToast("Product added successfully", "success");
-                    } else {
-                        showToast("Failed in adding product", "error");
+            submitBtn.disabled = true;
+            submitBtn.classList.add("opacity-70", "cursor-not-allowed");
 
-                    }
-                    break;
+            try {
+                let response;
 
-                case "ragsak_materials_inv":
-                    response = await addRawMaterial(data);
-                    if(response) {
-                       showToast("Raw Material added successfully", "success");
-                    } else {
-                        showToast("Failed in adding raw material", "error");
+                switch (targetDb) {
+                    case "ragsak_products_inv":
+                        response = await addProduct(data);
+                        break;
 
-                    } 
-                    break;
+                    case "ragsak_materials_inv":
+                        response = await addRawMaterial(data);
+                        break;
 
-                case "ragsak_packaging_inv":
-                    response = await addPackaging(data);
-                    if(response) {
-                       showToast("Packaging added successfully", "success");
-                    } else {
-                        showToast("Failed in adding packaging", "error");
+                    case "ragsak_packaging_inv":
+                        response = await addPackaging(data);
+                        break;
+                }
 
-                    } 
-                    break;
+                const isSuccess = response === true || response?.success === true;
+                const responseMessage = typeof response === "object" && response !== null
+                    ? response.message
+                    : null;
+
+                if (isSuccess) {
+                    showToast(responseMessage || "Resource added successfully", "success");
+                    clearPreview();
+                } else {
+                    showToast(responseMessage || "Failed to register resource", "error");
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
             }
-
-            clearPreview();
         }
 
         function updatePreview() {

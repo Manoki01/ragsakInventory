@@ -27,6 +27,25 @@ class Product {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
+    public function productExistsIgnoreCase($productName) {
+        $stmt = $this->conn->prepare("
+            SELECT productID
+            FROM tbl_products
+            WHERE LOWER(productName) = LOWER(?)
+            LIMIT 1
+        ");
+
+        $stmt->bind_param("s", $productName);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to validate product name");
+        }
+
+        $stmt->store_result();
+
+        return $stmt->num_rows > 0;
+    }
+
     public function createProduct($data) {
         if (empty($data['processes']) || !is_array($data['processes'])) {
             error_log("Cannot add product: no processes provided.");

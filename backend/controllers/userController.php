@@ -115,6 +115,15 @@ function registerUsers() {
         exit;
     }
 
+    if ($user->usernameExistsIgnoreCase($input['username'])) {
+        http_response_code(409);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Username already exists"
+        ]);
+        exit;
+    }
+
     // Validate password
     if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/', $input['password'])) {
         http_response_code(400);

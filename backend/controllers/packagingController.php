@@ -84,6 +84,15 @@ function createPackaging() {
 
     $packaging = new Packaging();
 
+    if ($packaging->packagingExistsIgnoreCase($input['unitName'])) {
+        http_response_code(409);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Packaging already exists"
+        ]);
+        exit;
+    }
+
     $success = $packaging->createPackaging($input);
 
     header('Content-Type: application/json');

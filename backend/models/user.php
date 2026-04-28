@@ -17,10 +17,12 @@ class User {
             p.password
             FROM tbl_user u
             INNER JOIN tbl_password p ON u.passwordID = p.passwordID
-            WHERE u.username = ?
+            WHERE LOWER(u.username) = LOWER(?)
+            ORDER BY BINARY u.username = BINARY ? DESC, u.userID ASC
+            LIMIT 1
         ");
 
-        $stmt->bind_param("s", $data['username']);
+        $stmt->bind_param("ss", $data['username'], $data['username']);
 
         if (!$stmt->execute()) {
             throw new Exception("Failed to connect to database");
@@ -46,6 +48,25 @@ class User {
             'username' => $username,
             'role' => $role
         ];
+    }
+
+    public function usernameExistsIgnoreCase($username) {
+        $stmt = $this->conn->prepare("
+            SELECT userID
+            FROM tbl_user
+            WHERE LOWER(username) = LOWER(?)
+            LIMIT 1
+        ");
+
+        $stmt->bind_param("s", $username);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to validate username");
+        }
+
+        $stmt->store_result();
+
+        return $stmt->num_rows > 0;
     }
 
     public function registration($data) {
