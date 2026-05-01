@@ -33,7 +33,7 @@
 
         /* Custom Transition for Inputs */
         .input-field {
-            @apply w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm transition-all outline-none focus:border-moss-green focus:ring-2 focus:ring-moss-green/10;
+            @apply w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm transition-all outline-none focus:border-soft-black focus:ring-2 focus:ring-soft-black/10;
         }
 
         /* Hide scrollbars for a cleaner look */
@@ -45,18 +45,18 @@
 </head>
 <body class="flex min-h-screen items-center justify-center p-4">
 
-    <div class="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl shadow-moss-green/5 border border-gray-100">
+    <div class="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl shadow-soft-black/30 border border-gray-100">
         
         <div class="flex w-full flex-col justify-between p-10 md:w-1/2 lg:p-16">
             
             <header>
                 <div class="flex items-center gap-3 mb-10">
-                    <div class="h-10 w-10 rounded-lg bg-soft-black flex items-center justify-center shadow-lg shadow-moss-green/20">
+                    <div class="h-10 w-10 rounded-lg bg-soft-black flex items-center justify-center shadow-lg shadow-black/50">
                         <span class="text-white font-bold text-lg">R</span>
                     </div>
                     <div>
                         <span class="block font-black uppercase tracking-tighter text-soft-black leading-none">Ragsak</span>
-                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-moss-green">Inventory Manager</span>
+                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-soft-black">Inventory Manager</span>
                     </div>
                 </div>
                 <h2 class="text-4xl font-extrabold tracking-tight text-soft-black uppercase">Sign In</h2>
@@ -65,18 +65,18 @@
 
             <form id="loginForm" class="mt-10 space-y-6">
                 <div class="space-y-1">
-                    <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Username</label>
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-soft-black ml-1">Username</label>
                     <input type="text" id="username" required placeholder="ragsak_admin" class="input-field" autocomplete="off" aria-label="Username" aria-describedby="usernameError" />
                     <p id="usernameError" class="text-[9px] text-red-500 font-bold uppercase mt-1 hidden">Invalid characters detected</p>
                 </div>
 
                 <div class="space-y-1">
                     <div class="flex justify-between items-center ml-1">
-                        <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green">Passcode</label>
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-soft-black">Passcode</label>
                     </div>
                     <div class="relative">
                         <input type="password" id="password" required placeholder="••••••••" class="input-field pr-10" aria-label="Password" aria-describedby="passwordHelp" />
-                        <button type="button" id="togglePassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-moss-green" aria-label="Toggle password visibility">
+                        <button type="button" id="togglePassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-soft-black" aria-label="Toggle password visibility">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -89,48 +89,48 @@
                 <div class="pt-4">
                     <div class="flex items-center justify-center mb-4">
                         <input type="checkbox" id="captcha" required class="mr-2" aria-label="Verify you are not a robot" />
-                        <label for="captcha" class="text-[10px] font-bold uppercase tracking-widest text-moss-green">I'm not a robot</label>
+                        <label for="captcha" class="text-[10px] font-bold uppercase tracking-widest text-soft-black">I'm not a robot</label>
                     </div>
-                    <button type="submit" id="submitBtn" class="group relative w-full overflow-hidden rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-moss-green active:scale-[0.98]" aria-label="Submit login form">
+                    <button type="submit" id="submitBtn" class="group relative w-full overflow-hidden rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-soft-black active:scale-[0.98]" aria-label="Submit login form">
                         <span id="btnText" class="relative z-10">Authorize Access</span>
                     </button>
                 </div>
                 
                 <p class="text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    New to the village? <a href="pages/ragsak_registration.html" class="text-moss-green hover:underline">Create Account</a>
+                    New to the village? <a href="pages/ragsak_registration.html" class="text-soft-black hover:underline">Create Account</a>
                 </p>
             </form>
         </div>
 
         <div class="hidden w-1/2 bg-soft-black md:flex flex-col justify-between p-16 text-white relative">
             
-            <div class="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-moss-green/10 blur-[100px]"></div>
+            <div class="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-soft-black/10 blur-[100px]"></div>
             <div class="absolute top-10 right-10 h-32 w-32 border border-white/5 rounded-full"></div>
             
             <div class="relative">
-                <h3 class="text-5xl font-black leading-[0.85] tracking-tighter uppercase italic opacity-20 select-none">
+                <h3 class="text-5xl font-black leading-[0.85] tracking-tighter uppercase italic opacity-35 select-none">
                     Regenerative<br/>Agriculture
                 </h3>
             </div>
 
             <div class="relative z-10 space-y-6">
-                <div class="h-2 w-32 bg-moss-green"></div>
+                <div class="h-2 w-32 bg-soft-black"></div>
                 <p class="text-3xl font-light leading-tight tracking-tight">
-                    Inventory System for <span class="text-moss-light font-semibold italic">Ragsak Farm Village</span>.
+                    Inventory System for <span class="text-white/70 font-semibold italic">Ragsak Farm Village</span>.
                 </p>
                 
                 <div class="flex items-center gap-6 pt-6">
                     <div class="flex flex-col">
                         <span class="text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-1">Ragsak Farm Village</span>
-                        <span class="flex items-center gap-2 text-xs font-bold text-moss-light uppercase">
-                            <span class="h-2 w-2 rounded-full bg-moss-light animate-pulse"></span>
+                        <span class="flex items-center gap-2 text-xs font-bold text-white/70 uppercase">
+                            <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
                             Philippines-Tarlac
                         </span>
                     </div>
                 </div>
             </div>
 
-            <div class="absolute bottom-0 left-0 w-full h-1.5 bg-moss-green"></div>
+            <div class="absolute bottom-0 left-0 w-full h-1.5 bg-soft-black"></div>
         </div>
     </div>
 

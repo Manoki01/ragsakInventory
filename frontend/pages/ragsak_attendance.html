@@ -13,8 +13,8 @@
 
     <style type="text/tailwindcss">
         @theme {
-            --color-moss-green: #4A5D23;
-            --color-moss-light: #8DA067;
+            --color-soft-black: #4A5D23;
+            --color-soft-black/50: #8DA067;
             --color-soft-black: #121212;
             --color-off-white: #F4F5F2;
             --font-montserrat: "Montserrat", sans-serif;
@@ -28,9 +28,9 @@
         }
 
         .status-pill { @apply inline-block w-24 text-center py-1 rounded text-[9px] font-bold uppercase tracking-tighter; }
-        .status-present { @apply bg-moss-green text-white; }
+        .status-present { @apply bg-soft-black text-white; }
         .status-absent { @apply border border-red-900/50 text-red-500; }
-        .status-late { @apply border border-moss-green/50 text-moss-light; }
+        .status-late { @apply border border-soft-black/50 text-white; }
         .status-complete { @apply border border-soft-black/20 text-soft-black/40; }
 
         .modal-active { display: flex !important; animation: modalIn 0.2s ease-out; }
@@ -41,7 +41,7 @@
 
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green rounded; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black rounded; }
     </style>
 </head>
 <body>
@@ -54,12 +54,12 @@
                     <h1 class="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">
                         Attendance Log
                     </h1>
-                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">
+                    <p class="text-[10px] font-bold text-soft-black uppercase mt-2 tracking-[0.2em]">
                         Workforce Management • Ragsak Farm
                     </p>
                 </div>
 
-                <button onclick="openModal()" class="bg-soft-black text-white text-[10px] font-bold py-4 px-6 sm:px-10 rounded-full hover:bg-moss-light transition-all uppercase tracking-widest shadow-xl w-full md:w-auto">
+                <button onclick="openModal()" class="bg-soft-black text-white text-[10px] font-bold py-4 px-6 sm:px-10 rounded-full hover:bg-soft-black/50 transition-all uppercase tracking-widest shadow-xl w-full md:w-auto">
                     + Log Daily Entry
                 </button>
             </header>
@@ -102,7 +102,7 @@
     </main>
 
     <div id="attendanceModal" class="hidden fixed inset-0 bg-soft-black/30 z-[60] items-center justify-center p-3 sm:p-4 backdrop-blur-md">
-        <div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-moss-green max-h-[95vh]">
+        <div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black max-h-[95vh]">
             <div class="p-5 sm:p-8 lg:p-10 max-h-[95vh] overflow-y-auto custom-scrollbar">
                 <h2 id="modalTitle" class="text-xl sm:text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">
                     Log Daily Entry
@@ -114,11 +114,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Date</label>
-                            <input type="date" id="staffDate" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green">
+                            <input type="date" id="staffDate" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-soft-black">
                         </div>
                         <div>
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Current Status</label>
-                            <select id="staffStatus" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green">
+                            <select id="staffStatus" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-soft-black">
                                 <option value="Present">Present</option>
                                 <option value="Late">Late</option>
                                 <option value="Absent">Absent</option>
@@ -130,16 +130,16 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="group">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Staff Name</label>
-                            <input type="text" id="staffName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="Full Name">
+                            <input type="text" id="staffName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all" placeholder="Full Name">
                         </div>
                         <div class="group">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Position</label>
-                            <select id="staffPosition" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all"></select>
+                            <select id="staffPosition" class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all"></select>
                         </div>
                     </div>
 
                     <div class="p-4 bg-gray-50 rounded-xl space-y-4">
-                        <p class="text-[9px] font-black uppercase text-moss-green tracking-[.2em]">Morning Session</p>
+                        <p class="text-[9px] font-black uppercase text-soft-black tracking-[.2em]">Morning Session</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[8px] font-bold text-gray-400 uppercase ml-1">AM Time In</label>
@@ -153,7 +153,7 @@
                     </div>
 
                     <div class="p-4 bg-gray-50 rounded-xl space-y-4">
-                        <p class="text-[9px] font-black uppercase text-moss-green tracking-[.2em]">Afternoon Session</p>
+                        <p class="text-[9px] font-black uppercase text-soft-black tracking-[.2em]">Afternoon Session</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[8px] font-bold text-gray-400 uppercase ml-1">PM Time In</label>
@@ -170,7 +170,7 @@
                         <button type="button" onclick="closeModal()" class="flex-1 py-4 text-[10px] font-bold uppercase text-gray-400 hover:bg-red-700 rounded-xl hover:text-white transition-all">
                             Cancel
                         </button>
-                        <button type="button" onclick="handleSave()" class="flex-1 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-moss-light transition-all uppercase tracking-widest">
+                        <button type="button" onclick="handleSave()" class="flex-1 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-soft-black/50 transition-all uppercase tracking-widest">
                             Commit Entry
                         </button>
                     </div>
@@ -180,7 +180,7 @@
     </div>
 
     <div id="confirmModal" class="hidden fixed inset-0 bg-soft-black/30 z-[70] items-center justify-center p-3 sm:p-4 backdrop-blur-md">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 sm:p-8 text-center border-t-[10px] border-moss-green">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 sm:p-8 text-center border-t-[10px] border-soft-black">
             <div id="confirmIcon" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">🌿</div>
             <h3 id="confirmTitle" class="text-xl font-black italic uppercase tracking-tighter mb-2 text-soft-black">Are you sure?</h3>
             <p id="confirmMessage" class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-8">This will modify the permanent workforce log.</p>
@@ -188,7 +188,7 @@
                 <button onclick="closeConfirm()" class="flex-1 py-4 text-[10px] font-bold uppercase text-gray-400 hover:bg-gray-100 rounded-xl transition-all">
                     Go Back
                 </button>
-                <button id="confirmBtn" class="flex-1 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-moss-light transition-all uppercase tracking-widest">
+                <button id="confirmBtn" class="flex-1 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-soft-black/50 transition-all uppercase tracking-widest">
                     Confirm Action
                 </button>
             </div>
@@ -270,7 +270,7 @@
                         <div class="flex items-baseline gap-3">
                             <p class="font-bold text-sm uppercase italic text-soft-black leading-none whitespace-nowrap">${staff.name}</p>
                             <span class="w-px h-3 bg-gray-200"></span>
-                            <p class="text-[9px] text-moss-light uppercase font-black tracking-widest italic whitespace-nowrap">${staff.position || 'Personnel'}</p>
+                            <p class="text-[9px] text-soft-black/50 uppercase font-black tracking-widest italic whitespace-nowrap">${staff.position || 'Personnel'}</p>
                         </div>
                     </td>
                     <td class="py-6 text-center"><span class="status-pill ${statusClass}">${staff.status}</span></td>
@@ -285,7 +285,7 @@
                         <span class="text-xs font-mono text-soft-black/60">${staff.pmOut || '--:--'}</span>
                     </td>
                     <td class="py-6 text-right">
-                        <button onclick="editStaff(${staff.id})" class="text-[9px] font-bold uppercase text-soft-black/40 hover:text-moss-green transition-colors">Modify</button>
+                        <button onclick="editStaff(${staff.id})" class="text-[9px] font-bold uppercase text-soft-black/40 hover:text-soft-black transition-colors">Modify</button>
                     </td>
                 </tr>`;
             }).join('');
@@ -370,7 +370,7 @@
                 <button type="button" onclick="deleteRecord(${s.id})" class="px-6 py-4 text-[10px] font-bold uppercase text-red-500 hover:bg-red-50 rounded-xl transition-all">Delete Log</button>
                 <div class="flex-1"></div>
                 <button type="button" onclick="closeModal()" class="px-6 py-4 text-[10px] font-bold uppercase text-gray-400 hover:bg-gray-100 rounded-xl transition-all">Cancel</button>
-                <button type="button" onclick="handleSave()" class="px-10 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-moss-light transition-all uppercase tracking-widest">Update Log</button>
+                <button type="button" onclick="handleSave()" class="px-10 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-soft-black/50 transition-all uppercase tracking-widest">Update Log</button>
             `;
 
             document.getElementById('attendanceModal').classList.add('modal-active');
@@ -386,7 +386,7 @@
             document.getElementById('pmOut').value = '';
             document.getElementById('modalControls').innerHTML = `
                 <button type="button" onclick="closeModal()" class="flex-1 py-4 text-[10px] font-bold uppercase text-gray-400 hover:bg-red-700 rounded-xl hover:text-white transition-all">Cancel</button>
-                <button type="button" onclick="handleSave()" class="flex-1 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-moss-light transition-all uppercase tracking-widest">Commit Entry</button>
+                <button type="button" onclick="handleSave()" class="flex-1 bg-soft-black text-white text-[10px] font-bold py-4 rounded-xl hover:bg-soft-black/50 transition-all uppercase tracking-widest">Commit Entry</button>
             `;
         }
 

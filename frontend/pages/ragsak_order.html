@@ -13,7 +13,7 @@
 
     <style type="text/tailwindcss">
         @theme {
-            --color-moss-green: #4A5D23;
+            --color-soft-black: #4A5D23;
             --color-moss-light: #8DA067;
             --color-soft-black: #121212;
             --color-off-white: #F4F5F2;
@@ -31,7 +31,7 @@
 
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green rounded; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black rounded; }
 
         #toast-container {
             @apply fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 pointer-events-none px-4;
@@ -55,7 +55,7 @@
                     <h1 class="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">
                         Order Fulfillment
                     </h1>
-                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">
+                    <p class="text-[10px] font-bold text-soft-black uppercase mt-2 tracking-[0.2em]">
                         Customer Pipeline • Ragsak Farm
                     </p>
                 </div>
@@ -65,7 +65,7 @@
                         type="text"
                         id="orderSearch"
                         placeholder="Search orders..."
-                        class="h-11 w-full md:w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-moss-green focus:ring-2 focus:ring-moss-green/10 placeholder:text-gray-400"
+                        class="h-11 w-full md:w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-soft-black focus:ring-2 focus:ring-soft-black/10 placeholder:text-gray-400"
                     >
                 </div>
             </header>
@@ -75,7 +75,7 @@
                     <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">
                         Active Sales Orders
                     </p>
-                    <button onclick="openOrderModal()" class="bg-soft-black hover:bg-moss-light text-white text-[9px] font-black px-4 py-3 rounded-lg uppercase tracking-widest transition-all shadow-md">
+                    <button onclick="openOrderModal()" class="bg-soft-black hover:bg-soft-black/50 text-white text-[9px] font-black px-4 py-3 rounded-lg uppercase tracking-widest transition-all shadow-md">
                         Create New Order
                     </button>
                 </div>
@@ -99,7 +99,7 @@
     </main>
 
     <div id="orderModal" class="hidden fixed inset-0 bg-soft-black/30 z-[60] p-3 sm:p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-moss-green max-h-[95vh]">
+        <div class="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black max-h-[95vh]">
             <div class="p-5 sm:p-8 lg:p-10 max-h-[95vh] overflow-y-auto">
                 <h2 id="modalTitle" class="text-xl sm:text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">
                     New Sales Order
@@ -110,13 +110,13 @@
 
                     <div>
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Customer Name</label>
-                        <input type="text" id="custName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="Enter name...">
+                        <input type="text" id="custName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all" placeholder="Enter name...">
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Select Product</label>
-                            <select id="prodSelect" onchange="updateAvailableStock()" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all appearance-none"></select>
+                            <select id="prodSelect" onchange="updateAvailableStock()" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all appearance-none"></select>
                         </div>
 
                         <div>
@@ -129,17 +129,17 @@
 
                         <div>
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Order Amount</label>
-                            <input type="number" id="orderQty" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all" placeholder="0">
+                            <input type="number" id="orderQty" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all" placeholder="0">
                         </div>
                     </div>
 
                     <div>
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Completion Date</label>
-                        <input type="date" id="dueDate" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-moss-green transition-all">
+                        <input type="date" id="dueDate" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all">
                     </div>
 
                     <div class="pt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <button onclick="commitOrder()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-moss-light transition-all uppercase tracking-widest shadow-xl">
+                        <button onclick="commitOrder()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-soft-black/50 transition-all uppercase tracking-widest shadow-xl">
                             Confirm Entry
                         </button>
                         <button onclick="closeOrderModal()" class="py-5 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
@@ -192,7 +192,7 @@
                     <td class="py-6 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">${order.date}</td>
                     <td class="py-6 text-right pr-2">
                         <div class="flex justify-end gap-3">
-                            <button onclick="editOrder('${order.id}')" class="text-soft-black/40 hover:text-moss-green text-[9px] font-black uppercase tracking-widest transition-colors">
+                            <button onclick="editOrder('${order.id}')" class="text-soft-black/40 hover:text-soft-black text-[9px] font-black uppercase tracking-widest transition-colors">
                                 Edit
                             </button>
                             <button onclick="deleteOrder('${order.id}')" class="text-red-300 hover:text-red-600 text-[9px] font-black uppercase tracking-widest transition-colors">
@@ -290,7 +290,7 @@
         function showToast(msg, type) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `toast-card show ${type === 'success' ? 'border-moss-green' : 'border-red-600'}`;
+            toast.className = `toast-card show ${type === 'success' ? 'border-soft-black' : 'border-red-600'}`;
             toast.innerHTML = `<p class="text-[10px] font-black uppercase tracking-widest">${msg}</p>`;
             container.appendChild(toast);
             setTimeout(() => {

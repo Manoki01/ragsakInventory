@@ -13,8 +13,8 @@
 
     <style type="text/tailwindcss">
         @theme {
-            --color-moss-green: #4A5D23;
-            --color-moss-light: #8DA067;
+            --color-soft-black: #4A5D23;
+            --color-soft-black/50: #8DA067;
             --color-soft-black: #121212;
             --color-off-white: #F4F5F2;
             --font-montserrat: "Montserrat", sans-serif;
@@ -39,7 +39,7 @@
             @apply bg-soft-black;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            @apply bg-moss-green rounded;
+            @apply bg-soft-black rounded;
         }
 
         .text-pending { @apply text-soft-black; }
@@ -57,7 +57,7 @@
                     <h1 class="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter leading-none text-soft-black">
                         Access Control
                     </h1>
-                    <p class="text-[10px] font-bold text-moss-green uppercase mt-2 tracking-[0.2em]">
+                    <p class="text-[10px] font-bold text-soft-black uppercase mt-2 tracking-[0.2em]">
                         Presidential Authorization • Ragsak Farm
                     </p>
                 </div>
@@ -155,7 +155,7 @@
                             <td class="py-6 text-right pr-2">
                                 <div class="flex justify-end gap-2">
                                     <button onclick="updateUserStatus('${user.username}', 'approved')"
-                                        class="bg-soft-black hover:bg-moss-light text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all shadow-md active:scale-95">
+                                        class="bg-soft-black hover:bg-soft-black/50 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all shadow-md active:scale-95">
                                         Authorize
                                     </button>
                                     <button onclick="updateUserStatus('${user.username}', 'denied')"

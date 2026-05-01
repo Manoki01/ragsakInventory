@@ -13,7 +13,7 @@
 
     <style type="text/tailwindcss">
         @theme {
-            --color-moss-green: #4A5D23;
+            --color-soft-black: #4A5D23;
             --color-moss-light: #8DA067;
             --color-soft-black: #121212;
             --color-off-white: #F4F5F2;
@@ -35,15 +35,15 @@
             @apply bg-soft-black text-white px-8 py-4 rounded-2xl shadow-2xl border-l-4 flex items-center gap-4 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-auto;
         }
         .toast-card.show { @apply opacity-100 translate-y-0; }
-        .toast-success { @apply border-moss-green; }
+        .toast-success { @apply border-soft-black; }
         .toast-error { @apply border-red-600; }
         
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-moss-green/20 rounded; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black/20 rounded; }
 
         .process-checkbox:checked + label {
-            @apply border-moss-green bg-moss-green/10 text-moss-green ring-1 ring-moss-green/20;
+            @apply border-soft-black bg-soft-black/10 text-soft-black ring-1 ring-soft-black/20;
         }
     </style>
 </head>
@@ -58,7 +58,7 @@
         <div class="flex h-full flex-col lg:col-span-7 px-10 pt-10 pb-6 overflow-hidden">
             <header class="mb-8 shrink-0">
                 <h1 class="text-3xl font-black italic uppercase tracking-tighter text-soft-black">Master Registry</h1>
-                <p class="text-[10px] font-bold text-moss-green uppercase tracking-[0.3em]">System Initialization</p>
+                <p class="text-[10px] font-bold text-soft-black uppercase tracking-[0.3em]">System Initialization</p>
             </header>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 flex-1 overflow-hidden">
@@ -76,15 +76,15 @@
                                 <div class="grid grid-cols-3 gap-3">
                                     <label class="cursor-pointer">
                                         <input type="radio" name="db_toggle" value="ragsak_products_inv" class="hidden peer" checked onchange="updateDbFromRadio(this.value)">
-                                        <div class="py-3 border-2 border-gray-100 rounded-xl text-center text-[9px] font-bold uppercase peer-checked:border-moss-green peer-checked:bg-moss-green/5 transition-all">Products</div>
+                                        <div class="py-3 border-2 border-gray-100 rounded-xl text-center text-[9px] font-bold uppercase peer-checked:border-soft-black peer-checked:bg-soft-black/5 transition-all">Products</div>
                                     </label>
                                     <label class="cursor-pointer">
                                         <input type="radio" name="db_toggle" value="ragsak_materials_inv" class="hidden peer" onchange="updateDbFromRadio(this.value)">
-                                        <div class="py-3 border-2 border-gray-100 rounded-xl text-center text-[9px] font-bold uppercase peer-checked:border-moss-green peer-checked:bg-moss-green/5 transition-all">Raw Materials</div>
+                                        <div class="py-3 border-2 border-gray-100 rounded-xl text-center text-[9px] font-bold uppercase peer-checked:border-soft-black peer-checked:bg-soft-black/5 transition-all">Raw Materials</div>
                                     </label>
                                     <label class="cursor-pointer">
                                         <input type="radio" name="db_toggle" value="ragsak_packaging_inv" class="hidden peer" onchange="updateDbFromRadio(this.value)">
-                                        <div class="py-3 border-2 border-gray-100 rounded-xl text-center text-[9px] font-bold uppercase peer-checked:border-moss-green peer-checked:bg-moss-green/5 transition-all">Packaging</div>
+                                        <div class="py-3 border-2 border-gray-100 rounded-xl text-center text-[9px] font-bold uppercase peer-checked:border-soft-black peer-checked:bg-soft-black/5 transition-all">Packaging</div>
                                     </label>
                                 </div>
                                 <input type="hidden" id="targetDb" value="ragsak_products_inv">
@@ -95,7 +95,7 @@
                                     <div class="relative">
                                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 block">Item Description</label>
                                         <input type="text" id="itemName" placeholder="Resource name..." required 
-                                               class="w-full bg-gray-50 border-b-2 border-gray-100 py-3 text-sm font-bold outline-none focus:border-moss-green uppercase"
+                                               class="w-full bg-gray-50 border-b-2 border-gray-100 py-3 text-sm font-bold outline-none focus:border-soft-black uppercase"
                                                autocomplete="off">
                                         <ul id="predictiveResults" class="absolute z-50 w-full bg-white shadow-2xl rounded-b-xl border border-gray-100 hidden max-h-40 overflow-y-auto custom-scrollbar top-full"></ul>
                                     </div>
@@ -103,11 +103,11 @@
                                     <div class="grid grid-cols-2 gap-6">
                                         <div>
                                             <label class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 block">Price (₱)</label>
-                                            <input type="number" id="itemPrice" placeholder="0.00" step="0.01" required class="w-full bg-gray-50 border-b-2 border-gray-100 py-3 text-sm font-bold outline-none focus:border-moss-green">
+                                            <input type="number" id="itemPrice" placeholder="0.00" step="0.01" required class="w-full bg-gray-50 border-b-2 border-gray-100 py-3 text-sm font-bold outline-none focus:border-soft-black">
                                         </div>
                                         <div>
                                             <label class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 block">Unit</label>
-                                            <input type="text" id="itemUnit" placeholder="kg, pcs..." required class="w-full bg-gray-50 border-b-2 border-gray-100 py-3 text-sm font-bold outline-none focus:border-moss-green uppercase">
+                                            <input type="text" id="itemUnit" placeholder="kg, pcs..." required class="w-full bg-gray-50 border-b-2 border-gray-100 py-3 text-sm font-bold outline-none focus:border-soft-black uppercase">
                                         </div>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@
                         </form>
 
                         <div class="px-10 py-6 bg-gray-50 border-t border-gray-100 shrink-0">
-                            <button type="submit" id="submitBtn" form="intakeForm" class="w-full bg-soft-black text-white text-[10px] font-black py-5 rounded-2xl hover:bg-moss-green transition-all uppercase tracking-[0.4em] shadow-xl">
+                            <button type="submit" id="submitBtn" form="intakeForm" class="w-full bg-soft-black text-white text-[10px] font-black py-5 rounded-2xl hover:bg-soft-black/50 transition-all uppercase tracking-[0.4em] shadow-xl">
                                 Register Resource
                             </button>
                         </div>
@@ -260,13 +260,13 @@
                 const label = document.createElement("label");
                 label.htmlFor = checkbox.id;
                 label.className =
-                    "flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg cursor-pointer text-[8px] font-bold uppercase transition-all hover:bg-gray-50 peer-checked:border-moss-green peer-checked:bg-moss-green/10";
+                    "flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg cursor-pointer text-[8px] font-bold uppercase transition-all hover:bg-gray-50 peer-checked:border-soft-black peer-checked:bg-soft-black/10";
 
                 label.textContent = process.processName;
 
                 const checkmark = document.createElement("span");
                 checkmark.className =
-                    "text-moss-green opacity-0 peer-checked:opacity-100 font-black";
+                    "text-soft-black opacity-0 peer-checked:opacity-100 font-black";
                 checkmark.textContent = "✔";
 
                 label.appendChild(checkmark);
@@ -287,12 +287,12 @@
 
             const label = document.createElement("label");
             label.className =
-                "flex items-center justify-between px-3 py-2 border border-moss-green bg-moss-green/10 text-moss-green rounded-lg text-[8px] font-bold uppercase cursor-not-allowed opacity-80";
+                "flex items-center justify-between px-3 py-2 border border-soft-black bg-soft-black/10 text-soft-black rounded-lg text-[8px] font-bold uppercase cursor-not-allowed opacity-80";
 
             label.textContent = FINISHED_PRODUCT_NAME;
 
             const checkmark = document.createElement("span");
-            checkmark.className = "text-moss-green font-black";
+            checkmark.className = "text-soft-black font-black";
             checkmark.textContent = "✔";
 
             label.appendChild(checkmark);
@@ -325,13 +325,13 @@
                 const label = document.createElement("label");
                 label.htmlFor = radio.id;
                 label.className =
-                    "flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg cursor-pointer text-[8px] font-bold uppercase transition-all hover:bg-gray-50 peer-checked:border-moss-green peer-checked:bg-moss-green/10";
+                    "flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg cursor-pointer text-[8px] font-bold uppercase transition-all hover:bg-gray-50 peer-checked:border-soft-black peer-checked:bg-soft-black/10";
 
                 label.textContent = opt.label;
 
                 const checkmark = document.createElement("span");
                 checkmark.className =
-                    "text-moss-green opacity-0 peer-checked:opacity-100 font-black";
+                    "text-soft-black opacity-0 peer-checked:opacity-100 font-black";
                 checkmark.textContent = "✔";
 
                 label.appendChild(checkmark);

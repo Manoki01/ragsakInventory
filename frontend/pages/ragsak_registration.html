@@ -8,12 +8,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style type="text/tailwindcss">
         @theme {
-            --color-moss-green: #4A5D23; --color-moss-light: #8DA067;
+            --color-soft-black: #4A5D23; --color-moss-light: #8DA067;
             --color-soft-black: #121212; --color-off-white: #F4F5F2;
             --font-montserrat: "Montserrat", sans-serif;
         }
         @layer base { body { font-family: var(--font-montserrat); @apply bg-off-white text-soft-black antialiased; } }
-        .input-field { @apply w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm transition-all outline-none focus:border-moss-green focus:ring-2 focus:ring-moss-green/10; }
+        .input-field { @apply w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm transition-all outline-none focus:border-soft-black focus:ring-2 focus:ring-soft-black/10; }
     </style>
 </head>
 <body class="flex min-h-screen items-center justify-center p-4">
@@ -32,17 +32,17 @@
 
             <form id="registerForm" class="mt-8 space-y-5">
                 <div class="space-y-1">
-                    <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Name</label>
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-soft-black ml-1">Name</label>
                     <input type="text" id="regUsername" required placeholder="Ex. Juan Dela Cruzr" class="input-field" autocomplete="off" aria-label="Username" aria-describedby="userHint" />
                     <p id="userHint" class="text-[8px] text-gray-400 uppercase mt-1 ml-1 font-bold">At least 4 characters long.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Passcode</label>
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-soft-black ml-1">Passcode</label>
                         <div class="relative">
                             <input type="password" id="regPassword" required placeholder="••••••••" class="input-field pr-10" aria-label="Password" aria-describedby="passwordHelp" />
-                            <button type="button" id="toggleRegPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-moss-green" aria-label="Toggle password visibility">
+                            <button type="button" id="toggleRegPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-soft-black" aria-label="Toggle password visibility">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -51,10 +51,10 @@
                         </div>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Confirm</label>
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-soft-black ml-1">Confirm</label>
                         <div class="relative">
                             <input type="password" id="confirmPassword" required placeholder="••••••••" class="input-field pr-10" aria-label="Confirm Password" />
-                            <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-moss-green" aria-label="Toggle confirm password visibility">
+                            <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-soft-black" aria-label="Toggle confirm password visibility">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -65,7 +65,7 @@
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-[10px] font-bold uppercase tracking-widest text-moss-green ml-1">Assigned Role</label>
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-soft-black ml-1">Assigned Role</label>
                     <select id="regRole" class="input-field appearance-none font-bold">
                         <option disabled selected>-- Select an Option --</option>
                         <option value="Chairman">Chairman</option>
@@ -79,16 +79,16 @@
 
                 <div class="flex items-center justify-center mb-4">
                     <input type="checkbox" id="regCaptcha" required class="mr-2" aria-label="Verify you are not a robot" />
-                    <label for="regCaptcha" class="text-[10px] font-bold uppercase tracking-widest text-moss-green">I'm not a robot</label>
+                    <label for="regCaptcha" class="text-[10px] font-bold uppercase tracking-widest text-soft-black">I'm not a robot</label>
                 </div>
 
-                <button type="submit" id="regBtn" class="w-full rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-moss-green active:scale-95 shadow-lg" aria-label="Submit registration form">
+                <button type="submit" id="regBtn" class="w-full rounded-xl bg-soft-black py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-soft-black/50 active:scale-95 shadow-lg" aria-label="Submit registration form">
                     Register Personnel
                 </button>
             </form>
 
             <p class="mt-8 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                Existing personnel? <a href="../index.html" class="text-moss-green hover:underline">Sign In</a>
+                Existing personnel? <a href="../index.html" class="text-soft-black hover:underline">Sign In</a>
             </p>
         </div>
     </div>
