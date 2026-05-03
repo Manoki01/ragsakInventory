@@ -11,6 +11,7 @@ function validatePackagingCreatePayload($input) {
 
     $name = trim((string) ($input['unitName'] ?? ''));
     $unitType = trim((string) ($input['unitType'] ?? ''));
+    $packagingType = strtolower(trim((string) ($input['packagingType'] ?? 'main')));
     $price = $input['unitPrice'] ?? null;
 
     if ($name === '' || strlen($name) > 100) {
@@ -31,8 +32,15 @@ function validatePackagingCreatePayload($input) {
         exit;
     }
 
+    if (!in_array($packagingType, ['main', 'alternative'], true)) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Packaging type is invalid"]);
+        exit;
+    }
+
     $input['unitName'] = $name;
     $input['unitType'] = $unitType;
+    $input['packagingType'] = $packagingType;
     $input['unitPrice'] = (float) $price;
 
     return $input;
@@ -132,6 +140,7 @@ function updatePackagingInfo() {
     $input['packagingID'] = (int) $input['packagingID'];
     $input['unitName'] = trim((string) ($input['unitName'] ?? ''));
     $input['unitType'] = trim((string) ($input['unitType'] ?? ''));
+    $input['packagingType'] = strtolower(trim((string) ($input['packagingType'] ?? 'main')));
     $input['unitPrice'] = $input['unitPrice'] ?? null;
 
     if ($input['unitName'] === '' || strlen($input['unitName']) > 100) {
@@ -149,6 +158,12 @@ function updatePackagingInfo() {
     if (!is_numeric($input['unitPrice']) || (float) $input['unitPrice'] < 0) {
         http_response_code(422);
         echo json_encode(["status" => "error", "message" => "Unit price must be a valid non-negative number"]);
+        exit;
+    }
+
+    if (!in_array($input['packagingType'], ['main', 'alternative'], true)) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Packaging type is invalid"]);
         exit;
     }
 

@@ -133,6 +133,10 @@ switch($request) {
             archiveProduct();
         }
 
+        if($method == "POST" && $action == "save_formula") {
+            saveProductFormula();
+        }
+
         break;
     case 'raw_materials':
         validateJWT();

@@ -32,7 +32,7 @@ const sidebarHTML = `
                         <li><a href="ragsak_products.html" data-nav-id="nav-products" class="block rounded-md px-4 py-2 text-[10px] font-bold uppercase text-white/40 hover:text-moss-light transition-colors">Products</a></li>
                         <li><a href="ragsak_materials.html" data-nav-id="nav-materials" class="block rounded-md px-4 py-2 text-[10px] font-bold uppercase text-white/40 hover:text-moss-light transition-colors">Materials</a></li>
                         <li><a href="ragsak_packaging.html" data-nav-id="nav-packaging" class="block rounded-md px-4 py-2 text-[10px] font-bold uppercase text-white/40 hover:text-moss-light transition-colors">Packaging</a></li>
-                        <li><a href="ragsak_add_entry.html" data-nav-id="nav-add-stocks" class="block rounded-md px-4 py-2 text-[10px] font-bold uppercase text-white/40 hover:text-moss-light transition-colors">Add Entry</a></li>
+                        <li><a href="ragsak_add_entry.html" data-nav-id="nav-add-entry" class="block rounded-md px-4 py-2 text-[10px] font-bold uppercase text-white/40 hover:text-moss-light transition-colors">Add Entry</a></li>
                     </ul>
                 </details>
             </li>

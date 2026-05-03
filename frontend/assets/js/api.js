@@ -31,6 +31,14 @@ async function apiRequest(route, options = {}) {
         return await apiRequest(`products&action=formula&productID=${encodeURIComponent(productID)}&processID=${encodeURIComponent(processID)}`);
     }
 
+    export async function saveProductFormula(data) {
+        return await apiRequest("products&action=save_formula", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
     export async function createProduct(data) {
         return await apiRequest("products&action=create", {
             method: "POST",

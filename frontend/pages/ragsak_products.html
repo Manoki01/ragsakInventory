@@ -214,6 +214,33 @@
                         </div>
                     </div>
 
+                    <section class="rounded-2xl bg-gray-50 p-5">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Formula Usage</label>
+                        <select id="stockFormulaMode" class="mt-3 w-full bg-white border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all">
+                            <option value="formula">Use Saved Formula</option>
+                            <option value="mixed">Use Custom Mixed Materials</option>
+                            <option value="alternatives">Use Alternatives Only</option>
+                        </select>
+
+                        <div id="stockFormulaEditor" class="mt-5 hidden space-y-5">
+                            <div>
+                                <div class="mb-3 flex items-center justify-between gap-3">
+                                    <p id="stockRawFormulaLabel" class="text-[10px] font-black uppercase tracking-[0.2em] text-soft-black/50">Raw Materials Used</p>
+                                    <button type="button" id="addStockRawRow" class="rounded-xl border border-soft-black/15 bg-white px-3 py-2 text-[9px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Add Raw</button>
+                                </div>
+                                <div id="stockRawRows" class="space-y-3"></div>
+                            </div>
+
+                            <div>
+                                <div class="mb-3 flex items-center justify-between gap-3">
+                                    <p id="stockPackagingFormulaLabel" class="text-[10px] font-black uppercase tracking-[0.2em] text-soft-black/50">Packaging Used</p>
+                                    <button type="button" id="addStockPackagingRow" class="rounded-xl border border-soft-black/15 bg-white px-3 py-2 text-[9px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Add Packaging</button>
+                                </div>
+                                <div id="stockPackagingRows" class="space-y-3"></div>
+                            </div>
+                        </div>
+                    </section>
+
                     <div class="flex flex-col gap-3 pt-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <button type="button" id="commitClose" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-soft-black transition-all uppercase tracking-widest shadow-xl">
@@ -310,10 +337,13 @@
                         <h2 id="formulaProcessTitle" class="mt-2 text-2xl font-black italic uppercase tracking-tighter text-soft-black">Formula</h2>
                         <p id="formulaProductName" class="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-gray-400"></p>
                     </div>
-                    <button type="button" id="productFormulaExit" class="rounded-lg border border-gray-200 px-3 py-2 text-xs font-black text-soft-black hover:bg-gray-50">X</button>
+                    <div class="flex shrink-0 items-center gap-2">
+                        <button type="button" id="editFormulaButton" class="rounded-xl bg-soft-black px-4 py-3 text-[9px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Edit Formula</button>
+                        <button type="button" id="productFormulaExit" class="rounded-lg border border-gray-200 px-3 py-2 text-xs font-black text-soft-black hover:bg-gray-50">X</button>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div id="formulaViewMode" class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <section>
                         <p class="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-soft-black/50">Raw Materials</p>
                         <div id="formulaRawMaterials" class="space-y-3"></div>
@@ -324,6 +354,29 @@
                         <div id="formulaPackaging" class="space-y-3"></div>
                     </section>
                 </div>
+
+                <form id="formulaEditForm" class="hidden space-y-6">
+                    <section class="rounded-2xl bg-gray-50 p-5">
+                        <div class="mb-4 flex items-center justify-between gap-3">
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-soft-black/50">Raw Materials</p>
+                            <button type="button" id="addRawFormulaRow" class="rounded-xl border border-soft-black/15 bg-white px-3 py-2 text-[9px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Add Raw</button>
+                        </div>
+                        <div id="rawFormulaRows" class="space-y-3"></div>
+                    </section>
+
+                    <section class="rounded-2xl bg-gray-50 p-5">
+                        <div class="mb-4 flex items-center justify-between gap-3">
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-soft-black/50">Packaging</p>
+                            <button type="button" id="addPackagingFormulaRow" class="rounded-xl border border-soft-black/15 bg-white px-3 py-2 text-[9px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Add Packaging</button>
+                        </div>
+                        <div id="packagingFormulaRows" class="space-y-3"></div>
+                    </section>
+
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <button type="submit" id="saveFormulaButton" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Save Formula</button>
+                        <button type="button" id="cancelFormulaEdit" class="rounded-2xl border border-gray-200 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-soft-black">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -333,10 +386,10 @@
     </script>
     <script type="module" src="../components/ragsak_navigation.js"></script>
     <script type="module">
-        import { getProcesses } from '../assets/js/api.js';
+        import { getProcesses, getRawMaterials, getPackaging } from '../assets/js/api.js';
         import { loadProducts } from "../assets/js/products.js";
         import { checkStockStatus } from '../assets/js/utils.js';
-        import { stockinProduct, editProductInfo, editProductStock, deleteProduct, loadProductFormula } from '../assets/js/products.js';
+        import { stockinProduct, editProductInfo, editProductStock, deleteProduct, loadProductFormula, editProductFormula } from '../assets/js/products.js';
         import { showToast } from '../components/notification.js';
 
         const prodNameInput = document.getElementById('prodName');
@@ -345,12 +398,24 @@
         const closeModal = document.getElementById('modalClose');
         const closeCommit = document.getElementById('commitClose');
         const openCommit = document.getElementById('commitOpen');
+        const stockFormulaMode = document.getElementById('stockFormulaMode');
+        const stockFormulaEditor = document.getElementById('stockFormulaEditor');
+        const addStockRawRow = document.getElementById('addStockRawRow');
+        const addStockPackagingRow = document.getElementById('addStockPackagingRow');
+        const stockRawFormulaLabel = document.getElementById('stockRawFormulaLabel');
+        const stockPackagingFormulaLabel = document.getElementById('stockPackagingFormulaLabel');
         const searchInput = document.getElementById("inventorySearch");
         const processFilter = document.getElementById("processFilter");
         const productViewModal = document.getElementById("productViewModal");
         const productViewExit = document.getElementById("productViewExit");
         const productFormulaModal = document.getElementById("productFormulaModal");
         const productFormulaExit = document.getElementById("productFormulaExit");
+        const formulaViewMode = document.getElementById("formulaViewMode");
+        const formulaEditForm = document.getElementById("formulaEditForm");
+        const editFormulaButton = document.getElementById("editFormulaButton");
+        const cancelFormulaEdit = document.getElementById("cancelFormulaEdit");
+        const addRawFormulaRow = document.getElementById("addRawFormulaRow");
+        const addPackagingFormulaRow = document.getElementById("addPackagingFormulaRow");
         const productInfoForm = document.getElementById("productInfoForm");
         const editProductInfoButton = document.getElementById("editProductInfoButton");
         const cancelProductInfo = document.getElementById("cancelProductInfo");
@@ -361,6 +426,13 @@
 
         let selectedProductID;
         let viewedProductID;
+        let currentFormulaContext = null;
+        let stockFormulaContext = {
+            rawMaterials: [],
+            packaging: []
+        };
+        let rawMaterialOptions = [];
+        let packagingOptions = [];
 
         window.inventoryData = [];
 
@@ -418,10 +490,313 @@
                 <div class="rounded-2xl border border-gray-100 bg-gray-50 p-4">
                     <p class="text-xs font-black uppercase tracking-tight text-soft-black">${escapeHtml(item[nameKey])}</p>
                     <p class="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">
+                        Quantity Required per unit:
                         ${Number(item.quantityRequired || 0).toLocaleString("en-PH")} ${escapeHtml(item.unitType || "")}
                     </p>
                 </div>
             `).join("");
+        }
+
+        async function loadFormulaOptions() {
+            if (rawMaterialOptions.length && packagingOptions.length) return;
+
+            const [rawResponse, packagingResponse] = await Promise.all([
+                getRawMaterials(),
+                getPackaging()
+            ]);
+
+            rawMaterialOptions = rawResponse.status === "success" ? rawResponse.data || [] : [];
+            packagingOptions = packagingResponse.status === "success" ? packagingResponse.data || [] : [];
+        }
+
+        function getInventoryType(option, type) {
+            const value = type === "rawMaterials"
+                ? option.matType
+                : option.packagingType;
+
+            return String(value || "main").toLowerCase();
+        }
+
+        function filterOptionsByUsage(options, type, usage) {
+            if (usage === "mixed") {
+                return options;
+            }
+
+            const wantedType = usage === "alternative" ? "alternative" : "main";
+
+            return options.filter(option => getInventoryType(option, type) === wantedType);
+        }
+
+        function getFormulaRows(type) {
+            return type === "rawMaterials"
+                ? currentFormulaContext.rawMaterials
+                : currentFormulaContext.packaging;
+        }
+
+        function setFormulaRows(type, rows) {
+            if (type === "rawMaterials") {
+                currentFormulaContext.rawMaterials = rows;
+            } else {
+                currentFormulaContext.packaging = rows;
+            }
+        }
+
+        function buildFormulaOptions(options, idKey, nameKey, selectedID) {
+            return options.map(option => `
+                <option value="${escapeHtml(option[idKey])}" ${String(option[idKey]) === String(selectedID) ? "selected" : ""}>
+                    ${escapeHtml(option[nameKey])} (${escapeHtml(option.unitType || "-")})
+                </option>
+            `).join("");
+        }
+
+        function renderFormulaEditRows(type) {
+            const rows = getFormulaRows(type);
+            const container = document.getElementById(type === "rawMaterials" ? "rawFormulaRows" : "packagingFormulaRows");
+            const options = filterOptionsByUsage(
+                type === "rawMaterials" ? rawMaterialOptions : packagingOptions,
+                type,
+                "main"
+            );
+            const idKey = type === "rawMaterials" ? "rawMaterialID" : "packagingID";
+            const nameKey = type === "rawMaterials" ? "rawMaterialName" : "packagingName";
+            const label = type === "rawMaterials" ? "raw material" : "packaging";
+
+            if (!rows.length) {
+                container.innerHTML = `
+                    <div class="rounded-2xl border border-dashed border-gray-200 bg-white p-5">
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">No ${label} added</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = rows.map((row, index) => `
+                <div class="grid grid-cols-12 items-end gap-3 rounded-2xl bg-white p-4 shadow-sm">
+                    <div class="col-span-12 md:col-span-7">
+                        <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">${label}</label>
+                        <select data-formula-type="${type}" data-formula-index="${index}" data-formula-field="${idKey}" class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-xs font-bold outline-none focus:border-soft-black">
+                            <option value="">Select ${label}</option>
+                            ${buildFormulaOptions(options, idKey, nameKey, row[idKey])}
+                        </select>
+                    </div>
+                    <div class="col-span-8 md:col-span-3">
+                        <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">Qty Required Per Unit</label>
+                        <input type="number" min="1" step="1" value="${escapeHtml(row.quantityRequired || "")}" data-formula-type="${type}" data-formula-index="${index}" data-formula-field="quantityRequired" class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-xs font-bold outline-none focus:border-soft-black">
+                    </div>
+                    <div class="col-span-4 md:col-span-2">
+                        <button type="button" data-remove-formula-type="${type}" data-remove-formula-index="${index}" class="w-full rounded-xl bg-red-50 px-3 py-3 text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-100">Remove</button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderFormulaEditForm() {
+            renderFormulaEditRows("rawMaterials");
+            renderFormulaEditRows("packaging");
+        }
+
+        function addFormulaRow(type) {
+            const options = filterOptionsByUsage(
+                type === "rawMaterials" ? rawMaterialOptions : packagingOptions,
+                type,
+                "main"
+            );
+            const idKey = type === "rawMaterials" ? "rawMaterialID" : "packagingID";
+            const rows = getFormulaRows(type);
+
+            rows.push({
+                [idKey]: options[0]?.[idKey] || "",
+                quantityRequired: 1
+            });
+
+            setFormulaRows(type, rows);
+            renderFormulaEditRows(type);
+        }
+
+        function showFormulaView() {
+            formulaEditForm.classList.add("hidden");
+            formulaViewMode.classList.remove("hidden");
+            formulaViewMode.classList.add("grid");
+            editFormulaButton.classList.remove("hidden");
+        }
+
+        function showFormulaEdit() {
+            formulaViewMode.classList.add("hidden");
+            formulaViewMode.classList.remove("grid");
+            formulaEditForm.classList.remove("hidden");
+            editFormulaButton.classList.add("hidden");
+            renderFormulaEditForm();
+        }
+
+        function getStockFormulaRows(type) {
+            return type === "rawMaterials"
+                ? stockFormulaContext.rawMaterials
+                : stockFormulaContext.packaging;
+        }
+
+        function setStockFormulaRows(type, rows) {
+            if (type === "rawMaterials") {
+                stockFormulaContext.rawMaterials = rows;
+            } else {
+                stockFormulaContext.packaging = rows;
+            }
+        }
+
+        function renderStockFormulaRows(type) {
+            const rows = getStockFormulaRows(type);
+            const container = document.getElementById(type === "rawMaterials" ? "stockRawRows" : "stockPackagingRows");
+            const usage = stockFormulaMode.value === "alternatives" ? "alternative" : "mixed";
+            const options = filterOptionsByUsage(
+                type === "rawMaterials" ? rawMaterialOptions : packagingOptions,
+                type,
+                usage
+            );
+            const idKey = type === "rawMaterials" ? "rawMaterialID" : "packagingID";
+            const nameKey = type === "rawMaterials" ? "rawMaterialName" : "packagingName";
+            const label = type === "rawMaterials" ? "raw material" : "packaging";
+            const quantityLabel = stockFormulaMode.value === "mixed"
+                ? "Total Qty Used"
+                : "Qty Per Unit";
+
+            if (!rows.length) {
+                container.innerHTML = `
+                    <div class="rounded-2xl border border-dashed border-gray-200 bg-white p-4">
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">No ${label} selected</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = rows.map((row, index) => `
+                <div class="grid grid-cols-12 items-end gap-3 rounded-2xl bg-white p-4 shadow-sm">
+                    <div class="col-span-12 md:col-span-7">
+                        <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">${label}</label>
+                        <select data-stock-formula-type="${type}" data-stock-formula-index="${index}" data-stock-formula-field="${idKey}" class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-xs font-bold outline-none focus:border-soft-black">
+                            <option value="">Select ${label}</option>
+                            ${buildFormulaOptions(options, idKey, nameKey, row[idKey])}
+                        </select>
+                    </div>
+                    <div class="col-span-8 md:col-span-3">
+                        <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">${quantityLabel}</label>
+                        <input type="number" min="1" step="1" value="${escapeHtml(row.quantityRequired || "")}" data-stock-formula-type="${type}" data-stock-formula-index="${index}" data-stock-formula-field="quantityRequired" class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-xs font-bold outline-none focus:border-soft-black">
+                    </div>
+                    <div class="col-span-4 md:col-span-2">
+                        <button type="button" data-remove-stock-formula-type="${type}" data-remove-stock-formula-index="${index}" class="w-full rounded-xl bg-red-50 px-3 py-3 text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-100">Remove</button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderStockFormulaEditor() {
+            renderStockFormulaRows("rawMaterials");
+            renderStockFormulaRows("packaging");
+        }
+
+        function resetStockFormulaContext() {
+            stockFormulaContext = {
+                rawMaterials: [],
+                packaging: []
+            };
+            renderStockFormulaEditor();
+        }
+
+        async function syncStockFormulaMode() {
+            const mode = stockFormulaMode.value;
+
+            if (mode === "formula") {
+                stockFormulaEditor.classList.add("hidden");
+                resetStockFormulaContext();
+                return;
+            }
+
+            const isMixed = mode === "mixed";
+            stockRawFormulaLabel.textContent = isMixed ? "Raw Materials Used" : "Raw Materials Per Unit";
+            stockPackagingFormulaLabel.textContent = isMixed ? "Packaging Used" : "Packaging Per Unit";
+            stockFormulaEditor.classList.remove("hidden");
+            await loadFormulaOptions();
+
+            resetStockFormulaContext();
+        }
+
+        function addStockFormulaRow(type) {
+            const usage = stockFormulaMode.value === "alternatives" ? "alternative" : "mixed";
+            const options = filterOptionsByUsage(
+                type === "rawMaterials" ? rawMaterialOptions : packagingOptions,
+                type,
+                usage
+            );
+            const idKey = type === "rawMaterials" ? "rawMaterialID" : "packagingID";
+            const rows = getStockFormulaRows(type);
+
+            rows.push({
+                [idKey]: options[0]?.[idKey] || "",
+                quantityRequired: 1
+            });
+
+            setStockFormulaRows(type, rows);
+            renderStockFormulaRows(type);
+        }
+
+        function getStockFormulaPayload() {
+            const mode = stockFormulaMode.value;
+            const payload = { formulaMode: mode };
+
+            if (mode !== "formula") {
+                payload.rawMaterials = stockFormulaContext.rawMaterials.map(item => ({
+                    rawMaterialID: Number(item.rawMaterialID),
+                    quantityRequired: Number(item.quantityRequired)
+                }));
+                payload.packaging = stockFormulaContext.packaging.map(item => ({
+                    packagingID: Number(item.packagingID),
+                    quantityRequired: Number(item.quantityRequired)
+                }));
+            }
+
+            return payload;
+        }
+
+        function validateStockFormulaPayload(payload) {
+            if (payload.formulaMode === "formula") return true;
+
+            const rawMaterials = payload.rawMaterials || [];
+            const packaging = payload.packaging || [];
+            const invalidRaw = rawMaterials.some(item =>
+                !Number.isInteger(item.rawMaterialID) ||
+                item.rawMaterialID <= 0 ||
+                !Number.isInteger(item.quantityRequired) ||
+                item.quantityRequired <= 0
+            );
+            const invalidPackaging = packaging.some(item =>
+                !Number.isInteger(item.packagingID) ||
+                item.packagingID <= 0 ||
+                !Number.isInteger(item.quantityRequired) ||
+                item.quantityRequired <= 0
+            );
+
+            if (invalidRaw || invalidPackaging) {
+                showToast(
+                    payload.formulaMode === "mixed"
+                        ? "Select valid items and positive total quantities used"
+                        : "Select valid alternative items and positive quantities per unit",
+                    "error"
+                );
+                return false;
+            }
+
+            if (rawMaterials.length === 0 && packaging.length === 0) {
+                showToast("Select at least one material or packaging item", "error");
+                return false;
+            }
+
+            if (
+                new Set(rawMaterials.map(item => item.rawMaterialID)).size !== rawMaterials.length ||
+                new Set(packaging.map(item => item.packagingID)).size !== packaging.length
+            ) {
+                showToast("Alternative items cannot be duplicated", "error");
+                return false;
+            }
+
+            return true;
         }
 
         function syncProcessFilter() {
@@ -658,11 +1033,13 @@
         productViewExit.addEventListener("click", closeProductView);
         productFormulaExit.addEventListener("click", () => {
             productFormulaModal.classList.add("hidden");
+            showFormulaView();
         });
 
         productFormulaModal.addEventListener("click", (event) => {
             if (event.target === productFormulaModal) {
                 productFormulaModal.classList.add("hidden");
+                showFormulaView();
             }
         });
 
@@ -672,6 +1049,7 @@
 
             const productName = document.getElementById("viewProductName").textContent || "Product";
             const processName = formulaButton.dataset.formulaProcessName || "Process";
+            const processID = Number(formulaButton.dataset.formulaProcess);
 
             document.getElementById("formulaProcessTitle").textContent = processName;
             document.getElementById("formulaProductName").textContent = productName;
@@ -685,15 +1063,31 @@
                     <p class="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">Loading</p>
                 </div>
             `;
+            showFormulaView();
             productFormulaModal.classList.remove("hidden");
 
-            const response = await loadProductFormula(viewedProductID, formulaButton.dataset.formulaProcess);
+            const response = await loadProductFormula(viewedProductID, processID);
 
             if (!response.success) {
                 showToast(response.message || "Formula failed to load", "error");
                 productFormulaModal.classList.add("hidden");
                 return;
             }
+
+            currentFormulaContext = {
+                productID: Number(viewedProductID),
+                processID,
+                productName,
+                processName,
+                rawMaterials: (response.data.rawMaterials || []).map(item => ({
+                    rawMaterialID: item.rawMaterialID,
+                    quantityRequired: item.quantityRequired
+                })),
+                packaging: (response.data.packaging || []).map(item => ({
+                    packagingID: item.packagingID,
+                    quantityRequired: item.quantityRequired
+                }))
+            };
 
             renderFormulaItems(
                 document.getElementById("formulaRawMaterials"),
@@ -705,6 +1099,165 @@
                 response.data.packaging || [],
                 "packagingName"
             );
+        });
+
+        editFormulaButton.addEventListener("click", async () => {
+            if (!currentFormulaContext) return;
+
+            await loadFormulaOptions();
+            showFormulaEdit();
+        });
+
+        cancelFormulaEdit.addEventListener("click", async () => {
+            if (!currentFormulaContext) return;
+
+            const response = await loadProductFormula(currentFormulaContext.productID, currentFormulaContext.processID);
+
+            if (response.success) {
+                currentFormulaContext.rawMaterials = (response.data.rawMaterials || []).map(item => ({
+                    rawMaterialID: item.rawMaterialID,
+                    quantityRequired: item.quantityRequired
+                }));
+                currentFormulaContext.packaging = (response.data.packaging || []).map(item => ({
+                    packagingID: item.packagingID,
+                    quantityRequired: item.quantityRequired
+                }));
+            }
+
+            showFormulaView();
+        });
+
+        addRawFormulaRow.addEventListener("click", () => {
+            addFormulaRow("rawMaterials");
+        });
+
+        addPackagingFormulaRow.addEventListener("click", () => {
+            addFormulaRow("packaging");
+        });
+
+        formulaEditForm.addEventListener("input", (event) => {
+            const field = event.target.dataset.formulaField;
+            const type = event.target.dataset.formulaType;
+            const index = Number(event.target.dataset.formulaIndex);
+
+            if (!field || !type || !Number.isInteger(index)) return;
+
+            const rows = getFormulaRows(type);
+            if (!rows[index]) return;
+
+            rows[index][field] = event.target.value;
+            setFormulaRows(type, rows);
+        });
+
+        formulaEditForm.addEventListener("change", (event) => {
+            const field = event.target.dataset.formulaField;
+            const type = event.target.dataset.formulaType;
+            const index = Number(event.target.dataset.formulaIndex);
+
+            if (!field || !type || !Number.isInteger(index)) return;
+
+            const rows = getFormulaRows(type);
+            if (!rows[index]) return;
+
+            rows[index][field] = event.target.value;
+            setFormulaRows(type, rows);
+        });
+
+        formulaEditForm.addEventListener("click", (event) => {
+            const removeButton = event.target.closest("[data-remove-formula-type]");
+            if (!removeButton) return;
+
+            const type = removeButton.dataset.removeFormulaType;
+            const index = Number(removeButton.dataset.removeFormulaIndex);
+            const rows = getFormulaRows(type).filter((_, rowIndex) => rowIndex !== index);
+
+            setFormulaRows(type, rows);
+            renderFormulaEditRows(type);
+        });
+
+        formulaEditForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (!currentFormulaContext) return;
+
+            const rawMaterials = currentFormulaContext.rawMaterials.map(item => ({
+                rawMaterialID: Number(item.rawMaterialID),
+                quantityRequired: Number(item.quantityRequired)
+            }));
+            const packaging = currentFormulaContext.packaging.map(item => ({
+                packagingID: Number(item.packagingID),
+                quantityRequired: Number(item.quantityRequired)
+            }));
+
+            const hasInvalidRaw = rawMaterials.some(item =>
+                !Number.isInteger(item.rawMaterialID) ||
+                item.rawMaterialID <= 0 ||
+                !Number.isInteger(item.quantityRequired) ||
+                item.quantityRequired <= 0
+            );
+            const hasInvalidPackaging = packaging.some(item =>
+                !Number.isInteger(item.packagingID) ||
+                item.packagingID <= 0 ||
+                !Number.isInteger(item.quantityRequired) ||
+                item.quantityRequired <= 0
+            );
+
+            if (hasInvalidRaw || hasInvalidPackaging) {
+                showToast("Select valid items and positive whole-number quantities", "error");
+                return;
+            }
+
+            const rawIDs = rawMaterials.map(item => item.rawMaterialID);
+            const packagingIDs = packaging.map(item => item.packagingID);
+
+            if (new Set(rawIDs).size !== rawIDs.length || new Set(packagingIDs).size !== packagingIDs.length) {
+                showToast("Formula items cannot be duplicated", "error");
+                return;
+            }
+
+            const saveButton = document.getElementById("saveFormulaButton");
+            saveButton.disabled = true;
+
+            const response = await editProductFormula({
+                productID: currentFormulaContext.productID,
+                processID: currentFormulaContext.processID,
+                rawMaterials,
+                packaging
+            });
+
+            saveButton.disabled = false;
+
+            if (!response.success) {
+                showToast(response.message || "Formula save failed", "error");
+                return;
+            }
+
+            const refreshed = await loadProductFormula(currentFormulaContext.productID, currentFormulaContext.processID);
+
+            if (refreshed.success) {
+                currentFormulaContext.rawMaterials = (refreshed.data.rawMaterials || []).map(item => ({
+                    rawMaterialID: item.rawMaterialID,
+                    quantityRequired: item.quantityRequired
+                }));
+                currentFormulaContext.packaging = (refreshed.data.packaging || []).map(item => ({
+                    packagingID: item.packagingID,
+                    quantityRequired: item.quantityRequired
+                }));
+
+                renderFormulaItems(
+                    document.getElementById("formulaRawMaterials"),
+                    refreshed.data.rawMaterials || [],
+                    "rawMaterialName"
+                );
+                renderFormulaItems(
+                    document.getElementById("formulaPackaging"),
+                    refreshed.data.packaging || [],
+                    "packagingName"
+                );
+            }
+
+            showFormulaView();
+            showToast("Formula saved", "success");
         });
 
         editProductInfoButton.addEventListener("click", () => {
@@ -876,18 +1429,74 @@
             document.getElementById('prodUnit').value = li.dataset.unit;
 
             suggestionsUl.classList.add('hidden');
-
             setTimeout(() => {
                 document.getElementById('prodQty').focus();
             }, 50);
         });
 
-        closeCommit.addEventListener('click', () => {
+        stockFormulaMode.addEventListener("change", syncStockFormulaMode);
+
+        addStockRawRow.addEventListener("click", async () => {
+            await loadFormulaOptions();
+            addStockFormulaRow("rawMaterials");
+        });
+
+        addStockPackagingRow.addEventListener("click", async () => {
+            await loadFormulaOptions();
+            addStockFormulaRow("packaging");
+        });
+
+        stockFormulaEditor.addEventListener("input", (event) => {
+            const field = event.target.dataset.stockFormulaField;
+            const type = event.target.dataset.stockFormulaType;
+            const index = Number(event.target.dataset.stockFormulaIndex);
+
+            if (!field || !type || !Number.isInteger(index)) return;
+
+            const rows = getStockFormulaRows(type);
+            if (!rows[index]) return;
+
+            rows[index][field] = event.target.value;
+            setStockFormulaRows(type, rows);
+        });
+
+        stockFormulaEditor.addEventListener("change", (event) => {
+            const field = event.target.dataset.stockFormulaField;
+            const type = event.target.dataset.stockFormulaType;
+            const index = Number(event.target.dataset.stockFormulaIndex);
+
+            if (!field || !type || !Number.isInteger(index)) return;
+
+            const rows = getStockFormulaRows(type);
+            if (!rows[index]) return;
+
+            rows[index][field] = event.target.value;
+            setStockFormulaRows(type, rows);
+        });
+
+        stockFormulaEditor.addEventListener("click", (event) => {
+            const removeButton = event.target.closest("[data-remove-stock-formula-type]");
+            if (!removeButton) return;
+
+            const type = removeButton.dataset.removeStockFormulaType;
+            const index = Number(removeButton.dataset.removeStockFormulaIndex);
+            const rows = getStockFormulaRows(type).filter((_, rowIndex) => rowIndex !== index);
+
+            setStockFormulaRows(type, rows);
+            renderStockFormulaRows(type);
+        });
+
+        closeCommit.addEventListener('click', async () => {
             const qtyInput = Number(document.getElementById('prodQty').value);
             const prodProc = Number(document.getElementById('prodProcess').value);
+            const formulaPayload = getStockFormulaPayload();
 
             if (!selectedProductID || qtyInput <= 0 || !prodProc) {
                 showToast("Name, Quantity, and Process are required", "error");
+                return;
+            }
+
+            if (!validateStockFormulaPayload(formulaPayload)) {
                 return;
             }
 
@@ -896,10 +1505,11 @@
             let data = {
                 productID: selectedProductID,
                 quantity: qtyInput,
-                processID: prodProc
+                processID: prodProc,
+                ...formulaPayload
             };
 
-            handleCloseCommit(data);
+            await handleCloseCommit(data);
             closeCommit.disabled = false;
         });
 
@@ -909,26 +1519,30 @@
             const nameEl = document.getElementById('prodName');
             const qtyEl = document.getElementById('prodQty');
 
-            selectedProductID = null;
-            procEl.value = '';
-            nameEl.value = '';
-            qtyEl.value = '';
-
-            if (response) {
+            if (response.success) {
+                selectedProductID = null;
+                procEl.value = '';
+                nameEl.value = '';
+                qtyEl.value = '';
                 closeProductModal();
                 await getProducts();
                 showToast("Stock In Successful", "success");
             } else {
-                showToast("Stock In Failed", "error");
+                showToast(response.message || "Stock In Failed", "error");
             }
         }
 
-        openCommit.addEventListener('click', () => {
+        openCommit.addEventListener('click', async () => {
             const qtyInput = Number(document.getElementById('prodQty').value);
             const prodProc = Number(document.getElementById('prodProcess').value);
+            const formulaPayload = getStockFormulaPayload();
 
             if (!selectedProductID || qtyInput <= 0 || !prodProc) {
                 showToast("Name, Quantity, and Process are required", "error");
+                return;
+            }
+
+            if (!validateStockFormulaPayload(formulaPayload)) {
                 return;
             }
 
@@ -937,10 +1551,11 @@
             let data = {
                 productID: selectedProductID,
                 quantity: qtyInput,
-                processID: prodProc
+                processID: prodProc,
+                ...formulaPayload
             };
 
-            handleOpenCommit(data);
+            await handleOpenCommit(data);
             openCommit.disabled = false;
         });
 
@@ -950,17 +1565,16 @@
             const qtyEl = document.getElementById('prodQty');
             const response = await stockinProduct(data);
 
-            selectedProductID = null;
-            procEl.value = '';
-            nameEl.value = '';
-            qtyEl.value = '';
-
-            if (response) {
+            if (response.success) {
+                selectedProductID = null;
+                procEl.value = '';
+                nameEl.value = '';
+                qtyEl.value = '';
                 await getProducts();
                 nameEl.focus();
                 showToast("Stock In Successful", "success");
             } else {
-                showToast("Stock In Failed", "error");
+                showToast(response.message || "Stock In Failed", "error");
             }
         }
 
@@ -1001,6 +1615,9 @@
             document.getElementById('prodQty').value = '';
             document.getElementById('prodUnit').value = '';
             document.getElementById('modalTitle').innerText = "Stock In";
+            stockFormulaMode.value = "formula";
+            stockFormulaEditor.classList.add("hidden");
+            resetStockFormulaContext();
         }
 
         document.addEventListener('click', (e) => {

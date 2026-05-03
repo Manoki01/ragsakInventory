@@ -1,5 +1,6 @@
 import { getProducts } from "./api.js";
 import { getProductFormula } from "./api.js";
+import { saveProductFormula } from "./api.js";
 import { createProduct } from "./api.js";
 import { stockProduct } from "./api.js";
 import { updateProduct } from "./api.js";
@@ -65,17 +66,37 @@ export async function loadProductFormula(productID, processID) {
     }
 }
 
+export async function editProductFormula(data) {
+    try {
+        const response = await saveProductFormula(data);
+
+        return {
+            success: response.status === "success",
+            message: response.message || "Formula saved"
+        };
+    } catch (error) {
+        console.error("Failed to save product formula", error);
+        return {
+            success: false,
+            message: "Network error while saving formula"
+        };
+    }
+}
+
 export async function stockinProduct(data) {
     try {
         const response = await stockProduct(data);
 
-        if(response.status === "success") {
-            return true;
-        } else {
-            return false;
-        }
+        return {
+            success: response.status === "success",
+            message: response.message || "Product stock-in complete"
+        };
     } catch (error) {
         console.error("Failed to update product stock", error);
+        return {
+            success: false,
+            message: "Network error while stocking product"
+        };
     }
 }
 

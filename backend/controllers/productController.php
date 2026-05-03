@@ -69,6 +69,69 @@ function getProductFormula() {
     ]);
 }
 
+function normalizeFormulaItems($items, $idField, $label) {
+    if (!is_array($items)) {
+        failValidation($label . " must be a list");
+    }
+
+    $normalized = [];
+    $seen = [];
+
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            failValidation($label . " contains an invalid item");
+        }
+
+        $id = validatePositiveInt($item[$idField] ?? null, $label . " ID");
+        $quantity = validatePositiveInt($item['quantityRequired'] ?? null, $label . " quantity");
+
+        if (isset($seen[$id])) {
+            failValidation($label . " cannot contain duplicate items");
+        }
+
+        $seen[$id] = true;
+        $normalized[] = [
+            $idField => $id,
+            "quantityRequired" => $quantity
+        ];
+    }
+
+    return $normalized;
+}
+
+function saveProductFormula() {
+    $input = json_decode(
+        file_get_contents("php://input"),
+        true
+    );
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $productID = validatePositiveInt($input['productID'] ?? null, 'Product ID');
+    $processID = validatePositiveInt($input['processID'] ?? null, 'Process ID');
+    $rawMaterials = normalizeFormulaItems($input['rawMaterials'] ?? [], 'rawMaterialID', 'Raw material');
+    $packaging = normalizeFormulaItems($input['packaging'] ?? [], 'packagingID', 'Packaging');
+
+    $product = new Product();
+
+    if ($product->saveProcessFormula($productID, $processID, $rawMaterials, $packaging)) {
+        echo json_encode([
+            "status" => "success",
+            "message" => "Formula saved successfully"
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Failed to save formula"
+        ]);
+    }
+}
+
 function createProduct() {
     $input = json_decode(
         file_get_contents("php://input"),
@@ -180,6 +243,23 @@ function stockProduct() {
     $input['productID'] = validatePositiveInt($input['productID'] ?? null, 'Product ID');
     $input['processID'] = validatePositiveInt($input['processID'] ?? null, 'Process ID');
     $input['quantity'] = validatePositiveInt($input['quantity'] ?? null, 'Quantity');
+    $formulaMode = $input['formulaMode'] ?? 'formula';
+
+    if (!in_array($formulaMode, ['formula', 'mixed', 'alternatives'], true)) {
+        failValidation("Formula mode is invalid");
+    }
+
+    $input['formulaMode'] = $formulaMode;
+
+    if ($formulaMode !== 'formula') {
+        $input['formulaRawMaterials'] = normalizeFormulaItems($input['rawMaterials'] ?? [], 'rawMaterialID', 'Raw material');
+        $input['formulaPackaging'] = normalizeFormulaItems($input['packaging'] ?? [], 'packagingID', 'Packaging');
+
+        if (count($input['formulaRawMaterials']) === 0 && count($input['formulaPackaging']) === 0) {
+            failValidation("Select at least one material or packaging item for this stock-in");
+        }
+    }
+
     $authenticatedUser = getCurrentAuthUser();
     $input['userID'] = isset($authenticatedUser->sub) ? (int) $authenticatedUser->sub : 0;
 
@@ -202,9 +282,11 @@ function stockProduct() {
             "message" => "Product Stocked Successfully"
         ]);
     } else {
-        http_response_code(500);
+        $message = $product->getLastError() ?: "Failed to Stock Product";
+        http_response_code($message === "Failed to Stock Product" ? 500 : 422);
         echo json_encode([
-            "message" => "Failed to Stock Product"
+            "status" => "error",
+            "message" => $message
         ]);
     }
 }

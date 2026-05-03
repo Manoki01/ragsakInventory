@@ -377,7 +377,11 @@
             }
            else {
                 const materialType = getCategoryType();
-                data.materialType = materialType;
+                if (targetDb === "ragsak_packaging_inv") {
+                    data.packagingType = materialType;
+                } else {
+                    data.materialType = materialType;
+                }
             }
 
             console.log("Passing data:", data);
@@ -392,7 +396,11 @@
                 return;
             }
 
-            if (targetDb !== "ragsak_products_inv" && !data.materialType) {
+            const hasCategoryType = targetDb === "ragsak_packaging_inv"
+                ? data.packagingType
+                : data.materialType;
+
+            if (targetDb !== "ragsak_products_inv" && !hasCategoryType) {
                 showToast("Please select Main or Alternative", "error");
                 return;
             }

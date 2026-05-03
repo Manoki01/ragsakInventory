@@ -59,16 +59,17 @@ class Packaging {
     public function updatePackagingInfo($data) {
         $stmt = $this->conn->prepare("
             UPDATE tbl_packaging
-            SET packagingName = ?, unitType = ?, packagingPrice = ?
+            SET packagingName = ?, unitType = ?, packagingPrice = ?, packagingType = ?
             WHERE packagingID = ?
             AND deleted_at IS NULL
         ");
 
         $stmt->bind_param(
-            "ssdi",
+            "ssdsi",
             $data['unitName'],
             $data['unitType'],
             $data['unitPrice'],
+            $data['packagingType'],
             $data['packagingID']
         );
 
@@ -81,15 +82,16 @@ class Packaging {
         try {
             $quantity = 0;
             $stmt = $this->conn->prepare("
-            INSERT INTO tbl_packaging (packagingName, quantity, unitType, packagingPrice) 
-            VALUES (?, ?, ?, ?)");
+            INSERT INTO tbl_packaging (packagingName, quantity, unitType, packagingPrice, packagingType) 
+            VALUES (?, ?, ?, ?, ?)");
             
             $stmt->bind_param(
-                "sisi",
+                "sisis",
                 $data['unitName'],
                 $quantity,
                 $data['unitType'],
-                $data['unitPrice']
+                $data['unitPrice'],
+                $data['packagingType']
             );
 
             if(!$stmt->execute()) {

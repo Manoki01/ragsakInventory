@@ -182,13 +182,14 @@
                     <h2 id="viewPackagingName" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black">Packaging</h2>
                     <button type="button" id="packagingViewExit" class="rounded-lg border border-gray-200 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-gray-50">Exit</button>
                 </div>
-                <div class="grid grid-cols-1 gap-4 py-6 md:grid-cols-3">
+                <div class="grid grid-cols-1 gap-4 py-6 md:grid-cols-4">
                     <div class="rounded-2xl bg-gray-50 p-5"><p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Unit Type</p><p id="viewPackagingUnit" class="mt-2 text-sm font-black uppercase text-soft-black">-</p></div>
                     <div class="rounded-2xl bg-gray-50 p-5"><p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Unit Price</p><p id="viewPackagingPrice" class="mt-2 text-sm font-black uppercase text-soft-black">-</p></div>
+                    <div class="rounded-2xl bg-gray-50 p-5"><p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Type</p><p id="viewPackagingType" class="mt-2 text-sm font-black uppercase text-soft-black">-</p></div>
                     <div class="rounded-2xl bg-gray-50 p-5"><p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Stock</p><p id="viewPackagingStock" class="mt-2 text-sm font-black uppercase text-soft-black">-</p></div>
                 </div>
                 <form id="packagingInfoForm" class="hidden space-y-5 border-t border-gray-100 py-6">
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                         <div>
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Packaging Name</label>
                             <input type="text" id="editPackagingName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all">
@@ -200,6 +201,13 @@
                         <div>
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Unit Price</label>
                             <input type="number" min="0" step="0.01" id="editPackagingPrice" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Type</label>
+                            <select id="editPackagingType" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all">
+                                <option value="main">Main</option>
+                                <option value="alternative">Alternative</option>
+                            </select>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -360,11 +368,13 @@
             document.getElementById('viewPackagingName').textContent = item.packagingName || 'Packaging';
             document.getElementById('viewPackagingUnit').textContent = item.unitType || '-';
             document.getElementById('viewPackagingPrice').textContent = '\u20b1' + price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('viewPackagingType').textContent = item.packagingType || 'main';
             document.getElementById('viewPackagingStock').textContent = `${Number(item.quantity || 0).toLocaleString('en-PH')} ${item.unitType || ''}`;
             viewedPackagingID = item.packagingID;
             document.getElementById('editPackagingName').value = item.packagingName || '';
             document.getElementById('editPackagingUnit').value = item.unitType || '';
             document.getElementById('editPackagingPrice').value = price;
+            document.getElementById('editPackagingType').value = item.packagingType || 'main';
             document.getElementById('editPackagingStock').value = Number(item.quantity || 0);
             packagingInfoForm.classList.add('hidden');
             packagingStockForm.classList.add('hidden');
@@ -412,7 +422,8 @@
                 packagingID: Number(viewedPackagingID),
                 unitName: document.getElementById('editPackagingName').value.trim(),
                 unitType: document.getElementById('editPackagingUnit').value.trim(),
-                unitPrice: Number(document.getElementById('editPackagingPrice').value)
+                unitPrice: Number(document.getElementById('editPackagingPrice').value),
+                packagingType: document.getElementById('editPackagingType').value
             };
 
             if (!payload.unitName || !payload.unitType || payload.unitPrice < 0) {
