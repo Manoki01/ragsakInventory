@@ -199,7 +199,7 @@
         window.currentPageId = 'nav-attendance';
     </script>
     <script type="module" src="../components/ragsak_navigation.js"></script>;
-
+    <script>
         let attendance = JSON.parse(localStorage.getItem('ragsak_attendance_log')) || [];
         let positions = JSON.parse(localStorage.getItem('ragsak_positions')) || ['President', 'Admin', 'Supervisor', 'Clerk'];
         let pendingAction = null;

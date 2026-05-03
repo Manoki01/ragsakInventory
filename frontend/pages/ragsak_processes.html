@@ -80,17 +80,6 @@
                                 >
                             </div>
 
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
-                                    Computation Formula (Optional)
-                                </label>
-                                <textarea
-                                    id="procFormula"
-                                    class="w-full bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-xs font-bold outline-none focus:border-moss-green h-24"
-                                    placeholder="[Input A] * 0.5 + [Input B]..."
-                                ></textarea>
-                            </div>
-
                             <button
                                 type="submit"
                                 class="w-full bg-soft-black text-white text-xs font-black py-5 rounded-2xl hover:bg-moss-light transition-all uppercase tracking-[0.2em] shadow-lg"
@@ -264,7 +253,7 @@
         window.currentPageId = 'nav-process';
     </script>
     <script type="module" src="../components/ragsak_navigation.js"></script>
-
+    <script>
         const STORAGE_KEY = 'ragsak_custom_processes';
         const MATERIALS_STORAGE_KEYS = {
             rawMaterials: ['ragsak_raw_materials', 'ragsak_raw_material_registry', 'ragsak_raw_materials_registry'],
