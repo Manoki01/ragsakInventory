@@ -36,6 +36,44 @@ class Packaging {
         return $stmt->num_rows > 0;
     }
 
+    public function packagingNameExistsForOtherPackaging($packagingName, $packagingID) {
+        $stmt = $this->conn->prepare("
+            SELECT packagingID
+            FROM tbl_packaging
+            WHERE LOWER(packagingName) = LOWER(?)
+            AND packagingID <> ?
+            LIMIT 1
+        ");
+
+        $stmt->bind_param("si", $packagingName, $packagingID);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to validate packaging name");
+        }
+
+        $stmt->store_result();
+
+        return $stmt->num_rows > 0;
+    }
+
+    public function updatePackagingInfo($data) {
+        $stmt = $this->conn->prepare("
+            UPDATE tbl_packaging
+            SET packagingName = ?, unitType = ?, packagingPrice = ?
+            WHERE packagingID = ?
+        ");
+
+        $stmt->bind_param(
+            "ssdi",
+            $data['unitName'],
+            $data['unitType'],
+            $data['unitPrice'],
+            $data['packagingID']
+        );
+
+        return $stmt->execute();
+    }
+
     public function createPackaging($data) {
         $this->conn->begin_transaction();
 
@@ -98,5 +136,21 @@ class Packaging {
 
             return false;
         }
+    }
+
+    public function updatePackagingStock($data) {
+        $stmt = $this->conn->prepare("
+            UPDATE tbl_packaging
+            SET quantity = ?
+            WHERE packagingID = ?
+        ");
+
+        $stmt->bind_param(
+            "ii",
+            $data['quantity'],
+            $data['packagingID']
+        );
+
+        return $stmt->execute();
     }
 }

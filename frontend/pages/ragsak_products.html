@@ -256,14 +256,44 @@
                     </div>
                 </div>
 
+                <form id="productInfoForm" class="hidden space-y-5 border-t border-gray-100 py-6">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Product Name</label>
+                            <input type="text" id="editProductName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Unit Type</label>
+                            <input type="text" id="editProductUnit" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Unit Price</label>
+                            <input type="number" min="0" step="0.01" id="editProductPrice" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <button type="submit" id="saveProductInfo" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Save Changes</button>
+                        <button type="button" id="cancelProductInfo" class="rounded-2xl border border-gray-200 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-soft-black">Cancel</button>
+                    </div>
+                </form>
+
                 <div>
                     <p class="mb-4 text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Processes In Order</p>
                     <div id="viewProductProcesses" class="space-y-3"></div>
                 </div>
 
+                <form id="productStockForm" class="hidden space-y-5 border-t border-gray-100 py-6">
+                    <p class="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Edit Stock Per Process</p>
+                    <div id="editProductStockRows" class="space-y-3"></div>
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <button type="submit" id="saveProductStock" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Save Stock</button>
+                        <button type="button" id="cancelProductStock" class="rounded-2xl border border-gray-200 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-soft-black">Cancel</button>
+                    </div>
+                </form>
+
                 <div class="mt-8 grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <button type="button" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Edit Information</button>
-                    <button type="button" class="rounded-2xl border border-soft-black/20 bg-soft-black/5 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Edit Stock</button>
+                    <button type="button" id="editProductInfoButton" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Edit Information</button>
+                    <button type="button" id="editProductStockButton" class="rounded-2xl border border-soft-black/20 bg-soft-black/5 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Edit Stock</button>
                     <button type="button" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100">Delete Product</button>
                 </div>
             </div>
@@ -278,7 +308,7 @@
         import { getProcesses } from '../assets/js/api.js';
         import { loadProducts } from "../assets/js/products.js";
         import { checkStockStatus } from '../assets/js/utils.js';
-        import { stockinProduct } from '../assets/js/products.js';
+        import { stockinProduct, editProductInfo, editProductStock } from '../assets/js/products.js';
         import { showToast } from '../components/notification.js';
 
         const prodNameInput = document.getElementById('prodName');
@@ -291,8 +321,15 @@
         const processFilter = document.getElementById("processFilter");
         const productViewModal = document.getElementById("productViewModal");
         const productViewExit = document.getElementById("productViewExit");
+        const productInfoForm = document.getElementById("productInfoForm");
+        const editProductInfoButton = document.getElementById("editProductInfoButton");
+        const cancelProductInfo = document.getElementById("cancelProductInfo");
+        const productStockForm = document.getElementById("productStockForm");
+        const editProductStockButton = document.getElementById("editProductStockButton");
+        const cancelProductStock = document.getElementById("cancelProductStock");
 
         let selectedProductID;
+        let viewedProductID;
 
         window.inventoryData = [];
 
@@ -525,11 +562,30 @@
                 </div>
             `).join("");
 
+            viewedProductID = product.productID;
+            document.getElementById("editProductStockRows").innerHTML = sortedProcesses.map(process => `
+                <div class="grid grid-cols-12 items-end gap-3 rounded-2xl bg-gray-50 p-4">
+                    <div class="col-span-8">
+                        <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">${escapeHtml(process.processName)}</label>
+                        <p class="mt-1 text-[10px] font-bold uppercase text-soft-black/50">Process ID ${escapeHtml(process.processID)}</p>
+                    </div>
+                    <div class="col-span-4">
+                        <input type="number" min="0" step="1" data-stock-process="${escapeHtml(process.processID)}" data-original-quantity="${process.quantity}" value="${process.quantity}" class="w-full bg-white border-b-2 border-gray-200 py-3 px-2 text-sm font-bold text-right outline-none focus:border-soft-black transition-all">
+                    </div>
+                </div>
+            `).join("");
+            document.getElementById("editProductName").value = product.productName;
+            document.getElementById("editProductUnit").value = product.unitType || "";
+            document.getElementById("editProductPrice").value = product.productPrice;
+            productInfoForm.classList.add("hidden");
+            productStockForm.classList.add("hidden");
             productViewModal.classList.remove("hidden");
         }
 
         function closeProductView() {
             productViewModal.classList.add("hidden");
+            productInfoForm.classList.add("hidden");
+            productStockForm.classList.add("hidden");
         }
 
         document.getElementById("inventoryBody").addEventListener("click", (event) => {
@@ -539,6 +595,98 @@
         });
 
         productViewExit.addEventListener("click", closeProductView);
+
+        editProductInfoButton.addEventListener("click", () => {
+            productInfoForm.classList.remove("hidden");
+            document.getElementById("editProductName").focus();
+        });
+
+        cancelProductInfo.addEventListener("click", () => {
+            productInfoForm.classList.add("hidden");
+        });
+
+        editProductStockButton.addEventListener("click", () => {
+            productStockForm.classList.remove("hidden");
+            productStockForm.querySelector("input")?.focus();
+        });
+
+        cancelProductStock.addEventListener("click", () => {
+            productStockForm.classList.add("hidden");
+        });
+
+        productInfoForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (!viewedProductID) return;
+
+            const payload = {
+                productID: Number(viewedProductID),
+                unitName: document.getElementById("editProductName").value.trim(),
+                unitType: document.getElementById("editProductUnit").value.trim(),
+                unitPrice: Number(document.getElementById("editProductPrice").value)
+            };
+
+            if (!payload.unitName || !payload.unitType || payload.unitPrice < 0) {
+                showToast("Name, unit, and valid price are required", "error");
+                return;
+            }
+
+            const saveButton = document.getElementById("saveProductInfo");
+            saveButton.disabled = true;
+
+            const response = await editProductInfo(payload);
+            saveButton.disabled = false;
+
+            if (!response.success) {
+                showToast(response.message || "Product update failed", "error");
+                return;
+            }
+
+            await getProducts();
+            openProductView(payload.productID);
+            showToast("Product information updated", "success");
+        });
+
+        productStockForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (!viewedProductID) return;
+
+            const stockInputs = [...productStockForm.querySelectorAll("[data-stock-process]")];
+            const updates = stockInputs.map(input => ({
+                productID: Number(viewedProductID),
+                processID: Number(input.dataset.stockProcess),
+                originalQuantity: Number(input.dataset.originalQuantity),
+                quantity: Number(input.value)
+            })).filter(update => update.quantity !== update.originalQuantity);
+
+            if (updates.some(update => !Number.isInteger(update.quantity) || update.quantity < 0)) {
+                showToast("Stock must be zero or a positive whole number", "error");
+                return;
+            }
+
+            if (updates.length === 0) {
+                showToast("No stock changes to save", "error");
+                productStockForm.classList.add("hidden");
+                return;
+            }
+
+            const saveButton = document.getElementById("saveProductStock");
+            saveButton.disabled = true;
+
+            const results = await Promise.all(updates.map(update => editProductStock(update)));
+            saveButton.disabled = false;
+
+            const failed = results.find(result => !result.success);
+            if (failed) {
+                showToast(failed.message || "Product stock update failed", "error");
+                return;
+            }
+
+            await getProducts();
+            openProductView(viewedProductID);
+            showToast("Product stock updated", "success");
+        });
 
         prodNameInput.addEventListener('input', function () {
             const query = this.value.toLowerCase().trim();

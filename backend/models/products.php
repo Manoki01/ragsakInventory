@@ -46,6 +46,44 @@ class Product {
         return $stmt->num_rows > 0;
     }
 
+    public function productNameExistsForOtherProduct($productName, $productID) {
+        $stmt = $this->conn->prepare("
+            SELECT productID
+            FROM tbl_products
+            WHERE LOWER(productName) = LOWER(?)
+            AND productID <> ?
+            LIMIT 1
+        ");
+
+        $stmt->bind_param("si", $productName, $productID);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to validate product name");
+        }
+
+        $stmt->store_result();
+
+        return $stmt->num_rows > 0;
+    }
+
+    public function updateProductInfo($data) {
+        $stmt = $this->conn->prepare("
+            UPDATE tbl_products
+            SET productName = ?, unitType = ?, productPrice = ?
+            WHERE productID = ?
+        ");
+
+        $stmt->bind_param(
+            "ssdi",
+            $data['unitName'],
+            $data['unitType'],
+            $data['unitPrice'],
+            $data['productID']
+        );
+
+        return $stmt->execute();
+    }
+
     public function createProduct($data) {
         if (empty($data['processes']) || !is_array($data['processes'])) {
             error_log("Cannot add product: no processes provided.");
@@ -180,14 +218,18 @@ class Product {
                 flowID,
                 action,
                 quantity,
+                initialQuantity,
+                finalQuantity,
                 reason
-                ) VALUES (?, ?, ?, ?)");
+                ) VALUES (?, ?, ?, ?, ?, ?)");
 
                 $changelogStmt->bind_param(
-                    'isis',
+                    'isiiis',
                     $flowID,
                     $action,
                     $data['quantity'],
+                    $quantity,
+                    $finalQuantity,
                     $reason
                 );
 
@@ -203,6 +245,131 @@ class Product {
 
             error_log("Transaction failed: " . $e->getMessage(), 3, __DIR__ . "../logs/error.log");
 
+            return false;
+        }
+    }
+
+    public function updateProductStock($data) {
+        $this->conn->begin_transaction();
+
+        try {
+            $checkStmt = $this->conn->prepare("
+                SELECT ps.flowID, ps.quantity
+                FROM tbl_productStock ps
+                INNER JOIN tbl_processFlow pf ON ps.flowID = pf.flowID
+                WHERE pf.productID = ?
+                AND pf.processID = ?
+                LIMIT 1
+            ");
+
+            $checkStmt->bind_param(
+                "ii",
+                $data['productID'],
+                $data['processID']
+            );
+
+            if (!$checkStmt->execute()) {
+                throw new Exception("Failed to locate product stock");
+            }
+
+            $result = $checkStmt->get_result();
+
+            if (!$result || $result->num_rows === 0) {
+                $this->conn->rollback();
+                return false;
+            }
+
+            $row = $result->fetch_assoc();
+            $flowID = (int) $row['flowID'];
+            $previousQuantity = (int) $row['quantity'];
+            $newQuantity = (int) $data['quantity'];
+            $difference = $newQuantity - $previousQuantity;
+
+            if ($difference === 0) {
+                $this->conn->commit();
+                return true;
+            }
+
+            $updateStmt = $this->conn->prepare("
+                UPDATE tbl_productStock
+                SET quantity = ?
+                WHERE flowID = ?
+            ");
+
+            $updateStmt->bind_param(
+                "ii",
+                $newQuantity,
+                $flowID
+            );
+
+            $status = "success";
+            if (!$updateStmt->execute()) {
+                $status = "failed";
+                throw new Exception("Failed to update product stock");
+            }
+
+            $transactionAction = "Stock Update";
+            $transactionStmt = $this->conn->prepare("
+                INSERT INTO tbl_prodTransactions (
+                    userID,
+                    flowID,
+                    status,
+                    quantity,
+                    action
+                )
+                VALUES (?, ?, ?, ?, ?)
+            ");
+
+            $transactionStmt->bind_param(
+                "iisis",
+                $data['userID'],
+                $flowID,
+                $status,
+                $newQuantity,
+                $transactionAction
+            );
+
+            if (!$transactionStmt->execute()) {
+                throw new Exception("Failed to log product stock transaction");
+            }
+
+            $changelogAction = $difference > 0
+                ? "Increase"
+                : ($difference < 0 ? "Decrease" : "Set");
+            $changelogQuantity = abs($difference);
+            $reason = "Edit Stock";
+
+            $changelogStmt = $this->conn->prepare("
+                INSERT INTO tbl_prodChangelogs (
+                    flowID,
+                    action,
+                    quantity,
+                    initialQuantity,
+                    finalQuantity,
+                    reason
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+
+            $changelogStmt->bind_param(
+                "isiiis",
+                $flowID,
+                $changelogAction,
+                $changelogQuantity,
+                $previousQuantity,
+                $newQuantity,
+                $reason
+            );
+
+            if (!$changelogStmt->execute()) {
+                throw new Exception("Failed to log product stock changelog");
+            }
+
+            $this->conn->commit();
+            return true;
+        } catch(Exception $e) {
+            $this->conn->rollback();
+            error_log("Transaction failed: " . $e->getMessage());
             return false;
         }
     }

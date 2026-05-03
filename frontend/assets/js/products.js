@@ -1,6 +1,8 @@
 import { getProducts } from "./api.js";
 import { createProduct } from "./api.js";
 import { stockProduct } from "./api.js";
+import { updateProduct } from "./api.js";
+import { setProductStock } from "./api.js";
 
 export async function loadProducts() {
     try {
@@ -53,5 +55,39 @@ export async function stockinProduct(data) {
         }
     } catch (error) {
         console.error("Failed to update product stock", error);
+    }
+}
+
+export async function editProductInfo(data) {
+    try {
+        const response = await updateProduct(data);
+
+        return {
+            success: response.status === "success",
+            message: response.message || "Product update complete"
+        };
+    } catch (error) {
+        console.error("Failed to update product", error);
+        return {
+            success: false,
+            message: "Network error while updating product"
+        };
+    }
+}
+
+export async function editProductStock(data) {
+    try {
+        const response = await setProductStock(data);
+
+        return {
+            success: response.status === "success",
+            message: response.message || "Product stock update complete"
+        };
+    } catch (error) {
+        console.error("Failed to update product stock", error);
+        return {
+            success: false,
+            message: "Network error while updating product stock"
+        };
     }
 }

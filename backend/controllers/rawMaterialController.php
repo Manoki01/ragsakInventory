@@ -119,6 +119,65 @@ function createRawMaterial() {
     }
 }
 
+function updateRawMaterialInfo() {
+    $input = json_decode(
+        file_get_contents("php://input"),
+        true
+    );
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    if (filter_var($input['rawMaterialID'] ?? null, FILTER_VALIDATE_INT) === false || (int) $input['rawMaterialID'] <= 0) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Raw material ID must be a positive whole number"]);
+        exit;
+    }
+
+    $input['rawMaterialID'] = (int) $input['rawMaterialID'];
+    $input['unitName'] = trim((string) ($input['unitName'] ?? ''));
+    $input['unitType'] = trim((string) ($input['unitType'] ?? ''));
+    $input['unitPrice'] = $input['unitPrice'] ?? null;
+
+    if ($input['unitName'] === '' || strlen($input['unitName']) > 100) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Raw material name is invalid"]);
+        exit;
+    }
+
+    if ($input['unitType'] === '' || strlen($input['unitType']) > 50) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Unit type is invalid"]);
+        exit;
+    }
+
+    if (!is_numeric($input['unitPrice']) || (float) $input['unitPrice'] < 0) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Unit price must be a valid non-negative number"]);
+        exit;
+    }
+
+    $input['unitPrice'] = (float) $input['unitPrice'];
+
+    $rawMaterial = new Raw_Material();
+
+    if ($rawMaterial->rawMaterialNameExistsForOtherMaterial($input['unitName'], $input['rawMaterialID'])) {
+        http_response_code(409);
+        echo json_encode(["status" => "error", "message" => "Raw material already exists"]);
+        exit;
+    }
+
+    if ($rawMaterial->updateRawMaterialInfo($input)) {
+        echo json_encode(["status" => "success", "message" => "Raw Material Updated Successfully"]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Failed to Update Raw Material"]);
+    }
+}
+
 function stockRawMaterial() {
     $input = json_decode(
         file_get_contents("php://input"),
@@ -144,5 +203,42 @@ function stockRawMaterial() {
         echo json_encode([
             "message" => "Failed to Stock Raw Material"
         ]);
+    }
+}
+
+function updateRawMaterialStock() {
+    $input = json_decode(
+        file_get_contents("php://input"),
+        true
+    );
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    if (filter_var($input['rawMaterialID'] ?? null, FILTER_VALIDATE_INT) === false || (int) $input['rawMaterialID'] <= 0) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Raw material ID must be a positive whole number"]);
+        exit;
+    }
+
+    if (filter_var($input['quantity'] ?? null, FILTER_VALIDATE_INT) === false || (int) $input['quantity'] < 0) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Quantity must be zero or a positive whole number"]);
+        exit;
+    }
+
+    $input['rawMaterialID'] = (int) $input['rawMaterialID'];
+    $input['quantity'] = (int) $input['quantity'];
+
+    $rawMaterial = new Raw_Material();
+
+    if ($rawMaterial->updateRawMaterialStock($input)) {
+        echo json_encode(["status" => "success", "message" => "Raw Material Stock Updated Successfully"]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Failed to Update Raw Material Stock"]);
     }
 }

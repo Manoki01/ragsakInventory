@@ -102,6 +102,48 @@ function createProduct() {
     }
 }
 
+function updateProductInfo() {
+    $input = json_decode(
+        file_get_contents("php://input"),
+        true
+    );
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $input['productID'] = validatePositiveInt($input['productID'] ?? null, 'Product ID');
+    $input['unitName'] = validateNonEmptyText($input['unitName'] ?? '', 'Product name');
+    $input['unitType'] = validateNonEmptyText($input['unitType'] ?? '', 'Unit type', 50);
+    $input['unitPrice'] = validateMoney($input['unitPrice'] ?? null, 'Unit price');
+
+    $product = new Product();
+
+    if ($product->productNameExistsForOtherProduct($input['unitName'], $input['productID'])) {
+        http_response_code(409);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Product already exists"
+        ]);
+        exit;
+    }
+
+    if ($product->updateProductInfo($input)) {
+        echo json_encode([
+            "status" => "success",
+            "message" => "Product Updated Successfully"
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Failed to Update Product"
+        ]);
+    }
+}
+
 function stockProduct() {
     $input = json_decode(
         file_get_contents("php://input"),
@@ -142,6 +184,51 @@ function stockProduct() {
         http_response_code(500);
         echo json_encode([
             "message" => "Failed to Stock Product"
+        ]);
+    }
+}
+
+function updateProductStock() {
+    $input = json_decode(
+        file_get_contents("php://input"),
+        true
+    );
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $input['productID'] = validatePositiveInt($input['productID'] ?? null, 'Product ID');
+    $input['processID'] = validatePositiveInt($input['processID'] ?? null, 'Process ID');
+
+    if (filter_var($input['quantity'] ?? null, FILTER_VALIDATE_INT) === false || (int) $input['quantity'] < 0) {
+        failValidation("Quantity must be zero or a positive whole number");
+    }
+
+    $input['quantity'] = (int) $input['quantity'];
+    $authenticatedUser = getCurrentAuthUser();
+    $input['userID'] = isset($authenticatedUser->sub) ? (int) $authenticatedUser->sub : 0;
+
+    if ($input['userID'] <= 0) {
+        http_response_code(401);
+        echo json_encode(["status" => "error", "message" => "Authentication required"]);
+        exit;
+    }
+
+    $product = new Product();
+
+    if ($product->updateProductStock($input)) {
+        echo json_encode([
+            "status" => "success",
+            "message" => "Product Stock Updated Successfully"
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Failed to Update Product Stock"
         ]);
     }
 }

@@ -43,6 +43,22 @@ async function apiRequest(route, options = {}) {
         });
     }
 
+    export async function updateProduct(data) {
+        return await apiRequest("products&action=update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function setProductStock(data) {
+        return await apiRequest("products&action=update_stock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
 //Raw Materials
     export async function getRawMaterials() {
         return await apiRequest("raw_materials");
@@ -64,6 +80,22 @@ async function apiRequest(route, options = {}) {
         });
     }
 
+    export async function updateRawMaterial(data) {
+        return await apiRequest("raw_materials&action=update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function setRawMaterialStock(data) {
+        return await apiRequest("raw_materials&action=update_stock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
 //Packaging
     export async function getPackaging() {
         return await apiRequest("packaging");
@@ -81,6 +113,22 @@ async function apiRequest(route, options = {}) {
         return await apiRequest("packaging&action=stock", {
             method: "POST",
             headers: { "Content-Type" : "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function updatePackagingInfo(data) {
+        return await apiRequest("packaging&action=update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function setPackagingStock(data) {
+        return await apiRequest("packaging&action=update_stock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         });
     }

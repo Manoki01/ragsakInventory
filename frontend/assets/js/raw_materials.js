@@ -1,6 +1,8 @@
 import { getRawMaterials } from "./api.js";
 import { createRawMaterial } from "./api.js";
 import { stockRawMaterial } from "./api.js";
+import { updateRawMaterial } from "./api.js";
+import { setRawMaterialStock } from "./api.js";
 
 export async function loadRawMaterials() {
     try {
@@ -53,5 +55,39 @@ export async function stockinRawMaterial(data) {
         }
     } catch (error) {
         console.error("Failed to update raw material stock", error);
+    }
+}
+
+export async function editRawMaterialInfo(data) {
+    try {
+        const response = await updateRawMaterial(data);
+
+        return {
+            success: response.status === "success",
+            message: response.message || "Raw material update complete"
+        };
+    } catch (error) {
+        console.error("Failed to update raw material", error);
+        return {
+            success: false,
+            message: "Network error while updating raw material"
+        };
+    }
+}
+
+export async function editRawMaterialStock(data) {
+    try {
+        const response = await setRawMaterialStock(data);
+
+        return {
+            success: response.status === "success",
+            message: response.message || "Raw material stock update complete"
+        };
+    } catch (error) {
+        console.error("Failed to update raw material stock", error);
+        return {
+            success: false,
+            message: "Network error while updating raw material stock"
+        };
     }
 }

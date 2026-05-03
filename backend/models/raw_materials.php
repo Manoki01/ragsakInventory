@@ -36,6 +36,44 @@ class Raw_Material {
         return $stmt->num_rows > 0;
     }
 
+    public function rawMaterialNameExistsForOtherMaterial($rawMaterialName, $rawMaterialID) {
+        $stmt = $this->conn->prepare("
+            SELECT rawMaterialID
+            FROM tbl_rawMaterials
+            WHERE LOWER(rawMaterialName) = LOWER(?)
+            AND rawMaterialID <> ?
+            LIMIT 1
+        ");
+
+        $stmt->bind_param("si", $rawMaterialName, $rawMaterialID);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to validate raw material name");
+        }
+
+        $stmt->store_result();
+
+        return $stmt->num_rows > 0;
+    }
+
+    public function updateRawMaterialInfo($data) {
+        $stmt = $this->conn->prepare("
+            UPDATE tbl_rawMaterials
+            SET rawMaterialName = ?, unitType = ?, rawMaterialprice = ?
+            WHERE rawMaterialID = ?
+        ");
+
+        $stmt->bind_param(
+            "ssdi",
+            $data['unitName'],
+            $data['unitType'],
+            $data['unitPrice'],
+            $data['rawMaterialID']
+        );
+
+        return $stmt->execute();
+    }
+
     public function createRawMaterial($data) {
         $this->conn->begin_transaction();
 
@@ -100,5 +138,21 @@ class Raw_Material {
 
             return false;
         }
+    }
+
+    public function updateRawMaterialStock($data) {
+        $stmt = $this->conn->prepare("
+            UPDATE tbl_rawMaterials
+            SET quantity = ?
+            WHERE rawMaterialID = ?
+        ");
+
+        $stmt->bind_param(
+            "ii",
+            $data['quantity'],
+            $data['rawMaterialID']
+        );
+
+        return $stmt->execute();
     }
 }

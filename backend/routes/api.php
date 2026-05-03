@@ -119,6 +119,14 @@ switch($request) {
             stockProduct();
         }
 
+        if($method == "POST" && $action == "update") {
+            updateProductInfo();
+        }
+
+        if($method == "POST" && $action == "update_stock") {
+            updateProductStock();
+        }
+
         break;
     case 'raw_materials':
         validateJWT();
@@ -136,6 +144,14 @@ switch($request) {
             stockRawMaterial();
         }
 
+        if($method == "POST" && $action == "update") {
+            updateRawMaterialInfo();
+        }
+
+        if($method == "POST" && $action == "update_stock") {
+            updateRawMaterialStock();
+        }
+
         break;
     case 'packaging':
         validateJWT();
@@ -151,6 +167,14 @@ switch($request) {
 
         if($method == "POST" && $action == "stock") {
             stockPackaging();
+        }
+
+        if($method == "POST" && $action == "update") {
+            updatePackagingInfo();
+        }
+
+        if($method == "POST" && $action == "update_stock") {
+            updatePackagingStock();
         }
 
         break;
