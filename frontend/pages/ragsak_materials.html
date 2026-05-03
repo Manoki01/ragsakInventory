@@ -220,7 +220,7 @@
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
                     <button type="button" id="editMaterialInfoButton" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Edit Information</button>
                     <button type="button" id="editMaterialStockButton" class="rounded-2xl border border-soft-black/20 bg-soft-black/5 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Edit Stock</button>
-                    <button type="button" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100">Delete Material</button>
+                    <button type="button" id="deleteMaterialButton" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100">Archive Material</button>
                 </div>
             </div>
         </div>
@@ -234,7 +234,7 @@
     <script type="module">
         import { loadRawMaterials } from "../assets/js/raw_materials.js";
         import { checkStockStatus } from '../assets/js/utils.js';
-        import { stockinRawMaterial, editRawMaterialInfo, editRawMaterialStock } from '../assets/js/raw_materials.js';
+        import { stockinRawMaterial, editRawMaterialInfo, editRawMaterialStock, deleteRawMaterial } from '../assets/js/raw_materials.js';
         import { showToast } from '../components/notification.js';
 
         const matNameInput = document.getElementById('matName');
@@ -251,6 +251,7 @@
         const materialStockForm = document.getElementById('materialStockForm');
         const editMaterialStockButton = document.getElementById('editMaterialStockButton');
         const cancelMaterialStock = document.getElementById('cancelMaterialStock');
+        const deleteMaterialButton = document.getElementById('deleteMaterialButton');
 
         let selectedMatID;
         let viewedMaterialID;
@@ -465,6 +466,28 @@
             await getRawMaterials();
             openMaterialView(payload.rawMaterialID);
             showToast("Material stock updated", "success");
+        });
+
+        deleteMaterialButton.addEventListener('click', async () => {
+            if (!viewedMaterialID) return;
+
+            const materialName = document.getElementById('viewMaterialName').textContent || 'this material';
+            const confirmed = confirm(`Archive ${materialName}? It will be hidden from the materials list but kept in the database.`);
+
+            if (!confirmed) return;
+
+            deleteMaterialButton.disabled = true;
+            const response = await deleteRawMaterial({ rawMaterialID: Number(viewedMaterialID) });
+            deleteMaterialButton.disabled = false;
+
+            if (!response.success) {
+                showToast(response.message || "Material archive failed", "error");
+                return;
+            }
+
+            closeMaterialView();
+            await getRawMaterials();
+            showToast("Material archived", "success");
         });
 
         searchInput.addEventListener("input", function () {

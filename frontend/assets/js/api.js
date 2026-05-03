@@ -27,6 +27,10 @@ async function apiRequest(route, options = {}) {
         return await apiRequest("products");
     }
 
+    export async function getProductFormula(productID, processID) {
+        return await apiRequest(`products&action=formula&productID=${encodeURIComponent(productID)}&processID=${encodeURIComponent(processID)}`);
+    }
+
     export async function createProduct(data) {
         return await apiRequest("products&action=create", {
             method: "POST",
@@ -53,6 +57,14 @@ async function apiRequest(route, options = {}) {
 
     export async function setProductStock(data) {
         return await apiRequest("products&action=update_stock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function archiveProduct(data) {
+        return await apiRequest("products&action=archive", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
@@ -96,6 +108,14 @@ async function apiRequest(route, options = {}) {
         });
     }
 
+    export async function archiveRawMaterial(data) {
+        return await apiRequest("raw_materials&action=archive", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
 //Packaging
     export async function getPackaging() {
         return await apiRequest("packaging");
@@ -127,6 +147,14 @@ async function apiRequest(route, options = {}) {
 
     export async function setPackagingStock(data) {
         return await apiRequest("packaging&action=update_stock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function archivePackaging(data) {
+        return await apiRequest("packaging&action=archive", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)

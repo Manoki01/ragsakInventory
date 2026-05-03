@@ -20,11 +20,89 @@ class Product {
         p.productPrice
         FROM tbl_products p
         INNER JOIN tbl_processFlow pf ON p.productID = pf.productID
-        INNER JOIN tbl_productStock ps ON pf.flowID = ps.flowID";
+        INNER JOIN tbl_productStock ps ON pf.flowID = ps.flowID
+        WHERE p.deleted_at IS NULL";
 
         $result = $this->conn->query($query);
 
         return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function getProcessFormula($productID, $processID) {
+        $formula = [
+            "rawMaterials" => [],
+            "packaging" => []
+        ];
+
+        $flowStmt = $this->conn->prepare("
+            SELECT pf.flowID
+            FROM tbl_processFlow pf
+            INNER JOIN tbl_products p ON pf.productID = p.productID
+            WHERE pf.productID = ?
+            AND pf.processID = ?
+            AND p.deleted_at IS NULL
+            LIMIT 1
+        ");
+
+        $flowStmt->bind_param("ii", $productID, $processID);
+
+        if (!$flowStmt->execute()) {
+            throw new Exception("Failed to locate product process");
+        }
+
+        $flowResult = $flowStmt->get_result();
+
+        if (!$flowResult || $flowResult->num_rows === 0) {
+            return null;
+        }
+
+        $flowID = (int) $flowResult->fetch_assoc()['flowID'];
+
+        $rawStmt = $this->conn->prepare("
+            SELECT
+                rm.rawMaterialID,
+                rm.rawMaterialName,
+                rm.unitType,
+                brm.quantityRequired
+            FROM tbl_bom b
+            INNER JOIN tbl_bomRawMaterials brm ON b.bomID = brm.bomID
+            INNER JOIN tbl_rawMaterials rm ON brm.rawMaterialID = rm.rawMaterialID
+            WHERE b.flowID = ?
+            AND rm.deleted_at IS NULL
+            ORDER BY rm.rawMaterialName
+        ");
+
+        $rawStmt->bind_param("i", $flowID);
+
+        if (!$rawStmt->execute()) {
+            throw new Exception("Failed to load raw material formula");
+        }
+
+        $formula["rawMaterials"] = $rawStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $packagingStmt = $this->conn->prepare("
+            SELECT
+                p.packagingID,
+                p.packagingName,
+                p.unitType,
+                bp.quantityRequired
+            FROM tbl_bom b
+            INNER JOIN tbl_bomPackaging bp ON b.bomID = bp.bomID
+            INNER JOIN tbl_packaging p ON bp.packagingID = p.packagingID
+            WHERE b.flowID = ?
+            AND p.deleted_at IS NULL
+            ORDER BY p.packagingName
+        ");
+
+        $packagingStmt->bind_param("i", $flowID);
+
+        if (!$packagingStmt->execute()) {
+            throw new Exception("Failed to load packaging formula");
+        }
+
+        $formula["packaging"] = $packagingStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        return $formula;
     }
 
     public function productExistsIgnoreCase($productName) {
@@ -71,6 +149,7 @@ class Product {
             UPDATE tbl_products
             SET productName = ?, unitType = ?, productPrice = ?
             WHERE productID = ?
+            AND deleted_at IS NULL
         ");
 
         $stmt->bind_param(
@@ -154,7 +233,9 @@ class Product {
             $checkStmt = $this->conn->prepare("
             SELECT ps.flowID, ps.quantity FROM tbl_productStock ps
             INNER JOIN tbl_processFlow pf ON ps.flowID = pf.flowID
-            WHERE pf.productID = ? AND pf.processID = ?");
+            INNER JOIN tbl_products p ON pf.productID = p.productID
+            WHERE pf.productID = ? AND pf.processID = ?
+            AND p.deleted_at IS NULL");
             $checkStmt->bind_param(
                 'ii',
                 $product,
@@ -257,8 +338,10 @@ class Product {
                 SELECT ps.flowID, ps.quantity
                 FROM tbl_productStock ps
                 INNER JOIN tbl_processFlow pf ON ps.flowID = pf.flowID
+                INNER JOIN tbl_products p ON pf.productID = p.productID
                 WHERE pf.productID = ?
                 AND pf.processID = ?
+                AND p.deleted_at IS NULL
                 LIMIT 1
             ");
 
@@ -372,5 +455,22 @@ class Product {
             error_log("Transaction failed: " . $e->getMessage());
             return false;
         }
+    }
+
+    public function archiveProduct($productID) {
+        $stmt = $this->conn->prepare("
+            UPDATE tbl_products
+            SET deleted_at = NOW()
+            WHERE productID = ?
+            AND deleted_at IS NULL
+        ");
+
+        $stmt->bind_param("i", $productID);
+
+        if (!$stmt->execute()) {
+            return false;
+        }
+
+        return $stmt->affected_rows > 0;
     }
 }

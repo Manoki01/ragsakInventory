@@ -48,6 +48,27 @@ function getProducts() {
     ]);
 }
 
+function getProductFormula() {
+    $productID = validatePositiveInt($_GET['productID'] ?? null, 'Product ID');
+    $processID = validatePositiveInt($_GET['processID'] ?? null, 'Process ID');
+    $product = new Product();
+    $data = $product->getProcessFormula($productID, $processID);
+
+    if ($data === null) {
+        http_response_code(404);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Product process was not found"
+        ]);
+        return;
+    }
+
+    echo json_encode([
+        "status" => "success",
+        "data" => $data
+    ]);
+}
+
 function createProduct() {
     $input = json_decode(
         file_get_contents("php://input"),
@@ -229,6 +250,35 @@ function updateProductStock() {
         echo json_encode([
             "status" => "error",
             "message" => "Failed to Update Product Stock"
+        ]);
+    }
+}
+
+function archiveProduct() {
+    $input = json_decode(
+        file_get_contents("php://input"),
+        true
+    );
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $productID = validatePositiveInt($input['productID'] ?? null, 'Product ID');
+    $product = new Product();
+
+    if ($product->archiveProduct($productID)) {
+        echo json_encode([
+            "status" => "success",
+            "message" => "Product archived successfully"
+        ]);
+    } else {
+        http_response_code(404);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Product was not found or is already archived"
         ]);
     }
 }

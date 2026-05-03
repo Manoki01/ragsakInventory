@@ -1,8 +1,10 @@
 import { getProducts } from "./api.js";
+import { getProductFormula } from "./api.js";
 import { createProduct } from "./api.js";
 import { stockProduct } from "./api.js";
 import { updateProduct } from "./api.js";
 import { setProductStock } from "./api.js";
+import { archiveProduct } from "./api.js";
 
 export async function loadProducts() {
     try {
@@ -40,6 +42,25 @@ export async function addProduct(data) {
         return {
             success: false,
             message: "Network error while adding product"
+        };
+    }
+}
+
+export async function loadProductFormula(productID, processID) {
+    try {
+        const response = await getProductFormula(productID, processID);
+
+        return {
+            success: response.status === "success",
+            data: response.data || { rawMaterials: [], packaging: [] },
+            message: response.message || "Formula loaded"
+        };
+    } catch (error) {
+        console.error("Failed to load product formula", error);
+        return {
+            success: false,
+            data: { rawMaterials: [], packaging: [] },
+            message: "Network error while loading formula"
         };
     }
 }
@@ -88,6 +109,23 @@ export async function editProductStock(data) {
         return {
             success: false,
             message: "Network error while updating product stock"
+        };
+    }
+}
+
+export async function deleteProduct(data) {
+    try {
+        const response = await archiveProduct(data);
+
+        return {
+            success: response.status === "success",
+            message: response.message || "Product archived"
+        };
+    } catch (error) {
+        console.error("Failed to archive product", error);
+        return {
+            success: false,
+            message: "Network error while archiving product"
         };
     }
 }

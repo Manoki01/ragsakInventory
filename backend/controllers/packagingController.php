@@ -234,3 +234,31 @@ function updatePackagingStock() {
         echo json_encode(["status" => "error", "message" => "Failed to Update Packaging Stock"]);
     }
 }
+
+function archivePackaging() {
+    $input = json_decode(
+        file_get_contents("php://input"),
+        true
+    );
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    if (filter_var($input['packagingID'] ?? null, FILTER_VALIDATE_INT) === false || (int) $input['packagingID'] <= 0) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Packaging ID must be a positive whole number"]);
+        exit;
+    }
+
+    $packaging = new Packaging();
+
+    if ($packaging->archivePackaging((int) $input['packagingID'])) {
+        echo json_encode(["status" => "success", "message" => "Packaging archived successfully"]);
+    } else {
+        http_response_code(404);
+        echo json_encode(["status" => "error", "message" => "Packaging was not found or is already archived"]);
+    }
+}

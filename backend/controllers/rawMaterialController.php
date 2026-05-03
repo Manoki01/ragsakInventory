@@ -242,3 +242,31 @@ function updateRawMaterialStock() {
         echo json_encode(["status" => "error", "message" => "Failed to Update Raw Material Stock"]);
     }
 }
+
+function archiveRawMaterial() {
+    $input = json_decode(
+        file_get_contents("php://input"),
+        true
+    );
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    if (filter_var($input['rawMaterialID'] ?? null, FILTER_VALIDATE_INT) === false || (int) $input['rawMaterialID'] <= 0) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Raw material ID must be a positive whole number"]);
+        exit;
+    }
+
+    $rawMaterial = new Raw_Material();
+
+    if ($rawMaterial->archiveRawMaterial((int) $input['rawMaterialID'])) {
+        echo json_encode(["status" => "success", "message" => "Raw material archived successfully"]);
+    } else {
+        http_response_code(404);
+        echo json_encode(["status" => "error", "message" => "Raw material was not found or is already archived"]);
+    }
+}

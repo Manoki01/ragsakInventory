@@ -10,7 +10,7 @@ class Packaging {
     }
 
     public function getAll() {
-        $query = "SELECT * FROM tbl_packaging";
+        $query = "SELECT * FROM tbl_packaging WHERE deleted_at IS NULL";
 
         $result = $this->conn->query($query);
 
@@ -61,6 +61,7 @@ class Packaging {
             UPDATE tbl_packaging
             SET packagingName = ?, unitType = ?, packagingPrice = ?
             WHERE packagingID = ?
+            AND deleted_at IS NULL
         ");
 
         $stmt->bind_param(
@@ -115,6 +116,7 @@ class Packaging {
             $updateStmt = $this->conn->prepare("
                 UPDATE tbl_packaging SET quantity = quantity + ? 
                 WHERE packagingID = ?
+                AND deleted_at IS NULL
             ");
 
             $updateStmt->bind_param(
@@ -143,6 +145,7 @@ class Packaging {
             UPDATE tbl_packaging
             SET quantity = ?
             WHERE packagingID = ?
+            AND deleted_at IS NULL
         ");
 
         $stmt->bind_param(
@@ -152,5 +155,22 @@ class Packaging {
         );
 
         return $stmt->execute();
+    }
+
+    public function archivePackaging($packagingID) {
+        $stmt = $this->conn->prepare("
+            UPDATE tbl_packaging
+            SET deleted_at = NOW()
+            WHERE packagingID = ?
+            AND deleted_at IS NULL
+        ");
+
+        $stmt->bind_param("i", $packagingID);
+
+        if (!$stmt->execute()) {
+            return false;
+        }
+
+        return $stmt->affected_rows > 0;
     }
 }

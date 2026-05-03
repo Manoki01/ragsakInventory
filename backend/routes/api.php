@@ -107,7 +107,9 @@ switch($request) {
         validateJWT();
         require_once __DIR__ . '../../controllers/productController.php';
 
-        if($method == "GET") {
+        if($method == "GET" && $action == "formula") {
+            getProductFormula();
+        } else if($method == "GET") {
             getProducts();
         }
 
@@ -125,6 +127,10 @@ switch($request) {
 
         if($method == "POST" && $action == "update_stock") {
             updateProductStock();
+        }
+
+        if($method == "POST" && $action == "archive") {
+            archiveProduct();
         }
 
         break;
@@ -152,6 +158,10 @@ switch($request) {
             updateRawMaterialStock();
         }
 
+        if($method == "POST" && $action == "archive") {
+            archiveRawMaterial();
+        }
+
         break;
     case 'packaging':
         validateJWT();
@@ -175,6 +185,10 @@ switch($request) {
 
         if($method == "POST" && $action == "update_stock") {
             updatePackagingStock();
+        }
+
+        if($method == "POST" && $action == "archive") {
+            archivePackaging();
         }
 
         break;

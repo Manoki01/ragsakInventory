@@ -3,6 +3,7 @@ import { createPackaging } from "./api.js";
 import { stockPackaging } from "./api.js";
 import { updatePackagingInfo } from "./api.js";
 import { setPackagingStock } from "./api.js";
+import { archivePackaging } from "./api.js";
 import { checkStockStatus } from "./utils.js";
 
 export async function loadPackaging() {
@@ -91,6 +92,23 @@ export async function editPackagingStock(data) {
         return {
             success: false,
             message: "Network error while updating packaging stock"
+        };
+    }
+}
+
+export async function deletePackaging(data) {
+    try {
+        const response = await archivePackaging(data);
+
+        return {
+            success: response.status === "success",
+            message: response.message || "Packaging archived"
+        };
+    } catch (error) {
+        console.error("Failed to archive packaging", error);
+        return {
+            success: false,
+            message: "Network error while archiving packaging"
         };
     }
 }

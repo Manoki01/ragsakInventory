@@ -3,6 +3,7 @@ import { createRawMaterial } from "./api.js";
 import { stockRawMaterial } from "./api.js";
 import { updateRawMaterial } from "./api.js";
 import { setRawMaterialStock } from "./api.js";
+import { archiveRawMaterial } from "./api.js";
 
 export async function loadRawMaterials() {
     try {
@@ -88,6 +89,23 @@ export async function editRawMaterialStock(data) {
         return {
             success: false,
             message: "Network error while updating raw material stock"
+        };
+    }
+}
+
+export async function deleteRawMaterial(data) {
+    try {
+        const response = await archiveRawMaterial(data);
+
+        return {
+            success: response.status === "success",
+            message: response.message || "Raw material archived"
+        };
+    } catch (error) {
+        console.error("Failed to archive raw material", error);
+        return {
+            success: false,
+            message: "Network error while archiving raw material"
         };
     }
 }

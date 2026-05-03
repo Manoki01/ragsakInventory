@@ -10,7 +10,7 @@ class Raw_Material {
     }
 
     public function getAll() {
-        $query = "SELECT * FROM tbl_rawMaterials";
+        $query = "SELECT * FROM tbl_rawMaterials WHERE deleted_at IS NULL";
 
         $result = $this->conn->query($query);
 
@@ -61,6 +61,7 @@ class Raw_Material {
             UPDATE tbl_rawMaterials
             SET rawMaterialName = ?, unitType = ?, rawMaterialprice = ?
             WHERE rawMaterialID = ?
+            AND deleted_at IS NULL
         ");
 
         $stmt->bind_param(
@@ -117,6 +118,7 @@ class Raw_Material {
                 UPDATE tbl_rawMaterials 
                 SET quantity = quantity + ? 
                 WHERE rawMaterialID = ?
+                AND deleted_at IS NULL
             ");
 
             $updateStmt->bind_param(
@@ -145,6 +147,7 @@ class Raw_Material {
             UPDATE tbl_rawMaterials
             SET quantity = ?
             WHERE rawMaterialID = ?
+            AND deleted_at IS NULL
         ");
 
         $stmt->bind_param(
@@ -154,5 +157,22 @@ class Raw_Material {
         );
 
         return $stmt->execute();
+    }
+
+    public function archiveRawMaterial($rawMaterialID) {
+        $stmt = $this->conn->prepare("
+            UPDATE tbl_rawMaterials
+            SET deleted_at = NOW()
+            WHERE rawMaterialID = ?
+            AND deleted_at IS NULL
+        ");
+
+        $stmt->bind_param("i", $rawMaterialID);
+
+        if (!$stmt->execute()) {
+            return false;
+        }
+
+        return $stmt->affected_rows > 0;
     }
 }

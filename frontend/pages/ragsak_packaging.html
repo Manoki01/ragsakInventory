@@ -220,7 +220,7 @@
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
                     <button type="button" id="editPackagingInfoButton" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Edit Information</button>
                     <button type="button" id="editPackagingStockButton" class="rounded-2xl border border-soft-black/20 bg-soft-black/5 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Edit Stock</button>
-                    <button type="button" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100">Delete Packaging</button>
+                    <button type="button" id="deletePackagingButton" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100">Archive Packaging</button>
                 </div>
             </div>
         </div>
@@ -233,7 +233,7 @@
     <script type="module">
         import { loadPackaging } from "../assets/js/packaging.js";
         import { checkStockStatus } from '../assets/js/utils.js';
-        import { stockinPackaging, editPackagingInfo, editPackagingStock } from '../assets/js/packaging.js';
+        import { stockinPackaging, editPackagingInfo, editPackagingStock, deletePackaging } from '../assets/js/packaging.js';
         import { showToast } from '../components/notification.js';
 
         const pacNameInput = document.getElementById('packName');
@@ -250,6 +250,7 @@
         const packagingStockForm = document.getElementById('packagingStockForm');
         const editPackagingStockButton = document.getElementById('editPackagingStockButton');
         const cancelPackagingStock = document.getElementById('cancelPackagingStock');
+        const deletePackagingButton = document.getElementById('deletePackagingButton');
 
         let selectedPackID;
         let viewedPackagingID;
@@ -464,6 +465,28 @@
             await getPackaging();
             openPackagingView(payload.packagingID);
             showToast("Packaging stock updated", "success");
+        });
+
+        deletePackagingButton.addEventListener('click', async () => {
+            if (!viewedPackagingID) return;
+
+            const packagingName = document.getElementById('viewPackagingName').textContent || 'this packaging';
+            const confirmed = confirm(`Archive ${packagingName}? It will be hidden from the packaging list but kept in the database.`);
+
+            if (!confirmed) return;
+
+            deletePackagingButton.disabled = true;
+            const response = await deletePackaging({ packagingID: Number(viewedPackagingID) });
+            deletePackagingButton.disabled = false;
+
+            if (!response.success) {
+                showToast(response.message || "Packaging archive failed", "error");
+                return;
+            }
+
+            closePackagingView();
+            await getPackaging();
+            showToast("Packaging archived", "success");
         });
 
         searchInput.addEventListener("input", function () {
