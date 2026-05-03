@@ -13,3 +13,125 @@ function getProcesses() {
         'data' => $data
     ]);
 }
+
+function getProcessDetails() {
+    $processID = validateProcessID($_GET['processID'] ?? null);
+    $process = new Process();
+    $data = $process->getDetails($processID);
+
+    if ($data === null) {
+        http_response_code(404);
+        echo json_encode(["status" => "error", "message" => "Process was not found"]);
+        return;
+    }
+
+    echo json_encode([
+        "status" => "success",
+        "data" => $data
+    ]);
+}
+
+function failProcessValidation($message) {
+    http_response_code(422);
+    echo json_encode([
+        "status" => "error",
+        "message" => $message
+    ]);
+    exit;
+}
+
+function validateProcessText($value, $fieldName, $maxLength = 255) {
+    $value = trim((string) $value);
+
+    if ($value === '' || strlen($value) > $maxLength) {
+        failProcessValidation($fieldName . " is invalid");
+    }
+
+    return $value;
+}
+
+function validateProcessID($value) {
+    if (filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value <= 0) {
+        failProcessValidation("Process ID must be a positive whole number");
+    }
+
+    return (int) $value;
+}
+
+function createProcess() {
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $input['processName'] = validateProcessText($input['processName'] ?? '', 'Process name', 50);
+    $input['processDescription'] = validateProcessText($input['processDescription'] ?? '', 'Process description', 255);
+
+    $process = new Process();
+
+    if ($process->processExistsIgnoreCase($input['processName'])) {
+        http_response_code(409);
+        echo json_encode(["status" => "error", "message" => "Process already exists, including archived records"]);
+        exit;
+    }
+
+    if ($process->createProcess($input)) {
+        http_response_code(201);
+        echo json_encode(["status" => "success", "message" => "Process registered successfully"]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Failed to register process"]);
+    }
+}
+
+function updateProcess() {
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $input['processID'] = validateProcessID($input['processID'] ?? null);
+    $input['processName'] = validateProcessText($input['processName'] ?? '', 'Process name', 50);
+    $input['processDescription'] = validateProcessText($input['processDescription'] ?? '', 'Process description', 255);
+
+    $process = new Process();
+
+    if ($process->processNameExistsForOtherProcess($input['processName'], $input['processID'])) {
+        http_response_code(409);
+        echo json_encode(["status" => "error", "message" => "Process already exists, including archived records"]);
+        exit;
+    }
+
+    if ($process->updateProcess($input)) {
+        echo json_encode(["status" => "success", "message" => "Process updated successfully"]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Failed to update process"]);
+    }
+}
+
+function archiveProcess() {
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $processID = validateProcessID($input['processID'] ?? null);
+    $process = new Process();
+
+    if ($process->archiveProcess($processID)) {
+        echo json_encode(["status" => "success", "message" => "Process archived successfully"]);
+    } else {
+        http_response_code(404);
+        echo json_encode(["status" => "error", "message" => "Process was not found or is already archived"]);
+    }
+}

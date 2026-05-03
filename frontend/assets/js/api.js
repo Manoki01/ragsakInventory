@@ -174,6 +174,59 @@ async function apiRequest(route, options = {}) {
         return await apiRequest("process");
     }
 
+    export async function getProcessDetails(processID) {
+        return await apiRequest(`process&action=details&processID=${encodeURIComponent(processID)}`);
+    }
+
+    export async function createProcess(data) {
+        return await apiRequest("process&action=create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function updateProcess(data) {
+        return await apiRequest("process&action=update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function archiveProcess(data) {
+        return await apiRequest("process&action=archive", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+//Orders
+    export async function getOrders() {
+        return await apiRequest("orders");
+    }
+
+    export async function getOrderFinishedProducts() {
+        return await apiRequest("orders&action=finished_products");
+    }
+
+    export async function createOrder(data) {
+        return await apiRequest("orders&action=create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function updateOrder(data) {
+        return await apiRequest("orders&action=update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
 //Users
     export async function userLogin(data) {
         return await apiRequest("users&action=login", {

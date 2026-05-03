@@ -115,6 +115,29 @@ class Packaging {
         try {
             $packaging = $data['packagingID'];
 
+            $checkStmt = $this->conn->prepare("
+                SELECT quantity
+                FROM tbl_packaging
+                WHERE packagingID = ?
+                AND deleted_at IS NULL
+                LIMIT 1
+            ");
+            $checkStmt->bind_param("i", $packaging);
+
+            if (!$checkStmt->execute()) {
+                throw new Exception("Failed to locate packaging");
+            }
+
+            $result = $checkStmt->get_result();
+
+            if (!$result || $result->num_rows === 0) {
+                $this->conn->rollback();
+                return false;
+            }
+
+            $previousQuantity = (int) $result->fetch_assoc()['quantity'];
+            $finalQuantity = $previousQuantity + (int) $data['quantity'];
+
             $updateStmt = $this->conn->prepare("
                 UPDATE tbl_packaging SET quantity = quantity + ? 
                 WHERE packagingID = ?
@@ -131,6 +154,58 @@ class Packaging {
                 throw new Exception("Failed to update stock");
             }
 
+            $status = "success";
+            $transactionAction = "Stock In";
+            $transactionStmt = $this->conn->prepare("
+                INSERT INTO tbl_packagingTransactions (
+                    userID,
+                    packagingID,
+                    status,
+                    quantity,
+                    action
+                )
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            $transactionStmt->bind_param(
+                "iisis",
+                $data['userID'],
+                $packaging,
+                $status,
+                $data['quantity'],
+                $transactionAction
+            );
+
+            if (!$transactionStmt->execute()) {
+                throw new Exception("Failed to log packaging transaction");
+            }
+
+            $changelogAction = "Increase";
+            $reason = "Stock In";
+            $changelogStmt = $this->conn->prepare("
+                INSERT INTO tbl_packagingChangelogs (
+                    packagingID,
+                    action,
+                    quantity,
+                    initialQuantity,
+                    finalQuantity,
+                    reason
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $changelogStmt->bind_param(
+                "isiiis",
+                $packaging,
+                $changelogAction,
+                $data['quantity'],
+                $previousQuantity,
+                $finalQuantity,
+                $reason
+            );
+
+            if (!$changelogStmt->execute()) {
+                throw new Exception("Failed to log packaging changelog");
+            }
+
             $this->conn->commit();
             return true;
         } catch(Exception $e) {
@@ -143,20 +218,115 @@ class Packaging {
     }
 
     public function updatePackagingStock($data) {
-        $stmt = $this->conn->prepare("
-            UPDATE tbl_packaging
-            SET quantity = ?
-            WHERE packagingID = ?
-            AND deleted_at IS NULL
-        ");
+        $this->conn->begin_transaction();
 
-        $stmt->bind_param(
-            "ii",
-            $data['quantity'],
-            $data['packagingID']
-        );
+        try {
+            $checkStmt = $this->conn->prepare("
+                SELECT quantity
+                FROM tbl_packaging
+                WHERE packagingID = ?
+                AND deleted_at IS NULL
+                LIMIT 1
+            ");
+            $checkStmt->bind_param("i", $data['packagingID']);
 
-        return $stmt->execute();
+            if (!$checkStmt->execute()) {
+                throw new Exception("Failed to locate packaging");
+            }
+
+            $result = $checkStmt->get_result();
+
+            if (!$result || $result->num_rows === 0) {
+                $this->conn->rollback();
+                return false;
+            }
+
+            $previousQuantity = (int) $result->fetch_assoc()['quantity'];
+            $newQuantity = (int) $data['quantity'];
+            $difference = $newQuantity - $previousQuantity;
+
+            if ($difference === 0) {
+                $this->conn->commit();
+                return true;
+            }
+
+            $stmt = $this->conn->prepare("
+                UPDATE tbl_packaging
+                SET quantity = ?
+                WHERE packagingID = ?
+                AND deleted_at IS NULL
+            ");
+
+            $stmt->bind_param(
+                "ii",
+                $newQuantity,
+                $data['packagingID']
+            );
+
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to update packaging stock");
+            }
+
+            $status = "success";
+            $transactionAction = "Stock Update";
+            $transactionStmt = $this->conn->prepare("
+                INSERT INTO tbl_packagingTransactions (
+                    userID,
+                    packagingID,
+                    status,
+                    quantity,
+                    action
+                )
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            $transactionStmt->bind_param(
+                "iisis",
+                $data['userID'],
+                $data['packagingID'],
+                $status,
+                $newQuantity,
+                $transactionAction
+            );
+
+            if (!$transactionStmt->execute()) {
+                throw new Exception("Failed to log packaging transaction");
+            }
+
+            $changelogAction = $difference > 0 ? "Increase" : "Decrease";
+            $changelogQuantity = abs($difference);
+            $reason = "Edit Stock";
+            $changelogStmt = $this->conn->prepare("
+                INSERT INTO tbl_packagingChangelogs (
+                    packagingID,
+                    action,
+                    quantity,
+                    initialQuantity,
+                    finalQuantity,
+                    reason
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $changelogStmt->bind_param(
+                "isiiis",
+                $data['packagingID'],
+                $changelogAction,
+                $changelogQuantity,
+                $previousQuantity,
+                $newQuantity,
+                $reason
+            );
+
+            if (!$changelogStmt->execute()) {
+                throw new Exception("Failed to log packaging changelog");
+            }
+
+            $this->conn->commit();
+            return true;
+        } catch(Exception $e) {
+            $this->conn->rollback();
+            error_log("Transaction failed: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function archivePackaging($packagingID) {

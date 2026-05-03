@@ -599,16 +599,45 @@ class Product {
                     WHERE rawMaterialID = ?
                     AND deleted_at IS NULL
                 ");
+                $rawChangelogStmt = $this->conn->prepare("
+                    INSERT INTO tbl_rawMatChangelogs (
+                        rawMaterialID,
+                        action,
+                        quantity,
+                        initialQuantity,
+                        finalQuantity,
+                        reason
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ");
 
                 foreach ($rawFormula as $item) {
                     $required = !empty($item['isTotalQuantity'])
                         ? (int) $item['quantityRequired']
                         : (int) $item['quantityRequired'] * $stockInQuantity;
                     $rawMaterialID = (int) $item['rawMaterialID'];
+                    $initialRawQuantity = (int) $item['availableQuantity'];
+                    $finalRawQuantity = $initialRawQuantity - $required;
                     $deductRawStmt->bind_param("ii", $required, $rawMaterialID);
 
                     if (!$deductRawStmt->execute()) {
                         throw new Exception("Failed to deduct raw material stock");
+                    }
+
+                    $changelogAction = "Decrease";
+                    $reason = "Product Stock In";
+                    $rawChangelogStmt->bind_param(
+                        "isiiis",
+                        $rawMaterialID,
+                        $changelogAction,
+                        $required,
+                        $initialRawQuantity,
+                        $finalRawQuantity,
+                        $reason
+                    );
+
+                    if (!$rawChangelogStmt->execute()) {
+                        throw new Exception("Failed to log raw material product deduction");
                     }
                 }
             }
@@ -620,16 +649,45 @@ class Product {
                     WHERE packagingID = ?
                     AND deleted_at IS NULL
                 ");
+                $packagingChangelogStmt = $this->conn->prepare("
+                    INSERT INTO tbl_packagingChangelogs (
+                        packagingID,
+                        action,
+                        quantity,
+                        initialQuantity,
+                        finalQuantity,
+                        reason
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ");
 
                 foreach ($packagingFormula as $item) {
                     $required = !empty($item['isTotalQuantity'])
                         ? (int) $item['quantityRequired']
                         : (int) $item['quantityRequired'] * $stockInQuantity;
                     $packagingID = (int) $item['packagingID'];
+                    $initialPackagingQuantity = (int) $item['availableQuantity'];
+                    $finalPackagingQuantity = $initialPackagingQuantity - $required;
                     $deductPackagingStmt->bind_param("ii", $required, $packagingID);
 
                     if (!$deductPackagingStmt->execute()) {
                         throw new Exception("Failed to deduct packaging stock");
+                    }
+
+                    $changelogAction = "Decrease";
+                    $reason = "Product Stock In";
+                    $packagingChangelogStmt->bind_param(
+                        "isiiis",
+                        $packagingID,
+                        $changelogAction,
+                        $required,
+                        $initialPackagingQuantity,
+                        $finalPackagingQuantity,
+                        $reason
+                    );
+
+                    if (!$packagingChangelogStmt->execute()) {
+                        throw new Exception("Failed to log packaging product deduction");
                     }
                 }
             }

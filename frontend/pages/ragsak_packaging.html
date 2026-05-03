@@ -569,7 +569,7 @@
             }, 50);
         });
 
-        closeCommit.addEventListener('click', () => {
+        closeCommit.addEventListener('click', async () => {
             const qtyInput = Number(document.getElementById('packQty').value);
 
             if (!selectedPackID || qtyInput <= 0) {
@@ -584,7 +584,7 @@
                 quantity: qtyInput,
             };
 
-            handleCloseCommit(data);
+            await handleCloseCommit(data);
 
             closeCommit.disabled = false;
         });
@@ -594,20 +594,19 @@
             const qtyEl = document.getElementById('packQty');
             const response = await stockinPackaging(data);
 
-            selectedPackID = null;
-            nameEl.value = '';
-            qtyEl.value = '';
-
-            if(response) {
+            if(response.success) {
+                selectedPackID = null;
+                nameEl.value = '';
+                qtyEl.value = '';
                 closePackagingModal();
                 await getPackaging();
-                showToast("Stock In Successful", "success");
+                showToast(response.message || "Stock In Successful", "success");
             } else {
-                showToast("Stock In Failed", "error");
+                showToast(response.message || "Stock In Failed", "error");
             }
         }
 
-        openCommit.addEventListener('click', () => {
+        openCommit.addEventListener('click', async () => {
             const qtyInput = Number(document.getElementById('packQty').value);
 
             if (!selectedPackID || qtyInput <= 0) {
@@ -622,7 +621,7 @@
                 quantity: qtyInput,
             };
 
-            handleOpenCommit(data);
+            await handleOpenCommit(data);
 
             openCommit.disabled = false;
         });
@@ -631,16 +630,16 @@
             const nameEl = document.getElementById('packName');
             const qtyEl = document.getElementById('packQty');
             const response = await stockinPackaging(data);
-            selectedPackID = null;
-            nameEl.value = '';
-            qtyEl.value = '';
 
-            if(response) {
+            if(response.success) {
+                selectedPackID = null;
+                nameEl.value = '';
+                qtyEl.value = '';
                 await getPackaging();
                 nameEl.focus();
-                showToast("Stock In Successful", "success");
+                showToast(response.message || "Stock In Successful", "success");
             } else {
-                showToast("Stock In Failed", "error");
+                showToast(response.message || "Stock In Failed", "error");
             }
         }
 

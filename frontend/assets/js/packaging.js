@@ -50,15 +50,16 @@ export async function stockinPackaging(data) {
     try {
         const response = await stockPackaging(data);
 
-        if(response.status === "success") {
-            alert("Stock In Successful");
-            loadPackaging();
-        } else {
-            alert("Failed: ", response.message);
-            console.error("API Error: " + response.message);
-        }
+        return {
+            success: response.status === "success",
+            message: response.message || "Packaging stock-in complete"
+        };
     } catch (error) {
         console.error("Failed to update packaging stock", error);
+        return {
+            success: false,
+            message: "Network error while stocking packaging"
+        };
     }
 }
 

@@ -200,8 +200,42 @@ switch($request) {
         validateJWT();
         require_once __DIR__ . '../../controllers/processController.php';
 
-        if($method == "GET") {
+        if($method == "GET" && $action == "details") {
+            getProcessDetails();
+        } else if($method == "GET") {
             getProcesses();
+        }
+
+        if($method == "POST" && $action == "create") {
+            createProcess();
+        }
+
+        if($method == "POST" && $action == "update") {
+            updateProcess();
+        }
+
+        if($method == "POST" && $action == "archive") {
+            archiveProcess();
+        }
+
+        break;
+
+    case 'orders':
+        validateJWT();
+        require_once __DIR__ . '../../controllers/orderController.php';
+
+        if($method == "GET" && $action == "finished_products") {
+            getFinishedOrderProducts();
+        } else if($method == "GET") {
+            getOrders();
+        }
+
+        if($method == "POST" && $action == "create") {
+            createOrder();
+        }
+
+        if($method == "POST" && $action == "update") {
+            updateOrder();
         }
 
         break;

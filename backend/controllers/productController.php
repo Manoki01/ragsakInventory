@@ -163,7 +163,7 @@ function createProduct() {
         http_response_code(409);
         echo json_encode([
             "status" => "error",
-            "message" => "Product already exists"
+            "message" => "Product already exists, including archived records"
         ]);
         exit;
     }
@@ -209,7 +209,7 @@ function updateProductInfo() {
         http_response_code(409);
         echo json_encode([
             "status" => "error",
-            "message" => "Product already exists"
+            "message" => "Product already exists, including archived records"
         ]);
         exit;
     }

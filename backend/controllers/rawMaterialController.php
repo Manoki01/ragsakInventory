@@ -96,7 +96,7 @@ function createRawMaterial() {
         http_response_code(409);
         echo json_encode([
             "status" => "error",
-            "message" => "Raw material already exists"
+            "message" => "Raw material already exists, including archived records"
         ]);
         exit;
     }
@@ -166,7 +166,7 @@ function updateRawMaterialInfo() {
 
     if ($rawMaterial->rawMaterialNameExistsForOtherMaterial($input['unitName'], $input['rawMaterialID'])) {
         http_response_code(409);
-        echo json_encode(["status" => "error", "message" => "Raw material already exists"]);
+        echo json_encode(["status" => "error", "message" => "Raw material already exists, including archived records"]);
         exit;
     }
 
@@ -185,6 +185,14 @@ function stockRawMaterial() {
     );
 
     $input = validateRawMaterialStockPayload($input);
+    $authenticatedUser = getCurrentAuthUser();
+    $input['userID'] = isset($authenticatedUser->sub) ? (int) $authenticatedUser->sub : 0;
+
+    if ($input['userID'] <= 0) {
+        http_response_code(401);
+        echo json_encode(["status" => "error", "message" => "Authentication required"]);
+        exit;
+    }
 
     $rawMaterial = new Raw_Material();
 
@@ -232,6 +240,14 @@ function updateRawMaterialStock() {
 
     $input['rawMaterialID'] = (int) $input['rawMaterialID'];
     $input['quantity'] = (int) $input['quantity'];
+    $authenticatedUser = getCurrentAuthUser();
+    $input['userID'] = isset($authenticatedUser->sub) ? (int) $authenticatedUser->sub : 0;
+
+    if ($input['userID'] <= 0) {
+        http_response_code(401);
+        echo json_encode(["status" => "error", "message" => "Authentication required"]);
+        exit;
+    }
 
     $rawMaterial = new Raw_Material();
 

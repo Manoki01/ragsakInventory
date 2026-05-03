@@ -1,5 +1,11 @@
 export function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+
             const toast = document.createElement('div');
             toast.className = `toast-card ${type === 'success' ? 'toast-success' : 'toast-error'}`;
             toast.innerHTML = `

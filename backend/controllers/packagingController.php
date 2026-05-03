@@ -96,7 +96,7 @@ function createPackaging() {
         http_response_code(409);
         echo json_encode([
             "status" => "error",
-            "message" => "Packaging already exists"
+            "message" => "Packaging already exists, including archived records"
         ]);
         exit;
     }
@@ -173,7 +173,7 @@ function updatePackagingInfo() {
 
     if ($packaging->packagingNameExistsForOtherPackaging($input['unitName'], $input['packagingID'])) {
         http_response_code(409);
-        echo json_encode(["status" => "error", "message" => "Packaging already exists"]);
+        echo json_encode(["status" => "error", "message" => "Packaging already exists, including archived records"]);
         exit;
     }
 
@@ -192,6 +192,14 @@ function stockPackaging() {
     );
 
     $input = validatePackagingStockPayload($input);
+    $authenticatedUser = getCurrentAuthUser();
+    $input['userID'] = isset($authenticatedUser->sub) ? (int) $authenticatedUser->sub : 0;
+
+    if ($input['userID'] <= 0) {
+        http_response_code(401);
+        echo json_encode(["status" => "error", "message" => "Authentication required"]);
+        exit;
+    }
 
     $packaging = new Packaging();
 
@@ -239,6 +247,14 @@ function updatePackagingStock() {
 
     $input['packagingID'] = (int) $input['packagingID'];
     $input['quantity'] = (int) $input['quantity'];
+    $authenticatedUser = getCurrentAuthUser();
+    $input['userID'] = isset($authenticatedUser->sub) ? (int) $authenticatedUser->sub : 0;
+
+    if ($input['userID'] <= 0) {
+        http_response_code(401);
+        echo json_encode(["status" => "error", "message" => "Authentication required"]);
+        exit;
+    }
 
     $packaging = new Packaging();
 

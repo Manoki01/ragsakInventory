@@ -75,18 +75,20 @@
                     <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">
                         Active Sales Orders
                     </p>
-                    <button onclick="openOrderModal()" class="bg-soft-black hover:bg-soft-black/50 text-white text-[9px] font-black px-4 py-3 rounded-lg uppercase tracking-widest transition-all shadow-md">
+                    <button type="button" onclick="openOrderModal()" class="bg-soft-black hover:bg-soft-black/50 text-white text-[9px] font-black px-4 py-3 rounded-lg uppercase tracking-widest transition-all shadow-md">
                         Create New Order
                     </button>
                 </div>
 
                 <div class="flex-1 overflow-auto custom-scrollbar pr-2">
-                    <table class="w-full text-left min-w-[800px] table-fixed">
+                    <table class="w-full text-left min-w-[1100px] table-fixed">
                         <thead class="sticky top-0 z-10">
                             <tr class="border-b border-gray-200">
                                 <th class="pb-6 pt-2 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Customer</th>
-                                <th class="pb-6 pt-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Product (Process)</th>
+                                <th class="pb-6 pt-2 w-[150px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Contact</th>
+                                <th class="pb-6 pt-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Product</th>
                                 <th class="pb-6 pt-2 w-[100px] text-center text-[10px] font-bold uppercase text-gray-600">Qty</th>
+                                <th class="pb-6 pt-2 w-[130px] text-center text-[10px] font-bold uppercase text-gray-600">Status</th>
                                 <th class="pb-6 pt-2 w-[140px] text-center text-[10px] font-bold uppercase text-gray-600">Due Date</th>
                                 <th class="pb-6 pt-2 w-[140px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">Control</th>
                             </tr>
@@ -111,6 +113,27 @@
                     <div>
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Customer Name</label>
                         <input type="text" id="custName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all" placeholder="Enter name...">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Contact Number</label>
+                            <input type="text" id="custContact" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all" placeholder="09XXXXXXXXX">
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Order Status</label>
+                            <select id="orderStatus" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all appearance-none">
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                                <option value="canceled">Canceled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Customer Address</label>
+                        <textarea id="custAddress" rows="3" class="w-full resize-none bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all" placeholder="Enter delivery address..."></textarea>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -139,10 +162,10 @@
                     </div>
 
                     <div class="pt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <button onclick="commitOrder()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-soft-black/50 transition-all uppercase tracking-widest shadow-xl">
+                        <button type="button" id="saveOrderButton" onclick="commitOrder()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-soft-black/50 transition-all uppercase tracking-widest shadow-xl">
                             Confirm Entry
                         </button>
-                        <button onclick="closeOrderModal()" class="py-5 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
+                        <button type="button" onclick="closeOrderModal()" class="py-5 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
                             Abort
                         </button>
                     </div>
@@ -155,144 +178,27 @@
         window.currentPageId = 'nav-orders';
     </script>
     <script type="module" src="../components/ragsak_navigation.js"></script>
-    <script>
-        const ORDER_KEY = 'ragsak_orders_data';
-        const PRODUCT_KEY = 'ragsak_products_inv';
+    <script type="module">
+        import { getOrders, getOrderFinishedProducts, createOrder, updateOrder } from '../assets/js/api.js';
 
-        let orders = JSON.parse(localStorage.getItem(ORDER_KEY)) || [];
+        let orders = [];
+        let finishedProducts = [];
 
-        function loadProducts() {
-            const products = JSON.parse(localStorage.getItem(PRODUCT_KEY)) || [];
-            const select = document.getElementById('prodSelect');
-            select.innerHTML = '<option value="" disabled selected>Choose Product...</option>' +
-                products.map(p => `<option value="${p.id}">${p.name} [${p.process}]</option>`).join('');
-        }
-
-        function updateAvailableStock() {
-            const prodId = document.getElementById('prodSelect').value;
-            const products = JSON.parse(localStorage.getItem(PRODUCT_KEY)) || [];
-            const selectedItem = products.find(p => p.id == prodId);
-            if (selectedItem) {
-                document.getElementById('availableQty').value = selectedItem.qty;
-                document.getElementById('unitLabel').innerText = selectedItem.unit || 'QTY';
-            }
-        }
-
-        function renderOrders() {
-            const body = document.getElementById('orderTableBody');
-            body.innerHTML = orders.map(order => `
-                <tr class="group hover:bg-gray-50/50 transition-colors">
-                    <td class="py-6 px-2 text-sm font-bold text-soft-black uppercase tracking-tight italic">${order.customer}</td>
-                    <td class="py-6">
-                        <span class="text-xs font-bold text-soft-black">${order.productName}</span>
-                        <span class="text-[9px] font-black uppercase text-white bg-soft-black border border-soft-black px-2 py-0.5 rounded ml-2">
-                            ${order.process}
-                        </span>
-                    </td>
-                    <td class="py-6 text-center text-sm font-black text-soft-black">${order.qty}</td>
-                    <td class="py-6 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">${order.date}</td>
-                    <td class="py-6 text-right pr-2">
-                        <div class="flex justify-end gap-3">
-                            <button onclick="editOrder('${order.id}')" class="text-soft-black/40 hover:text-soft-black text-[9px] font-black uppercase tracking-widest transition-colors">
-                                Edit
-                            </button>
-                            <button onclick="deleteOrder('${order.id}')" class="text-red-300 hover:text-red-600 text-[9px] font-black uppercase tracking-widest transition-colors">
-                                Delete
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function editOrder(id) {
-            const order = orders.find(o => o.id == id);
-            if (!order) return;
-
-            loadProducts();
-            document.getElementById('modalTitle').innerText = "Update Sales Order";
-            document.getElementById('editOrderId').value = order.id;
-            document.getElementById('custName').value = order.customer;
-            document.getElementById('prodSelect').value = order.productId;
-            document.getElementById('orderQty').value = order.qty;
-            document.getElementById('dueDate').value = order.date;
-
-            updateAvailableStock();
-            document.getElementById('orderModal').classList.remove('hidden');
-        }
-
-        function commitOrder() {
-            const editId = document.getElementById('editOrderId').value;
-            const customer = document.getElementById('custName').value.trim();
-            const prodId = document.getElementById('prodSelect').value;
-            const newQty = parseFloat(document.getElementById('orderQty').value);
-            const date = document.getElementById('dueDate').value;
-
-            if (!customer || !prodId || !newQty || !date) { showToast("Missing Fields", "error"); return; }
-
-            let products = JSON.parse(localStorage.getItem(PRODUCT_KEY)) || [];
-
-            if (editId) {
-                const oldOrder = orders.find(o => o.id == editId);
-                const oldProdIndex = products.findIndex(p => p.id == oldOrder.productId);
-                if (oldProdIndex > -1) products[oldProdIndex].qty += oldOrder.qty;
-            }
-
-            const pIndex = products.findIndex(p => p.id == prodId);
-            if (products[pIndex].qty < newQty) {
-                showToast("Insufficient Stock", "error");
-                renderOrders();
-                return;
-            }
-
-            products[pIndex].qty -= newQty;
-            localStorage.setItem(PRODUCT_KEY, JSON.stringify(products));
-
-            const orderData = {
-                id: editId || Date.now(),
-                customer,
-                productId: prodId,
-                productName: products[pIndex].name,
-                process: products[pIndex].process,
-                qty: newQty,
-                date
-            };
-
-            if (editId) {
-                const idx = orders.findIndex(o => o.id == editId);
-                orders[idx] = orderData;
-            } else {
-                orders.unshift(orderData);
-            }
-
-            localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
-            showToast(editId ? "Order Updated" : "Order Authorized", "success");
-            renderOrders();
-            closeOrderModal();
-        }
-
-        function deleteOrder(id) {
-            if (!confirm("Delete this order and return stock?")) return;
-            const order = orders.find(o => o.id == id);
-            let products = JSON.parse(localStorage.getItem(PRODUCT_KEY)) || [];
-            const pIndex = products.findIndex(p => p.id == order.productId);
-
-            if (pIndex > -1) {
-                products[pIndex].qty += order.qty;
-                localStorage.setItem(PRODUCT_KEY, JSON.stringify(products));
-            }
-
-            orders = orders.filter(o => o.id != id);
-            localStorage.setItem(ORDER_KEY, JSON.stringify(orders));
-            renderOrders();
-            showToast("Order Removed", "success");
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char]));
         }
 
         function showToast(msg, type) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast-card show ${type === 'success' ? 'border-soft-black' : 'border-red-600'}`;
-            toast.innerHTML = `<p class="text-[10px] font-black uppercase tracking-widest">${msg}</p>`;
+            toast.innerHTML = `<p class="text-[10px] font-black uppercase tracking-widest">${escapeHtml(msg)}</p>`;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.classList.remove('show');
@@ -300,13 +206,205 @@
             }, 3000);
         }
 
+        function getSelectedFinishedProduct() {
+            const value = document.getElementById('prodSelect').value;
+            const [productID, processID] = value.split(':').map(Number);
+            return finishedProducts.find(product =>
+                Number(product.productID) === productID &&
+                Number(product.processID) === processID
+            );
+        }
+
+        function loadProductOptions(selectedValue = '') {
+            const select = document.getElementById('prodSelect');
+            select.innerHTML = '<option value="" disabled selected>Choose Finished Product...</option>' +
+                finishedProducts.map(product => {
+                    const value = `${product.productID}:${product.processID}`;
+                    return `<option value="${value}">${escapeHtml(product.productName)} [${escapeHtml(product.unitType)}]</option>`;
+                }).join('');
+
+            if (selectedValue) {
+                select.value = selectedValue;
+            }
+
+            updateAvailableStock();
+        }
+
+        function updateAvailableStock() {
+            const selectedItem = getSelectedFinishedProduct();
+
+            if (selectedItem) {
+                document.getElementById('availableQty').value = selectedItem.quantity;
+                document.getElementById('unitLabel').innerText = selectedItem.unitType || 'QTY';
+                return;
+            }
+
+            document.getElementById('availableQty').value = '0';
+            document.getElementById('unitLabel').innerText = 'Unit';
+        }
+
+        function getStatusClass(status) {
+            if (status === 'completed') return 'bg-soft-black text-white';
+            if (status === 'canceled') return 'bg-red-50 text-red-600 border border-red-100';
+            return 'bg-yellow-50 text-yellow-700 border border-yellow-100';
+        }
+
+        function renderOrders() {
+            const body = document.getElementById('orderTableBody');
+            const search = document.getElementById('orderSearch').value.trim().toLowerCase();
+            const visibleOrders = orders.filter(order => {
+                const haystack = `${order.customerName} ${order.contactNumber} ${order.customerAddress} ${order.productName} ${order.orderStatus}`.toLowerCase();
+                return haystack.includes(search);
+            });
+
+            if (visibleOrders.length === 0) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-16 text-center text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
+                            No orders found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            body.innerHTML = visibleOrders.map(order => `
+                <tr class="group hover:bg-gray-50/50 transition-colors">
+                    <td class="py-6 px-2">
+                        <p class="text-sm font-bold text-soft-black uppercase tracking-tight italic">${escapeHtml(order.customerName)}</p>
+                        <p class="mt-1 truncate text-[10px] font-bold text-gray-400">${escapeHtml(order.customerAddress)}</p>
+                    </td>
+                    <td class="py-6 text-xs font-bold text-soft-black/70">${escapeHtml(order.contactNumber)}</td>
+                    <td class="py-6">
+                        <span class="text-xs font-bold text-soft-black">${escapeHtml(order.productName)}</span>
+                        <span class="text-[9px] font-black uppercase text-white bg-soft-black border border-soft-black px-2 py-0.5 rounded ml-2">
+                            ${escapeHtml(order.processName)}
+                        </span>
+                    </td>
+                    <td class="py-6 text-center text-sm font-black text-soft-black">${escapeHtml(order.quantity)}</td>
+                    <td class="py-6 text-center">
+                        <span class="inline-flex rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest ${getStatusClass(order.orderStatus)}">
+                            ${escapeHtml(order.orderStatus)}
+                        </span>
+                    </td>
+                    <td class="py-6 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">${escapeHtml(order.dateCompletion)}</td>
+                    <td class="py-6 text-right pr-2">
+                        <button type="button" onclick="editOrder('${escapeHtml(order.orderID)}')" class="text-soft-black/40 hover:text-soft-black text-[9px] font-black uppercase tracking-widest transition-colors">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadOrderData() {
+            const [ordersResponse, productsResponse] = await Promise.all([
+                getOrders(),
+                getOrderFinishedProducts()
+            ]);
+
+            if (!ordersResponse || ordersResponse.status !== 'success') {
+                showToast(ordersResponse?.message || 'Failed to load orders', 'error');
+                return;
+            }
+
+            if (!productsResponse || productsResponse.status !== 'success') {
+                showToast(productsResponse?.message || 'Failed to load finished products', 'error');
+                return;
+            }
+
+            orders = ordersResponse.data || [];
+            finishedProducts = productsResponse.data || [];
+            loadProductOptions();
+            renderOrders();
+        }
+
+        function editOrder(id) {
+            const order = orders.find(o => Number(o.orderID) === Number(id));
+            if (!order) return;
+
+            document.getElementById('modalTitle').innerText = "Update Sales Order";
+            document.getElementById('editOrderId').value = order.orderID;
+            document.getElementById('custName').value = order.customerName || '';
+            document.getElementById('custContact').value = order.contactNumber || '';
+            document.getElementById('custAddress').value = order.customerAddress || '';
+            document.getElementById('orderStatus').value = order.orderStatus || 'pending';
+            document.getElementById('orderQty').value = order.quantity || '';
+            document.getElementById('dueDate').value = order.dateCompletion || '';
+            loadProductOptions(`${order.productID}:${order.processID}`);
+            document.getElementById('orderModal').classList.remove('hidden');
+        }
+
+        async function commitOrder() {
+            const editId = document.getElementById('editOrderId').value;
+            const selectedItem = getSelectedFinishedProduct();
+            const quantity = Number(document.getElementById('orderQty').value);
+
+            const payload = {
+                customerName: document.getElementById('custName').value.trim(),
+                contactNumber: document.getElementById('custContact').value.trim(),
+                customerAddress: document.getElementById('custAddress').value.trim(),
+                productID: selectedItem ? Number(selectedItem.productID) : null,
+                processID: selectedItem ? Number(selectedItem.processID) : null,
+                quantity,
+                orderStatus: document.getElementById('orderStatus').value,
+                dateCompletion: document.getElementById('dueDate').value
+            };
+
+            if (!payload.customerName || !payload.contactNumber || !payload.customerAddress || !payload.productID || !payload.quantity || !payload.dateCompletion) {
+                showToast("Missing Fields", "error");
+                return;
+            }
+
+            if (payload.quantity <= 0 || !Number.isInteger(payload.quantity)) {
+                showToast("Quantity must be a positive whole number", "error");
+                return;
+            }
+
+            if (selectedItem && Number(selectedItem.quantity) < payload.quantity) {
+                showToast("Order quantity is greater than finished product stock", "error");
+                return;
+            }
+
+            const saveButton = document.getElementById('saveOrderButton');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving Order...';
+
+            try {
+                if (editId) {
+                    payload.orderID = Number(editId);
+                }
+
+                const response = editId
+                    ? await updateOrder(payload)
+                    : await createOrder(payload);
+
+                if (!response || response.status !== 'success') {
+                    showToast(response?.message || 'Order save failed', 'error');
+                    return;
+                }
+
+                showToast(response.message || 'Order saved', 'success');
+                closeOrderModal();
+                await loadOrderData();
+            } catch (error) {
+                showToast("Failed to connect to orders", "error");
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Confirm Entry';
+            }
+        }
+
         function openOrderModal() {
             document.getElementById('modalTitle').innerText = "New Sales Order";
             document.getElementById('editOrderId').value = "";
             document.getElementById('custName').value = "";
+            document.getElementById('custContact').value = "";
+            document.getElementById('custAddress').value = "";
+            document.getElementById('orderStatus').value = "pending";
             document.getElementById('orderQty').value = "";
             document.getElementById('dueDate').value = "";
-            loadProducts();
+            loadProductOptions();
             document.getElementById('orderModal').classList.remove('hidden');
         }
 
@@ -314,7 +412,15 @@
             document.getElementById('orderModal').classList.add('hidden');
         }
 
-        renderOrders();
+        document.getElementById('orderSearch').addEventListener('input', renderOrders);
+
+        window.openOrderModal = openOrderModal;
+        window.closeOrderModal = closeOrderModal;
+        window.commitOrder = commitOrder;
+        window.editOrder = editOrder;
+        window.updateAvailableStock = updateAvailableStock;
+
+        loadOrderData();
     </script>
 </body>
 </html>
