@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Materials Management | Ragsak</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <style type="text/tailwindcss">
@@ -29,16 +29,11 @@
 
         .status-pill { @apply inline-block w-28 text-center py-1 rounded text-[9px] font-bold uppercase tracking-tighter; }
         .status-green { @apply bg-soft-black text-white; }
-        .status-yellow { @apply border border-soft-black/50 text-white; }
+        .status-yellow { @apply border border-soft-black/50 text-yellow-500; }
         .status-red { @apply border border-red-900/50 text-red-500; }
 
         #materialModal:not(.hidden) { @apply !flex items-center justify-center; }
-
-        .modal-active { animation: modalIn 0.2s ease-out forwards; }
-        @keyframes modalIn { 
-            from { opacity: 0; transform: scale(0.98); } 
-            to { opacity: 1; transform: scale(1); } 
-        }
+        #materialViewModal:not(.hidden) { @apply !flex items-center justify-center; }
 
         #toast-container {
             @apply fixed top-10 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 pointer-events-none;
@@ -49,10 +44,38 @@
         .toast-card.show { @apply opacity-100 translate-y-0; }
         .toast-success { @apply border-soft-black; }
         .toast-error { @apply border-red-600; }
-        
+
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
         .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black rounded; }
+
+        .table-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #121212 #F4F5F2;
+        }
+
+        .table-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-scrollbar::-webkit-scrollbar-track { @apply bg-off-white rounded-full; }
+        .table-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black rounded-full; }
+        .table-scrollbar::-webkit-scrollbar-thumb:hover { @apply bg-soft-black/80; }
+
+        .view-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #121212 transparent;
+        }
+
+        .view-scrollbar::-webkit-scrollbar { width: 10px; }
+        .view-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+            margin-block: 72px;
+        }
+        .view-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #121212;
+            background-clip: content-box;
+            border: 3px solid transparent;
+            border-radius: 9999px;
+            min-height: 48px;
+        }
     </style>
 </head>
 <body>
@@ -69,7 +92,7 @@
                     <p class="text-[10px] font-bold text-soft-black uppercase mt-2 tracking-[0.2em]">Raw Resource Management • Ragsak Farm</p>
                 </div>
                 <div class="relative w-full md:w-auto">
-                    <input type="text" id="inventorySearch" placeholder="Search resources..." 
+                    <input type="text" id="inventorySearch" placeholder="Search resources..."
                         class="h-11 w-full md:w-72 rounded-xl border border-gray-200 bg-white px-4 text-xs text-soft-black outline-none transition-all shadow-sm focus:border-soft-black focus:ring-2 focus:ring-soft-black/10 placeholder:text-gray-400">
                 </div>
             </header>
@@ -85,22 +108,22 @@
                 </div>
             </div>
 
-            <div class="flex-1 overflow-hidden bg-white rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col min-h-[500px]">
+            <div class="overflow-hidden bg-white rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col h-[560px]">
                 <div class="flex items-center justify-between mb-6 px-2 gap-4">
                     <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">Raw Resource Stockpile</p>
                     <button id="modalOpen" class="bg-soft-black hover:bg-soft-black/50 text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest transition-all shrink-0">Add Stock Entry</button>
                 </div>
-                
-                <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar pr-2">
+
+                <div class="flex-1 min-h-0 overflow-x-auto overflow-y-auto custom-scrollbar table-scrollbar pr-2">
                     <table class="w-full text-left min-w-[800px] table-fixed">
                         <thead class="sticky top-0 bg-white z-10">
                             <tr class="border-b border-gray-200">
                                 <th class="pb-6 pt-2 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Name</th>
-                                <th class="pb-6 w-[120px] text-center text-[10px] font-bold uppercase text-gray-600">Stock</th> 
+                                <th class="pb-6 w-[120px] text-center text-[10px] font-bold uppercase text-gray-600">Stock</th>
                                 <th class="pb-6 w-[160px] text-center text-[10px] font-bold uppercase text-gray-600">Status</th>
                                 <th class="pb-6 w-[140px] text-right text-[10px] font-bold uppercase text-gray-600">Unit Price</th>
                                 <th class="pb-6 w-[160px] text-right text-[10px] font-bold uppercase text-gray-600">Asset Value</th>
-                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">Ctrl</th>
+                                <th class="pb-6 w-[110px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">View</th>
                             </tr>
                         </thead>
                         <tbody id="inventoryBody" class="divide-y divide-gray-200"></tbody>
@@ -114,11 +137,8 @@
         <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black">
             <div class="p-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <h2 id="modalTitle" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">Authorize Stock Entry</h2>
-                
+
                 <div class="space-y-8">
-                    <input type="hidden" id="matId">
-                    <input type="hidden" id="matPrice" value="0">
-                    
                     <div class="grid grid-cols-12 gap-4 items-end">
                         <div class="col-span-12 md:col-span-6 group relative">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Material Name</label>
@@ -155,6 +175,27 @@
         </div>
     </div>
 
+    <div id="materialViewModal" class="hidden fixed inset-0 bg-soft-black/30 z-[70] p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black">
+            <div class="p-8 md:p-10 max-h-[90vh] overflow-y-auto view-scrollbar">
+                <div class="mb-8 flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                    <h2 id="viewMaterialName" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black">Material</h2>
+                    <button type="button" id="materialViewExit" class="rounded-lg border border-gray-200 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-gray-50">Exit</button>
+                </div>
+                <div class="grid grid-cols-1 gap-4 py-6 md:grid-cols-3">
+                    <div class="rounded-2xl bg-gray-50 p-5"><p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Unit Type</p><p id="viewMaterialUnit" class="mt-2 text-sm font-black uppercase text-soft-black">-</p></div>
+                    <div class="rounded-2xl bg-gray-50 p-5"><p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Unit Price</p><p id="viewMaterialPrice" class="mt-2 text-sm font-black uppercase text-soft-black">-</p></div>
+                    <div class="rounded-2xl bg-gray-50 p-5"><p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Stock</p><p id="viewMaterialStock" class="mt-2 text-sm font-black uppercase text-soft-black">-</p></div>
+                </div>
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <button type="button" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Edit Information</button>
+                    <button type="button" class="rounded-2xl border border-soft-black/20 bg-soft-black/5 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Edit Stock</button>
+                    <button type="button" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100">Delete Material</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         window.currentPageId = 'nav-materials';
     </script>
@@ -172,6 +213,8 @@
         const closeModal = document.getElementById('modalClose');
         const closeCommit = document.getElementById('commitClose');
         const openCommit = document.getElementById('commitOpen');;
+        const materialViewModal = document.getElementById('materialViewModal');
+        const materialViewExit = document.getElementById('materialViewExit');
 
         let selectedMatID;
 
@@ -251,9 +294,11 @@
                         })}
                     </td>
 
-                    <td class="py-4 text-right text-xs pr-2">
-                        <button class="text-soft-black/40 hover:text-soft-black transition-colors">Edit</button>
+
+                    <td class="py-4 pr-2 text-right">
+                        <button type="button" data-material-view="${item.rawMaterialID}" class="rounded-lg bg-soft-black px-3 py-2 text-[9px] font-black uppercase tracking-widest text-white hover:bg-soft-black/80">View</button>
                     </td>
+
                 `;
 
                 tbody.appendChild(row);
@@ -269,6 +314,30 @@
         }
 
         const searchInput = document.getElementById("inventorySearch");
+
+        function openMaterialView(rawMaterialID) {
+            const item = (window.inventoryData || []).find(material => String(material.rawMaterialID) === String(rawMaterialID));
+            if (!item) return;
+
+            const price = Number(item.rawMaterialPrice || 0);
+            document.getElementById('viewMaterialName').textContent = item.rawMaterialName || 'Material';
+            document.getElementById('viewMaterialUnit').textContent = item.unitType || '-';
+            document.getElementById('viewMaterialPrice').textContent = '\u20b1' + price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('viewMaterialStock').textContent = `${Number(item.quantity || 0).toLocaleString('en-PH')} ${item.unitType || ''}`;
+            materialViewModal.classList.remove('hidden');
+        }
+
+        function closeMaterialView() {
+            materialViewModal.classList.add('hidden');
+        }
+
+        document.getElementById('inventoryBody').addEventListener('click', (event) => {
+            const viewButton = event.target.closest('[data-material-view]');
+            if (!viewButton) return;
+            openMaterialView(viewButton.dataset.materialView);
+        });
+
+        materialViewExit.addEventListener('click', closeMaterialView);
 
         searchInput.addEventListener("input", function () {
             const query = this.value.toLowerCase().trim();
@@ -364,7 +433,7 @@
             const qtyEl = document.getElementById('matQty');
             const response = await stockinRawMaterial(data);
 
-            selectedMatID = null; 
+            selectedMatID = null;
             nameEl.value = '';
             qtyEl.value = '';
 
@@ -402,7 +471,7 @@
             const qtyEl = document.getElementById('matQty');
             const response = await stockinRawMaterial(data);
 
-            selectedMatID = null; 
+            selectedMatID = null;
             nameEl.value = '';
             qtyEl.value = '';
 
@@ -429,11 +498,9 @@
         }
 
         function clearForm() {
-            document.getElementById('matId').value = '';
             document.getElementById('matName').value = '';
             document.getElementById('matQty').value = '';
             document.getElementById('matUnit').value = '';
-            document.getElementById('matPrice').value = '0';
             document.getElementById('modalTitle').innerText = "Stock In";
         }
 
@@ -442,7 +509,7 @@
                 suggestionsUl.classList.add('hidden');
             }
         });
-        
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeMaterialModal();
         });

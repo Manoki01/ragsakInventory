@@ -29,16 +29,11 @@
 
         .status-pill { @apply inline-block w-28 text-center py-1 rounded text-[9px] font-bold uppercase tracking-tighter; }
         .status-green { @apply bg-soft-black text-white; }
-        .status-yellow { @apply border border-soft-black/50 text-white; }
+        .status-yellow { @apply border border-soft-black/50 text-yellow-500; }
         .status-red { @apply border border-red-900/50 text-red-500; }
 
         #productModal:not(.hidden) { @apply !flex items-center justify-center; }
-
-        .modal-active { animation: modalIn 0.2s ease-out forwards; }
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        #productViewModal:not(.hidden) { @apply !flex items-center justify-center; }
 
         #toast-container {
             @apply fixed top-10 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 pointer-events-none;
@@ -55,6 +50,34 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
         .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black rounded; }
+
+        .table-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #121212 #F4F5F2;
+        }
+
+        .table-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-scrollbar::-webkit-scrollbar-track { @apply bg-off-white rounded-full; }
+        .table-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black rounded-full; }
+        .table-scrollbar::-webkit-scrollbar-thumb:hover { @apply bg-soft-black/80; }
+
+        .view-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #121212 transparent;
+        }
+
+        .view-scrollbar::-webkit-scrollbar { width: 10px; }
+        .view-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+            margin-block: 72px;
+        }
+        .view-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #121212;
+            background-clip: content-box;
+            border: 3px solid transparent;
+            border-radius: 9999px;
+            min-height: 48px;
+        }
     </style>
 </head>
 <body>
@@ -78,7 +101,14 @@
                     </p>
                 </div>
 
-                <div class="relative w-full md:w-auto">
+                <div class="flex w-full flex-col gap-3 md:w-auto md:flex-row">
+                    <select
+                        id="processFilter"
+                        class="h-11 w-full md:w-56 rounded-xl border border-gray-200 bg-white px-4 text-xs font-bold uppercase text-soft-black outline-none transition-all shadow-sm focus:border-soft-black focus:ring-2 focus:ring-soft-black/10"
+                    >
+                        <option value="__all__">All Processes</option>
+                    </select>
+
                     <input
                         type="text"
                         id="inventorySearch"
@@ -100,7 +130,7 @@
                 </div>
             </div>
 
-            <section class="flex-1 overflow-hidden bg-white rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col min-h-[500px]">
+            <section class="overflow-hidden bg-white rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col h-[560px]">
                 <div class="flex items-center justify-between mb-6 px-2 gap-4">
                     <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">
                         Authorized Resource Database
@@ -114,17 +144,17 @@
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar pr-2">
+                <div class="flex-1 min-h-0 overflow-x-auto overflow-y-auto custom-scrollbar table-scrollbar pr-2">
                     <table class="w-full text-left min-w-[900px] table-fixed">
                         <thead class="sticky top-0 bg-white z-10">
                             <tr class="border-b border-gray-200">
-                                <th class="pb-6 pt-2 px-2 w-[180px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Process</th>
+                                <th class="pb-6 pt-2 px-2 w-[180px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Process View</th>
                                 <th class="pb-6 text-[10px] font-bold uppercase tracking-widest text-gray-600">Item Name</th>
                                 <th class="pb-6 w-[100px] text-center text-[10px] font-bold uppercase text-gray-600">Stock</th>
                                 <th class="pb-6 w-[140px] text-center text-[10px] font-bold uppercase text-gray-600">Status</th>
                                 <th class="pb-6 w-[140px] text-right text-[10px] font-bold uppercase text-gray-600">Unit Price</th>
                                 <th class="pb-6 w-[160px] text-right text-[10px] font-bold uppercase text-gray-600">Est. Value</th>
-                                <th class="pb-6 w-[100px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">Ctrl</th>
+                                <th class="pb-6 w-[110px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">View</th>
                             </tr>
                         </thead>
                         <tbody id="inventoryBody" class="divide-y divide-gray-200"></tbody>
@@ -142,9 +172,6 @@
                 </h2>
 
                 <div class="space-y-8">
-                    <input type="hidden" id="prodId">
-                    <input type="hidden" id="prodPrice" value="0">
-
                     <div class="group">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Process Type</label>
                         <select id="prodProcess" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all appearance-none">
@@ -204,6 +231,45 @@
         </div>
     </div>
 
+    <div id="productViewModal" class="hidden fixed inset-0 bg-soft-black/30 z-[70] p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black">
+            <div class="p-8 md:p-10 max-h-[90vh] overflow-y-auto view-scrollbar">
+                <div class="mb-8 flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                    <h2 id="viewProductName" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black">
+                        Product
+                    </h2>
+                    <button type="button" id="productViewExit" class="rounded-lg border border-gray-200 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-gray-50">Exit</button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 py-6 md:grid-cols-3">
+                    <div class="rounded-2xl bg-gray-50 p-5">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Unit Type</p>
+                        <p id="viewProductUnit" class="mt-2 text-sm font-black uppercase text-soft-black">-</p>
+                    </div>
+                    <div class="rounded-2xl bg-gray-50 p-5">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Unit Price</p>
+                        <p id="viewProductPrice" class="mt-2 text-sm font-black uppercase text-soft-black">-</p>
+                    </div>
+                    <div class="rounded-2xl bg-gray-50 p-5">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Total Process Stock</p>
+                        <p id="viewProductTotalStock" class="mt-2 text-sm font-black uppercase text-soft-black">-</p>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="mb-4 text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Processes In Order</p>
+                    <div id="viewProductProcesses" class="space-y-3"></div>
+                </div>
+
+                <div class="mt-8 grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <button type="button" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85">Edit Information</button>
+                    <button type="button" class="rounded-2xl border border-soft-black/20 bg-soft-black/5 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">Edit Stock</button>
+                    <button type="button" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100">Delete Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         window.currentPageId = 'nav-products';
     </script>
@@ -221,6 +287,10 @@
         const closeModal = document.getElementById('modalClose');
         const closeCommit = document.getElementById('commitClose');
         const openCommit = document.getElementById('commitOpen');
+        const searchInput = document.getElementById("inventorySearch");
+        const processFilter = document.getElementById("processFilter");
+        const productViewModal = document.getElementById("productViewModal");
+        const productViewExit = document.getElementById("productViewExit");
 
         let selectedProductID;
 
@@ -235,117 +305,240 @@
                     return;
                 }
 
-                window.inventoryData = response.data;
+                window.inventoryData = response.data || [];
+                syncProcessFilter();
                 renderProducts();
             } catch (err) {
                 console.error("Load products error:", err);
             }
         }
 
-        function renderProducts(data = window.inventoryData) {
-            const tbody = document.getElementById("inventoryBody");
-            tbody.innerHTML = "";
+        searchInput.addEventListener("input", function () {
+            renderProducts();
+        });
 
-            let count = new Set(data.map(item => item.productName)).size;
+        processFilter.addEventListener("change", function () {
+            renderProducts();
+        });
 
-            data = [...data].sort((a, b) => {
-                const processCompare = (a.processName || "").localeCompare(b.processName || "");
-                if (processCompare !== 0) return processCompare;
-                return (a.productName || "").localeCompare(b.productName || "");
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char]));
+        }
+
+        function getNumber(value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? number : 0;
+        }
+
+        function syncProcessFilter() {
+            const currentValue = processFilter.value;
+            const processNames = [...new Set(
+                (window.inventoryData || []).map(item => item.processName).filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b));
+
+            processFilter.innerHTML = '<option value="__all__">All Processes</option>';
+
+            processNames.forEach(processName => {
+                const option = document.createElement("option");
+                option.value = processName;
+                option.textContent = processName;
+                processFilter.appendChild(option);
             });
 
-            const grouped = {};
+            if (processNames.includes(currentValue)) {
+                processFilter.value = currentValue;
+            } else if (processNames.includes("Finished Product")) {
+                processFilter.value = "Finished Product";
+            } else {
+                processFilter.value = "__all__";
+            }
+        }
+
+        function buildProductRows(data = window.inventoryData) {
+            const products = new Map();
+
             data.forEach(item => {
-                const key = item.processName || "No Process";
-                if (!grouped[key]) grouped[key] = [];
-                grouped[key].push(item);
+                const key = item.productID || item.productName;
+
+                if (!products.has(key)) {
+                    products.set(key, {
+                        productID: item.productID,
+                        productName: item.productName || "Unnamed Product",
+                        unitType: item.unitType || "",
+                        productPrice: getNumber(item.productPrice),
+                        processes: []
+                    });
+                }
+
+                products.get(key).processes.push({
+                    processID: item.processID,
+                    processName: item.processName || "No Process",
+                    quantity: getNumber(item.quantity)
+                });
+            });
+
+            return [...products.values()].sort((a, b) =>
+                (a.productName || "").localeCompare(b.productName || "")
+            );
+        }
+
+        function getSelectedProcessData(product, selectedProcess) {
+            if (selectedProcess === "__all__") {
+                const quantity = product.processes.reduce((sum, process) => sum + process.quantity, 0);
+                const finishedProcess = product.processes.find(process => process.processName === "Finished Product");
+
+                return {
+                    processName: "All Processes",
+                    quantity,
+                    unitPrice: finishedProcess ? product.productPrice : 0,
+                    value: finishedProcess ? finishedProcess.quantity * product.productPrice : 0
+                };
+            }
+
+            const matchingProcess = product.processes.find(process => process.processName === selectedProcess);
+            if (!matchingProcess) return null;
+
+            const isFinished = selectedProcess === "Finished Product";
+
+            return {
+                processName: matchingProcess.processName,
+                quantity: matchingProcess.quantity,
+                unitPrice: isFinished ? product.productPrice : 0,
+                value: isFinished ? matchingProcess.quantity * product.productPrice : 0
+            };
+        }
+
+        function renderProducts() {
+            const tbody = document.getElementById("inventoryBody");
+            const query = searchInput.value.toLowerCase().trim();
+            const selectedProcess = processFilter.value || "__all__";
+            tbody.innerHTML = "";
+
+            const products = buildProductRows().filter(product => {
+                const matchesSearch = !query ||
+                    product.productName.toLowerCase().includes(query) ||
+                    product.unitType.toLowerCase().includes(query) ||
+                    product.processes.some(process => process.processName.toLowerCase().includes(query));
+
+                const matchesProcess = selectedProcess === "__all__" ||
+                    product.processes.some(process => process.processName === selectedProcess);
+
+                return matchesSearch && matchesProcess;
             });
 
             let total = 0;
 
-            Object.keys(grouped).forEach(processName => {
-                const headerRow = document.createElement("tr");
-                headerRow.innerHTML = `
-                    <td colspan="7" class="py-4 px-2 text-xs font-black uppercase tracking-widest text-soft-black bg-soft-black/10">
-                        ${processName}
+            products.forEach(product => {
+                const processData = getSelectedProcessData(product, selectedProcess);
+                if (!processData) return;
+
+                const status = checkStockStatus(processData.quantity);
+                total += processData.value;
+
+                const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 text-soft-black hover:bg-black/[0.02] transition-colors group";
+
+                row.innerHTML = `
+                    <td class="py-4 text-[10px] uppercase pl-6 text-soft-black/50 font-bold">${escapeHtml(processData.processName)}</td>
+                    <td class="py-4 text-xs font-bold text-soft-black">${escapeHtml(product.productName)}</td>
+                    <td class="py-4 text-center text-xs text-soft-black/60 font-mono">
+                        ${processData.quantity.toLocaleString("en-PH")} ${escapeHtml(product.unitType)}
+                    </td>
+                    <td class="py-4 text-center">
+                        <span class="status-pill ${
+                            status === "Out of Stock" ? "status-red" :
+                            status === "Low Stock" ? "status-yellow" :
+                            "status-green"
+                        }">
+                            ${status}
+                        </span>
+                    </td>
+                    <td class="py-4 text-right text-xs text-soft-black/60 font-mono">
+                        \u20b1${processData.unitPrice.toLocaleString("en-PH", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </td>
+                    <td class="py-4 text-right text-xs font-bold text-soft-black">
+                        \u20b1${processData.value.toLocaleString("en-PH", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </td>
+                    <td class="py-4 pr-2 text-right">
+                        <button type="button" data-product-view="${escapeHtml(product.productID)}" class="rounded-lg bg-soft-black px-3 py-2 text-[9px] font-black uppercase tracking-widest text-white hover:bg-soft-black/80">
+                            View
+                        </button>
                     </td>
                 `;
-                tbody.appendChild(headerRow);
 
-                grouped[processName].forEach(item => {
-                    const status = checkStockStatus(item.quantity);
-                    const isFinished = (item.processName || "") === "Finished Product";
-                    const unitPrice = isFinished ? (item.productPrice || 0) : 0;
-                    const value = isFinished ? item.quantity * unitPrice : 0;
-
-                    total += value;
-
-                    const row = document.createElement("tr");
-                    row.className = "border-b border-gray-200 text-soft-black hover:bg-white/[0.02] transition-colors group";
-
-                    row.innerHTML = `
-                        <td class="py-4 text-[10px] uppercase pl-6 text-soft-black/40">—</td>
-                        <td class="py-4 text-xs font-bold text-soft-black">${item.productName}</td>
-                        <td class="py-4 text-center text-xs text-soft-black/60 font-mono">
-                            ${item.quantity} ${item.unitType}
-                        </td>
-                        <td class="py-4 text-center">
-                            <span class="status-pill ${
-                                status === "Out of Stock" ? "status-red" :
-                                status === "Low Stock" ? "status-yellow" :
-                                "status-green"
-                            }">
-                                ${status}
-                            </span>
-                        </td>
-                        <td class="py-4 text-right text-xs text-soft-black/60 font-mono">
-                            ₱${parseFloat(unitPrice || 0).toLocaleString("en-PH", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}
-                        </td>
-                        <td class="py-4 text-right text-xs font-bold text-soft-black">
-                            ₱${value.toLocaleString("en-PH", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })}
-                        </td>
-                        <td class="py-4 text-right text-xs pr-2">
-                            <button class="text-soft-black/40 hover:text-soft-black transition-colors">Edit</button>
-                        </td>
-                    `;
-
-                    tbody.appendChild(row);
-                });
+                tbody.appendChild(row);
             });
 
-            document.getElementById("skuCount").innerText = count;
+            if (products.length === 0) {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td colspan="7" class="py-16 text-center text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
+                        No products found
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
 
+            document.getElementById("skuCount").innerText = products.length;
             document.getElementById("grandTotal").innerText =
-                "₱" + total.toLocaleString("en-PH", {
+                "\u20b1" + total.toLocaleString("en-PH", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
         }
 
-        const searchInput = document.getElementById("inventorySearch");
+        function openProductView(productID) {
+            const product = buildProductRows().find(item => String(item.productID) === String(productID));
+            if (!product) return;
 
-        searchInput.addEventListener("input", function () {
-            const query = this.value.toLowerCase().trim();
-            const allItems = window.inventoryData || [];
+            const sortedProcesses = [...product.processes].sort((a, b) => getNumber(a.processID) - getNumber(b.processID));
+            const totalStock = sortedProcesses.reduce((sum, process) => sum + process.quantity, 0);
 
-            if (query.length === 0) {
-                renderProducts(allItems);
-                return;
-            }
+            document.getElementById("viewProductName").textContent = product.productName;
+            document.getElementById("viewProductUnit").textContent = product.unitType || "-";
+            document.getElementById("viewProductPrice").textContent = "\u20b1" + product.productPrice.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            document.getElementById("viewProductTotalStock").textContent = totalStock.toLocaleString("en-PH") + " " + (product.unitType || "");
+            document.getElementById("viewProductProcesses").innerHTML = sortedProcesses.map((process, index) => `
+                <div class="grid grid-cols-12 items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <div class="col-span-2 md:col-span-1 text-xs font-black text-gray-400">${index + 1}</div>
+                    <div class="col-span-7 md:col-span-8">
+                        <p class="text-xs font-black uppercase tracking-tight text-soft-black">${escapeHtml(process.processName)}</p>
+                    </div>
+                    <div class="col-span-3 text-right text-xs font-mono font-bold text-soft-black/70">
+                        ${process.quantity.toLocaleString("en-PH")} ${escapeHtml(product.unitType)}
+                    </div>
+                </div>
+            `).join("");
 
-            const filtered = allItems.filter(item =>
-                item.productName.toLowerCase().includes(query) ||
-                (item.processName || "").toLowerCase().includes(query)
-            );
+            productViewModal.classList.remove("hidden");
+        }
 
-            renderProducts(filtered);
+        function closeProductView() {
+            productViewModal.classList.add("hidden");
+        }
+
+        document.getElementById("inventoryBody").addEventListener("click", (event) => {
+            const viewButton = event.target.closest("[data-product-view]");
+            if (!viewButton) return;
+            openProductView(viewButton.dataset.productView);
         });
+
+        productViewExit.addEventListener("click", closeProductView);
 
         prodNameInput.addEventListener('input', function () {
             const query = this.value.toLowerCase().trim();
@@ -522,12 +715,10 @@
         }
 
         function clearForm() {
-            document.getElementById('prodId').value = '';
             document.getElementById('prodProcess').value = '';
             document.getElementById('prodName').value = '';
             document.getElementById('prodQty').value = '';
             document.getElementById('prodUnit').value = '';
-            document.getElementById('prodPrice').value = '0';
             document.getElementById('modalTitle').innerText = "Stock In";
         }
 
