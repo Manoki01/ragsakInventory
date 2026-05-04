@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
     <style type="text/tailwindcss">
         @theme {
@@ -24,27 +25,61 @@
             }
         }
 
+        .pdf-main-heading {
+            margin-top: 56px;
+            margin-bottom: 24px;
+            border-bottom: 4px solid #121212;
+            padding-bottom: 12px;
+            font-size: 18px;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: 0;
+            color: #121212;
+        }
+
+        .pdf-sub-heading {
+            margin-top: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #121212;
+            background: #f7f7f7;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: #121212;
+        }
+
         @media print {
+            @page { margin: 14mm; }
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+            }
             body * { visibility: hidden; }
             #printableReport, #printableReport * { visibility: visible; }
             #printableReport {
-                position: absolute;
+                position: static;
                 left: 0;
                 top: 0;
                 width: 100%;
                 display: block !important;
+                min-height: 0 !important;
+                height: auto !important;
+                padding: 0 !important;
                 background: white !important;
+                box-shadow: none !important;
             }
+            #report-content-area { display: block !important; }
             .no-print { display: none !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .report-block, .report-group {
-                break-inside: avoid;
-                page-break-inside: avoid;
-            }
-            .report-group {
-                break-before: auto;
-                page-break-before: auto;
-            }
+            .report-block, .report-group { break-inside: auto; page-break-inside: auto; }
+            .report-group { margin-bottom: 18px !important; }
+            h2, thead, .report-heading { break-after: avoid; page-break-after: avoid; }
+            tr { break-inside: avoid; page-break-inside: avoid; }
+            table { break-inside: auto; page-break-inside: auto; }
         }
     </style>
 </head>
@@ -115,7 +150,7 @@
         </main>
     </div>
 
-    <div id="printableReport" class="hidden p-12 bg-white min-h-screen">
+    <div id="printableReport" class="hidden p-12 bg-white">
         <div class="flex justify-between items-end border-b-8 border-soft-black pb-6 mb-10">
             <div>
                 <h1 class="text-5xl font-black uppercase tracking-tighter italic leading-none">RAGSAK</h1>
@@ -123,7 +158,6 @@
             </div>
             <div class="text-right">
                 <p id="printDate" class="text-xs font-mono font-bold mb-1"></p>
-                <p id="reportRef" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest"></p>
             </div>
         </div>
 
@@ -143,13 +177,14 @@
             ['orderFulfillment', 'Order Fulfillment Report', 'Orders with total revenue'],
             ['completedLateOrders', 'Completed / Late Orders Report', 'Completed and late order revenue'],
             ['archivedRecords', 'Archived Records Report', 'Grouped archived records without IDs'],
-            ['userActivity', 'User Activity Report', 'Order activity grouped by user'],
-            ['productConsumption', 'Production Consumption Report', 'BOM usage grouped by product process'],
-            ['salesDemand', 'Sales Demand Report', 'Demand, earned revenue, pending revenue, expected revenue']
+            ['userActivity', 'User Activity Report', 'Product, material, packaging, process, and order activity'],
+            ['productConsumption', 'Production Consumption Report', 'Raw material and packaging use from product stock-in logs'],
+            ['salesDemand', 'Sales Demand Report', 'Completed and late sales with total revenue']
         ];
 
         let reportDataset = null;
         let reportDatasetRangeKey = '';
+        let pendingPdfExportRecord = false;
 
         const peso = value => Number(value || 0).toLocaleString('en-PH', {
             style: 'currency',
@@ -191,13 +226,21 @@
         function section(title, body) {
             return `
                 <section class="report-block">
-                    <h2 class="mb-4 flex items-center text-xl font-black uppercase italic tracking-tight">
+                    <h2 class="mb-5 flex items-center border-b-4 border-soft-black pb-3 text-xl font-black uppercase italic tracking-tight">
                         <span class="mr-3 flex h-8 w-8 items-center justify-center bg-soft-black text-xs text-white not-italic">RS</span>
                         ${escapeHtml(title)}
                     </h2>
                     ${body}
                 </section>
             `;
+        }
+
+        function sectionLabel(title) {
+            return `<h3 class="report-heading pdf-main-heading">${escapeHtml(title)}</h3>`;
+        }
+
+        function groupLabel(title) {
+            return `<h4 class="report-heading pdf-sub-heading">${escapeHtml(title)}</h4>`;
         }
 
         function table(headers, rows) {
@@ -221,8 +264,33 @@
 
             return entries.map(([group, rows]) => `
                 <div class="report-group mb-8">
-                    <p class="mb-3 border-l-8 border-soft-black bg-off-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-soft-black">${escapeHtml(group)}</p>
+                    ${groupLabel(group)}
                     ${table(headers, rows.map(renderRow).join(''))}
+                </div>
+            `).join('');
+        }
+
+        function mainTables(groups, headers, renderRow) {
+            const entries = Object.entries(groups);
+            if (!entries.length) return `${sectionLabel('No Records')}<p class="py-4 text-xs font-bold uppercase text-gray-400">No records found</p>`;
+
+            return entries.map(([group, rows]) => `
+                <div class="report-group">
+                    ${sectionLabel(group)}
+                    ${table(headers, rows.map(renderRow).join(''))}
+                </div>
+            `).join('');
+        }
+
+        function nestedTables(rows, mainKey, subKey, headers, renderRow, mainLabels = {}) {
+            const mainGroups = groupBy(rows, mainKey);
+            const entries = Object.entries(mainGroups);
+            if (!entries.length) return `${sectionLabel('No Records')}<p class="py-4 text-xs font-bold uppercase text-gray-400">No records found</p>`;
+
+            return entries.map(([mainGroup, mainRows]) => `
+                <div class="report-group">
+                    ${sectionLabel(mainLabels[mainGroup] || mainGroup)}
+                    ${groupedTables(groupBy(mainRows, subKey), headers, renderRow)}
                 </div>
             `).join('');
         }
@@ -231,7 +299,7 @@
             const productGroups = groupBy(data.inventory.products, 'processName');
 
             return section('Inventory Stock Report', `
-                <p class="mb-4 border-l-8 border-soft-black bg-off-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-soft-black">Products</p>
+                ${sectionLabel('Products')}
                 ${groupedTables(productGroups, ['Product', 'Stock', 'Unit', 'Unit Price', 'Asset Value'], row => `
                     <tr>
                         <td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.productName)}</td>
@@ -242,13 +310,13 @@
                     </tr>
                 `)}
                 <div class="report-group">
-                <p class="mb-4 mt-8 border-l-8 border-soft-black bg-off-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-soft-black">Raw Materials</p>
+                ${sectionLabel('Raw Materials')}
                 ${table(['Raw Material', 'Stock', 'Unit', 'Type', 'Unit Price', 'Asset Value'], data.inventory.rawMaterials.map(row => `
                     <tr><td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.rawMaterialName)}</td><td class="py-3 pr-3 font-mono">${number(row.quantity)}</td><td>${escapeHtml(row.unitType)}</td><td>${escapeHtml(row.matType)}</td><td class="font-mono">${peso(row.rawMaterialPrice)}</td><td class="font-mono font-black">${peso(Number(row.quantity) * Number(row.rawMaterialPrice))}</td></tr>
                 `).join(''))}
                 </div>
                 <div class="report-group">
-                <p class="mb-4 mt-8 border-l-8 border-soft-black bg-off-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-soft-black">Packaging</p>
+                ${sectionLabel('Packaging')}
                 ${table(['Packaging', 'Stock', 'Unit', 'Type', 'Unit Price', 'Asset Value'], data.inventory.packaging.map(row => `
                     <tr><td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.packagingName)}</td><td class="py-3 pr-3 font-mono">${number(row.quantity)}</td><td>${escapeHtml(row.unitType)}</td><td>${escapeHtml(row.packagingType)}</td><td class="font-mono">${peso(row.packagingPrice)}</td><td class="font-mono font-black">${peso(Number(row.quantity) * Number(row.packagingPrice))}</td></tr>
                 `).join(''))}
@@ -257,12 +325,45 @@
         }
 
         function stockMovementReport(data) {
-            return section('Stock Movement Report', table(
-                ['Date', 'Type', 'Item', 'Group', 'Action', 'Qty', 'Initial', 'Final', 'Reason'],
-                data.stockMovements.map(row => `
-                    <tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td>${escapeHtml(row.itemType)}</td><td class="font-bold uppercase">${escapeHtml(row.itemName)}</td><td>${escapeHtml(row.groupName)}</td><td>${escapeHtml(row.action)}</td><td class="font-mono">${number(row.quantity)}</td><td class="font-mono">${number(row.initialQuantity)}</td><td class="font-mono">${number(row.finalQuantity)}</td><td>${escapeHtml(row.reason)}</td></tr>
-                `).join('')
+            const labels = {
+                Product: 'Products',
+                'Raw Material': 'Raw Materials',
+                Packaging: 'Packaging'
+            };
+
+            return section('Stock Movement Report', nestedTables(
+                data.stockMovements,
+                'itemType',
+                'groupName',
+                ['Date', 'Item', 'Action', 'Qty', 'Initial', 'Final', 'Reason'],
+                row => `
+                    <tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td class="font-bold uppercase">${escapeHtml(row.itemName)}</td><td>${escapeHtml(row.action)}</td><td class="font-mono">${number(row.quantity)}</td><td class="font-mono">${number(row.initialQuantity)}</td><td class="font-mono">${number(row.finalQuantity)}</td><td>${escapeHtml(row.reason)}</td></tr>
+                `,
+                labels
             ));
+        }
+
+        function orderStatusLabel(status) {
+            return {
+                pending: 'Pending Orders',
+                completed: 'Completed Orders',
+                late: 'Completed Late Orders',
+                canceled: 'Canceled Orders'
+            }[status] || status;
+        }
+
+        function orderRowsByStatus(rows) {
+            return rows.map(row => ({
+                ...row,
+                statusGroup: orderStatusLabel(row.orderStatus),
+                productGroup: row.productName || 'Unclassified Product'
+            }));
+        }
+
+        function renderOrderRow(row) {
+            return `
+                <tr><td class="py-3 pr-3 font-mono">${row.orderID}</td><td class="font-bold uppercase">${escapeHtml(row.customerName)}</td><td class="font-mono">${number(row.quantity)}</td><td class="font-mono">${escapeHtml(row.dateCompletion)}</td><td class="font-mono">${peso(row.productPrice)}</td><td class="font-mono font-black">${peso(row.totalRevenue)}</td></tr>
+            `;
         }
 
         function orderFulfillmentReport(data, completedOnly = false) {
@@ -271,11 +372,12 @@
                 : data.orders;
             const title = completedOnly ? 'Completed / Late Orders Report' : 'Order Fulfillment Report';
 
-            return section(title, table(
-                ['Order ID', 'Customer', 'Product', 'Qty', 'Status', 'Due Date', 'Unit Price', 'Total Revenue'],
-                rows.map(row => `
-                    <tr><td class="py-3 pr-3 font-mono">${row.orderID}</td><td class="font-bold uppercase">${escapeHtml(row.customerName)}</td><td>${escapeHtml(row.productName)}</td><td class="font-mono">${number(row.quantity)}</td><td>${escapeHtml(row.orderStatus)}</td><td class="font-mono">${escapeHtml(row.dateCompletion)}</td><td class="font-mono">${peso(row.productPrice)}</td><td class="font-mono font-black">${peso(row.totalRevenue)}</td></tr>
-                `).join('')
+            return section(title, nestedTables(
+                orderRowsByStatus(rows),
+                'statusGroup',
+                'productGroup',
+                ['Order ID', 'Customer', 'Qty', 'Due Date', 'Unit Price', 'Total Revenue'],
+                renderOrderRow
             ));
         }
 
@@ -289,8 +391,8 @@
             };
 
             return section('Archived Records Report', Object.entries(data.archivedRecords).map(([key, rows]) => `
-                <div class="mb-8">
-                    <p class="mb-3 rounded-xl bg-soft-black px-4 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-white">${labels[key]}</p>
+                <div class="report-group">
+                    ${sectionLabel(labels[key] || key)}
                     ${table(['Record', 'Archived Date'], rows.map(row => `
                         <tr><td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.name)}</td><td class="font-mono">${escapeHtml(row.deleted_at)}</td></tr>
                     `).join(''))}
@@ -299,33 +401,88 @@
         }
 
         function userActivityReport(data) {
-            return section('User Activity Report', groupedTables(
-                groupBy(data.userActivity, 'username'),
-                ['Date', 'Order ID', 'Action'],
-                row => `<tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td class="font-mono">${row.orderID}</td><td class="font-bold uppercase">${escapeHtml(row.action)}</td></tr>`
-            ));
+            const userGroups = groupBy(data.userActivity, 'username');
+
+            return section('User Activity Report', Object.entries(userGroups).map(([username, rows]) => {
+                return `
+                    <div class="report-group">
+                        ${sectionLabel(username)}
+                        ${Object.entries(groupBy(rows, 'moduleType')).map(([moduleType, moduleRows]) => {
+                            const isOrders = moduleType === 'Orders';
+
+                            return `
+                                <div class="report-group mb-8">
+                                    ${groupLabel(moduleType)}
+                                    ${table(
+                                        isOrders
+                                            ? ['Date', 'Order ID', 'Record', 'Action']
+                                            : ['Date', 'Record', 'Action'],
+                                        moduleRows.map(row => isOrders
+                                            ? `<tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td class="font-mono">${escapeHtml(row.orderID || '')}</td><td class="font-bold uppercase">${escapeHtml(row.recordName)}</td><td>${escapeHtml(row.action)}</td></tr>`
+                                            : `<tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td class="font-bold uppercase">${escapeHtml(row.recordName)}</td><td>${escapeHtml(row.action)}</td></tr>`
+                                        ).join('')
+                                    )}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }).join(''));
         }
 
         function productConsumptionReport(data) {
-            const rows = data.productConsumption.map(row => ({
-                ...row,
-                group: `${row.productName} - ${row.processName}`
-            }));
+            const rawTotal = data.productConsumption
+                .filter(row => row.itemType === 'Raw Material')
+                .reduce((total, row) => total + Number(row.quantityConsumed || 0), 0);
+            const packagingTotal = data.productConsumption
+                .filter(row => row.itemType === 'Packaging')
+                .reduce((total, row) => total + Number(row.quantityConsumed || 0), 0);
+            const assetValueTotal = data.productConsumption
+                .reduce((total, row) => total + Number(row.assetValue || 0), 0);
 
-            return section('Production Consumption Report', groupedTables(
-                groupBy(rows, 'group'),
-                ['Item Type', 'Item', 'Qty Required', 'Unit'],
-                row => `<tr><td class="py-3 pr-3">${escapeHtml(row.itemType)}</td><td class="font-bold uppercase">${escapeHtml(row.itemName)}</td><td class="font-mono">${number(row.quantityRequired)}</td><td>${escapeHtml(row.unitType)}</td></tr>`
-            ));
+            return section('Production Consumption Report', nestedTables(
+                data.productConsumption,
+                'consumptionGroup',
+                'itemType',
+                ['Date', 'Item', 'Qty Used', 'Unit', 'Unit Price', 'Asset Value', 'Reason'],
+                row => `<tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td class="font-bold uppercase">${escapeHtml(row.itemName)}</td><td class="font-mono">${number(row.quantityConsumed)}</td><td>${escapeHtml(row.unitType)}</td><td class="font-mono">${peso(row.unitPrice)}</td><td class="font-mono font-black">${peso(row.assetValue)}</td><td>${escapeHtml(row.reason)}</td></tr>`
+            ) + `
+                ${sectionLabel('Consumption Summary')}
+                ${table(['Total Raw Materials Used', 'Total Packaging Used', 'Total Asset Value Used'], `
+                    <tr>
+                        <td class="py-3 pr-3 font-mono font-black">${number(rawTotal)}</td>
+                        <td class="py-3 pr-3 font-mono font-black">${number(packagingTotal)}</td>
+                        <td class="py-3 pr-3 font-mono font-black">${peso(assetValueTotal)}</td>
+                    </tr>
+                `)}
+            `);
         }
 
         function salesDemandReport(data) {
-            return section('Sales Demand Report', table(
-                ['Product', 'Orders', 'Ordered Qty', 'Completed Qty', 'Late Qty', 'Pending Qty', 'Total Revenue', 'Pending Revenue', 'Expected Revenue'],
-                data.salesDemand.map(row => `
-                    <tr><td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.productName)}</td><td class="font-mono">${number(row.totalOrders)}</td><td class="font-mono">${number(row.totalQtyOrdered)}</td><td class="font-mono">${number(row.completedQty)}</td><td class="font-mono">${number(row.lateQty)}</td><td class="font-mono">${number(row.pendingQty)}</td><td class="font-mono font-black">${peso(row.totalRevenue)}</td><td class="font-mono">${peso(row.pendingRevenue)}</td><td class="font-mono font-black">${peso(row.expectedRevenue)}</td></tr>
-                `).join('')
-            ));
+            const summary = data.salesDemandSummary || {};
+
+            return section('Sales Demand Report', `
+                ${sectionLabel('Revenue Summary')}
+                <div class="mb-8 border-l-8 border-soft-black bg-white px-6 py-5">
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Total Orders</p>
+                            <p class="mt-2 text-3xl font-black uppercase italic text-soft-black">${number(summary.totalOrders)}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Total Revenue</p>
+                            <p class="mt-2 text-3xl font-black uppercase italic text-soft-black">${peso(summary.totalRevenue)}</p>
+                        </div>
+                    </div>
+                </div>
+                ${mainTables(
+                    { 'Completed / Late Sales Demand': data.salesDemand },
+                    ['Product', 'Orders', 'Ordered Qty', 'Completed Qty', 'Late Qty', 'Unit Price', 'Total Revenue'],
+                    row => `
+                        <tr><td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.productName)}</td><td class="font-mono">${number(row.totalOrders)}</td><td class="font-mono">${number(row.totalQtyOrdered)}</td><td class="font-mono">${number(row.completedQty)}</td><td class="font-mono">${number(row.lateQty)}</td><td class="font-mono">${peso(row.productPrice)}</td><td class="font-mono font-black">${peso(row.totalRevenue)}</td></tr>
+                    `
+                )}
+            `);
         }
 
         function renderReportTransactions() {
@@ -374,7 +531,7 @@
             if (!reportDataset) return '';
             const rangeLabel = getRangeLabel();
             const timeframeNotice = `
-                <div class="mb-8 rounded-2xl border border-soft-black/10 bg-off-white p-5">
+                <div class="mb-8 border border-soft-black/20 bg-white p-4">
                     <p class="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Timeframe</p>
                     <p class="mt-2 text-sm font-black uppercase text-soft-black">${escapeHtml(rangeLabel)}</p>
                 </div>
@@ -411,7 +568,7 @@
         }
 
         function getExportFileName(format) {
-            const extension = format === 'excel' ? 'xls' : 'pdf';
+            const extension = format === 'excel' ? 'xlsx' : 'pdf';
             return `${sanitizeFileName(getReportName())}.${extension}`;
         }
 
@@ -450,7 +607,6 @@
             }
 
             document.getElementById('printDate').textContent = new Date().toLocaleString('en-PH').toUpperCase();
-            document.getElementById('reportRef').textContent = `${getReportName()} - REF: RSK-RPT-${Date.now()}`;
             document.getElementById('report-content-area').innerHTML = buildReportHtml(keys);
             return true;
         }
@@ -481,30 +637,377 @@
             return true;
         }
 
-        function exportExcelDocument() {
-            const html = `
-                <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <style>
-                            body { font-family: Montserrat, Arial, sans-serif; }
-                            table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
-                            th { background: #121212; color: #ffffff; text-transform: uppercase; }
-                            th, td { border: 1px solid #d9d9d9; padding: 8px; font-size: 11px; }
-                            h2 { margin-top: 24px; text-transform: uppercase; }
-                            p { font-weight: bold; }
-                        </style>
-                    </head>
-                    <body>${document.getElementById('printableReport').innerHTML}</body>
-                </html>
-            `;
-            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+        function excelTableName(sheetName, index) {
+            return `${sheetName.replace(/[^A-Za-z0-9]/g, '')}Table${index}`;
+        }
+
+        function setupWorksheet(worksheet, title) {
+            worksheet.properties.defaultRowHeight = 18;
+            worksheet.views = [{ state: 'frozen', ySplit: 6 }];
+            worksheet.columns = Array.from({ length: 10 }, () => ({ width: 22 }));
+
+            worksheet.mergeCells('A1:J1');
+            worksheet.getCell('A1').value = 'RAGSAK INVENTORY REPORT EXPORT';
+            worksheet.getCell('A1').font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
+            worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF121212' } };
+            worksheet.getCell('A1').alignment = { vertical: 'middle' };
+            worksheet.getRow(1).height = 28;
+
+            [
+                ['Report', title],
+                ['Report Name', getReportName()],
+                ['Timeframe', getRangeLabel()],
+                ['Generated', new Date().toLocaleString('en-PH')]
+            ].forEach((row, index) => {
+                const excelRow = worksheet.getRow(index + 2);
+                excelRow.getCell(1).value = row[0];
+                excelRow.getCell(2).value = row[1];
+                excelRow.getCell(1).font = { bold: true };
+            });
+
+            return { row: 7, tableIndex: 1 };
+        }
+
+        function addHeading(worksheet, state, title, level = 'main') {
+            worksheet.mergeCells(state.row, 1, state.row, 10);
+            const cell = worksheet.getCell(state.row, 1);
+            cell.value = title;
+            cell.font = {
+                bold: true,
+                size: level === 'main' ? 13 : 11,
+                color: { argb: level === 'main' ? 'FF121212' : 'FF555555' }
+            };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: level === 'main' ? 'FFEFEFEF' : 'FFF7F7F7' }
+            };
+            cell.alignment = { vertical: 'middle' };
+            worksheet.getRow(state.row).height = level === 'main' ? 24 : 20;
+            state.row += 1;
+        }
+
+        function addExcelTable(worksheet, state, headers, records, sheetName) {
+            const rows = records.length ? records : [headers.map((_, index) => index === 0 ? 'No records found' : '')];
+            const ref = `A${state.row}`;
+
+            worksheet.addTable({
+                name: excelTableName(sheetName, state.tableIndex++),
+                ref,
+                headerRow: true,
+                totalsRow: false,
+                style: {
+                    theme: 'TableStyleMedium2',
+                    showRowStripes: true
+                },
+                columns: headers.map(header => ({ name: header, filterButton: true })),
+                rows
+            });
+
+            const headerRow = worksheet.getRow(state.row);
+            headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            state.row += rows.length + 2;
+        }
+
+        function buildInventoryStockSheet(worksheet, data, sheetName) {
+            const state = setupWorksheet(worksheet, 'Inventory Stock Report');
+
+            addHeading(worksheet, state, 'Products', 'main');
+            Object.entries(groupBy(data.inventory.products, 'processName')).forEach(([processName, rows]) => {
+                addHeading(worksheet, state, processName, 'sub');
+                addExcelTable(
+                    worksheet,
+                    state,
+                    ['Product', 'Stock', 'Unit', 'Unit Price', 'Asset Value'],
+                    rows.map(row => [
+                        row.productName,
+                        Number(row.quantity || 0),
+                        row.unitType,
+                        Number(row.productPrice || 0),
+                        Number(row.quantity || 0) * Number(row.productPrice || 0)
+                    ]),
+                    sheetName
+                );
+            });
+
+            addHeading(worksheet, state, 'Raw Materials', 'main');
+            addExcelTable(
+                worksheet,
+                state,
+                ['Raw Material', 'Stock', 'Unit', 'Type', 'Unit Price', 'Asset Value'],
+                data.inventory.rawMaterials.map(row => [
+                    row.rawMaterialName,
+                    Number(row.quantity || 0),
+                    row.unitType,
+                    row.matType,
+                    Number(row.rawMaterialPrice || 0),
+                    Number(row.quantity || 0) * Number(row.rawMaterialPrice || 0)
+                ]),
+                sheetName
+            );
+
+            addHeading(worksheet, state, 'Packaging', 'main');
+            addExcelTable(
+                worksheet,
+                state,
+                ['Packaging', 'Stock', 'Unit', 'Type', 'Unit Price', 'Asset Value'],
+                data.inventory.packaging.map(row => [
+                    row.packagingName,
+                    Number(row.quantity || 0),
+                    row.unitType,
+                    row.packagingType,
+                    Number(row.packagingPrice || 0),
+                    Number(row.quantity || 0) * Number(row.packagingPrice || 0)
+                ]),
+                sheetName
+            );
+        }
+
+        function buildFlatSheet(worksheet, title, mainHeading, headers, records, sheetName) {
+            const state = setupWorksheet(worksheet, title);
+            addHeading(worksheet, state, mainHeading, 'main');
+            addExcelTable(worksheet, state, headers, records, sheetName);
+        }
+
+        function buildGroupedSheet(worksheet, title, groups, headers, renderRow, sheetName) {
+            const state = setupWorksheet(worksheet, title);
+            const entries = Object.entries(groups);
+
+            if (!entries.length) {
+                addHeading(worksheet, state, 'No Records', 'main');
+                addExcelTable(worksheet, state, headers, [], sheetName);
+                return;
+            }
+
+            entries.forEach(([group, rows]) => {
+                addHeading(worksheet, state, group, 'main');
+                addExcelTable(worksheet, state, headers, rows.map(renderRow), sheetName);
+            });
+        }
+
+        function buildNestedSheet(worksheet, title, rows, mainKey, subKey, headers, renderRow, sheetName, mainLabels = {}) {
+            const state = setupWorksheet(worksheet, title);
+            const entries = Object.entries(groupBy(rows, mainKey));
+
+            if (!entries.length) {
+                addHeading(worksheet, state, 'No Records', 'main');
+                addExcelTable(worksheet, state, headers, [], sheetName);
+                return;
+            }
+
+            entries.forEach(([mainGroup, mainRows]) => {
+                addHeading(worksheet, state, mainLabels[mainGroup] || mainGroup, 'main');
+                Object.entries(groupBy(mainRows, subKey)).forEach(([subGroup, subRows]) => {
+                    addHeading(worksheet, state, subGroup, 'sub');
+                    addExcelTable(worksheet, state, headers, subRows.map(renderRow), sheetName);
+                });
+            });
+        }
+
+        const sheetBuilders = {
+            inventoryStock: ['Inventory Stock', buildInventoryStockSheet],
+            stockMovement: ['Stock Movement', (worksheet, data, sheetName) => buildFlatSheet(
+                worksheet,
+                'Stock Movement Report',
+                'Stock Movement',
+                ['Date', 'Type', 'Item', 'Group', 'Action', 'Qty', 'Initial', 'Final', 'Reason'],
+                data.stockMovements.map(row => [
+                    row.date,
+                    row.itemType,
+                    row.itemName,
+                    row.groupName,
+                    row.action,
+                    Number(row.quantity || 0),
+                    Number(row.initialQuantity || 0),
+                    Number(row.finalQuantity || 0),
+                    row.reason
+                ]),
+                sheetName
+            )],
+            orderFulfillment: ['Order Fulfillment', (worksheet, data, sheetName) => buildFlatSheet(
+                worksheet,
+                'Order Fulfillment Report',
+                'Orders',
+                ['Order ID', 'Customer', 'Product', 'Qty', 'Status', 'Due Date', 'Unit Price', 'Total Revenue'],
+                data.orders.map(row => [
+                    Number(row.orderID || 0),
+                    row.customerName,
+                    row.productName,
+                    Number(row.quantity || 0),
+                    row.orderStatus,
+                    row.dateCompletion,
+                    Number(row.productPrice || 0),
+                    Number(row.totalRevenue || 0)
+                ]),
+                sheetName
+            )],
+            completedLateOrders: ['Completed Late', (worksheet, data, sheetName) => buildFlatSheet(
+                worksheet,
+                'Completed / Late Orders Report',
+                'Completed / Late Orders',
+                ['Order ID', 'Customer', 'Product', 'Qty', 'Status', 'Due Date', 'Unit Price', 'Total Revenue'],
+                data.orders.filter(row => ['completed', 'late'].includes(row.orderStatus)).map(row => [
+                    Number(row.orderID || 0),
+                    row.customerName,
+                    row.productName,
+                    Number(row.quantity || 0),
+                    row.orderStatus,
+                    row.dateCompletion,
+                    Number(row.productPrice || 0),
+                    Number(row.totalRevenue || 0)
+                ]),
+                sheetName
+            )],
+            archivedRecords: ['Archived Records', (worksheet, data, sheetName) => {
+                const labels = {
+                    products: 'Products',
+                    rawMaterials: 'Raw Materials',
+                    packaging: 'Packaging',
+                    processes: 'Processes',
+                    orders: 'Orders'
+                };
+                const state = setupWorksheet(worksheet, 'Archived Records Report');
+                Object.entries(data.archivedRecords).forEach(([key, rows]) => {
+                    addHeading(worksheet, state, labels[key] || key, 'main');
+                    addExcelTable(
+                        worksheet,
+                        state,
+                        ['Record', 'Archived Date'],
+                        rows.map(row => [row.name, row.deleted_at]),
+                        sheetName
+                    );
+                });
+            }],
+            userActivity: ['User Activity', (worksheet, data, sheetName) => {
+                const state = setupWorksheet(worksheet, 'User Activity Report');
+                Object.entries(groupBy(data.userActivity, 'username')).forEach(([username, rows]) => {
+                    addHeading(worksheet, state, username, 'main');
+                    Object.entries(groupBy(rows, 'moduleType')).forEach(([moduleType, moduleRows]) => {
+                        const isOrders = moduleType === 'Orders';
+
+                        addHeading(worksheet, state, moduleType, 'sub');
+                        addExcelTable(
+                            worksheet,
+                            state,
+                            isOrders
+                                ? ['Date', 'Order ID', 'Record', 'Action']
+                                : ['Date', 'Record', 'Action'],
+                            moduleRows.map(row => isOrders
+                                ? [
+                                    row.date,
+                                    row.orderID ? Number(row.orderID) : '',
+                                    row.recordName,
+                                    row.action
+                                ]
+                                : [
+                                    row.date,
+                                    row.recordName,
+                                    row.action
+                                ]
+                            ),
+                            sheetName
+                        );
+                    });
+                });
+            }],
+            productConsumption: ['Product Consumption', (worksheet, data, sheetName) => {
+                buildNestedSheet(
+                    worksheet,
+                    'Production Consumption Report',
+                    data.productConsumption,
+                    'consumptionGroup',
+                    'itemType',
+                    ['Date', 'Item', 'Qty Used', 'Unit', 'Unit Price', 'Asset Value', 'Reason'],
+                    row => [
+                        row.date,
+                        row.itemName,
+                        Number(row.quantityConsumed || 0),
+                        row.unitType,
+                        Number(row.unitPrice || 0),
+                        Number(row.assetValue || 0),
+                        row.reason
+                    ],
+                    sheetName
+                );
+
+                const worksheetState = { row: worksheet.lastRow.number + 2, tableIndex: worksheet.tables.length + 1 };
+                const rawTotal = data.productConsumption
+                    .filter(row => row.itemType === 'Raw Material')
+                    .reduce((total, row) => total + Number(row.quantityConsumed || 0), 0);
+                const packagingTotal = data.productConsumption
+                    .filter(row => row.itemType === 'Packaging')
+                    .reduce((total, row) => total + Number(row.quantityConsumed || 0), 0);
+                const assetValueTotal = data.productConsumption
+                    .reduce((total, row) => total + Number(row.assetValue || 0), 0);
+
+                addHeading(worksheet, worksheetState, 'Consumption Summary', 'main');
+                addExcelTable(
+                    worksheet,
+                    worksheetState,
+                    ['Total Raw Materials Used', 'Total Packaging Used', 'Total Asset Value Used'],
+                    [[rawTotal, packagingTotal, assetValueTotal]],
+                    sheetName
+                );
+            }],
+            salesDemand: ['Sales Demand', (worksheet, data, sheetName) => {
+                const state = setupWorksheet(worksheet, 'Sales Demand Report');
+                const summary = data.salesDemandSummary || {};
+
+                addHeading(worksheet, state, 'Revenue Summary', 'main');
+                addExcelTable(
+                    worksheet,
+                    state,
+                    ['Total Orders', 'Total Revenue'],
+                    [[Number(summary.totalOrders || 0), Number(summary.totalRevenue || 0)]],
+                    sheetName
+                );
+
+                addHeading(worksheet, state, 'Completed / Late Sales Demand', 'main');
+                addExcelTable(
+                    worksheet,
+                    state,
+                    ['Product', 'Orders', 'Ordered Qty', 'Completed Qty', 'Late Qty', 'Unit Price', 'Total Revenue'],
+                    data.salesDemand.map(row => [
+                        row.productName,
+                        Number(row.totalOrders || 0),
+                        Number(row.totalQtyOrdered || 0),
+                        Number(row.completedQty || 0),
+                        Number(row.lateQty || 0),
+                        Number(row.productPrice || 0),
+                        Number(row.totalRevenue || 0)
+                    ]),
+                    sheetName
+                );
+            }]
+        };
+
+        async function exportExcelDocument(keys) {
+            if (!window.ExcelJS) {
+                alert('Excel export library did not load. Please check your internet connection and try again.');
+                return false;
+            }
+
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'Ragsak Inventory';
+            workbook.created = new Date();
+
+            keys.forEach(key => {
+                const [sheetName, buildRows] = sheetBuilders[key];
+                const worksheet = workbook.addWorksheet(sheetName.slice(0, 31));
+                buildRows(worksheet, reportDataset, sheetName);
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.download = getExportFileName('excel');
             link.click();
             URL.revokeObjectURL(url);
+            return true;
         }
 
         document.getElementById('reportOptions').innerHTML = REPORTS.map(([key, title, description]) => `
@@ -529,16 +1032,28 @@
 
         loadDataset();
 
+        window.addEventListener('afterprint', async () => {
+            if (!pendingPdfExportRecord) return;
+
+            pendingPdfExportRecord = false;
+
+            setTimeout(async () => {
+                const didExport = window.confirm('Did you save or print this PDF report? Click OK only if the report was exported.');
+                if (didExport) await recordExport('pdf');
+            }, 200);
+        });
+
         document.getElementById('exportPdf').addEventListener('click', async () => {
             if (!(await prepareReport())) return;
-            if (!(await recordExport('pdf'))) return;
+            pendingPdfExportRecord = true;
             document.fonts.ready.then(() => setTimeout(() => window.print(), 300));
         });
 
         document.getElementById('exportExcel').addEventListener('click', async () => {
             if (!(await prepareReport())) return;
-            if (!(await recordExport('excel'))) return;
-            exportExcelDocument();
+            const keys = selectedReportKeys();
+            if (!(await exportExcelDocument(keys))) return;
+            await recordExport('excel');
         });
     </script>
 </body>
