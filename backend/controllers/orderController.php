@@ -21,6 +21,16 @@ function validateOrderText($value, $fieldName, $maxLength) {
     return $value;
 }
 
+function validateOrderContactNumber($value) {
+    $value = trim((string) $value);
+
+    if (!preg_match('/^09\d{9}$/', $value)) {
+        failOrderValidation("Contact number must be an 11-digit Philippine mobile number starting with 09");
+    }
+
+    return $value;
+}
+
 function validateOrderID($value, $fieldName) {
     if (filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value <= 0) {
         failOrderValidation($fieldName . " must be a positive whole number");
@@ -31,7 +41,7 @@ function validateOrderID($value, $fieldName) {
 
 function validateOrderStatus($value) {
     $value = strtolower(trim((string) $value));
-    $allowed = ['pending', 'completed', 'canceled'];
+    $allowed = ['pending', 'completed', 'late', 'canceled'];
 
     if (!in_array($value, $allowed, true)) {
         failOrderValidation("Order status is invalid");
@@ -60,10 +70,9 @@ function validateOrderPayload($input, $requireOrderID = false) {
 
     $payload = [
         'customerName' => validateOrderText($input['customerName'] ?? '', 'Customer name', 50),
-        'contactNumber' => validateOrderText($input['contactNumber'] ?? '', 'Contact number', 30),
+        'contactNumber' => validateOrderContactNumber($input['contactNumber'] ?? ''),
         'customerAddress' => validateOrderText($input['customerAddress'] ?? '', 'Address', 255),
         'productID' => validateOrderID($input['productID'] ?? null, 'Product ID'),
-        'processID' => validateOrderID($input['processID'] ?? null, 'Process ID'),
         'quantity' => validateOrderID($input['quantity'] ?? null, 'Quantity'),
         'orderStatus' => validateOrderStatus($input['orderStatus'] ?? 'pending'),
         'dateCompletion' => validateOrderDate($input['dateCompletion'] ?? '')
@@ -74,6 +83,37 @@ function validateOrderPayload($input, $requireOrderID = false) {
     }
 
     return $payload;
+}
+
+function validateOrderStatusPayload($input) {
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    return [
+        'orderID' => validateOrderID($input['orderID'] ?? null, 'Order ID'),
+        'orderStatus' => validateOrderStatus($input['orderStatus'] ?? '')
+    ];
+}
+
+function validateOrderInfoPayload($input) {
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    return [
+        'orderID' => validateOrderID($input['orderID'] ?? null, 'Order ID'),
+        'customerName' => validateOrderText($input['customerName'] ?? '', 'Customer name', 50),
+        'contactNumber' => validateOrderContactNumber($input['contactNumber'] ?? ''),
+        'customerAddress' => validateOrderText($input['customerAddress'] ?? '', 'Address', 255),
+        'productID' => validateOrderID($input['productID'] ?? null, 'Product ID'),
+        'quantity' => validateOrderID($input['quantity'] ?? null, 'Quantity'),
+        'dateCompletion' => validateOrderDate($input['dateCompletion'] ?? '')
+    ];
 }
 
 function getOrders() {
@@ -99,9 +139,12 @@ function getFinishedOrderProducts() {
 function createOrder() {
     $input = json_decode(file_get_contents("php://input"), true);
     $payload = validateOrderPayload($input);
+    $payload['orderStatus'] = 'pending';
+    $authUser = getCurrentAuthUser();
+    $payload['userID'] = isset($authUser->sub) ? (int) $authUser->sub : 0;
 
     $order = new Order();
-    $product = $order->finishedProductExists($payload['productID'], $payload['processID']);
+    $product = $order->finishedProductExists($payload['productID']);
 
     if ($product === null) {
         http_response_code(422);
@@ -119,8 +162,8 @@ function createOrder() {
         http_response_code(201);
         echo json_encode(["status" => "success", "message" => "Order registered successfully"]);
     } else {
-        http_response_code(500);
-        echo json_encode(["status" => "error", "message" => "Failed to register order"]);
+        http_response_code($order->getLastError() ? 422 : 500);
+        echo json_encode(["status" => "error", "message" => $order->getLastError() ?: "Failed to register order"]);
     }
 }
 
@@ -129,7 +172,7 @@ function updateOrder() {
     $payload = validateOrderPayload($input, true);
 
     $order = new Order();
-    $product = $order->finishedProductExists($payload['productID'], $payload['processID']);
+    $product = $order->finishedProductExists($payload['productID']);
 
     if ($product === null) {
         http_response_code(422);
@@ -148,5 +191,72 @@ function updateOrder() {
     } else {
         http_response_code(500);
         echo json_encode(["status" => "error", "message" => "Failed to update order"]);
+    }
+}
+
+function updateOrderInfo() {
+    $input = json_decode(file_get_contents("php://input"), true);
+    $payload = validateOrderInfoPayload($input);
+    $authUser = getCurrentAuthUser();
+    $payload['userID'] = isset($authUser->sub) ? (int) $authUser->sub : 0;
+
+    $order = new Order();
+    $product = $order->finishedProductExists($payload['productID']);
+
+    if ($product === null) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Orders can only use finished products"]);
+        exit;
+    }
+
+    if ((int) $product['quantity'] < $payload['quantity']) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Order quantity is greater than finished product stock"]);
+        exit;
+    }
+
+    if ($order->updateOrderInfo($payload)) {
+        echo json_encode(["status" => "success", "message" => "Order information updated successfully"]);
+    } else {
+        http_response_code($order->getLastError() ? 422 : 500);
+        echo json_encode(["status" => "error", "message" => $order->getLastError() ?: "Failed to update order information"]);
+    }
+}
+
+function updateOrderStatusOnly() {
+    $input = json_decode(file_get_contents("php://input"), true);
+    $payload = validateOrderStatusPayload($input);
+    $authUser = getCurrentAuthUser();
+    $payload['userID'] = isset($authUser->sub) ? (int) $authUser->sub : 0;
+
+    $order = new Order();
+
+    if ($order->updateOrderStatus($payload)) {
+        echo json_encode(["status" => "success", "message" => "Order status updated successfully"]);
+    } else {
+        http_response_code($order->getLastError() ? 422 : 500);
+        echo json_encode(["status" => "error", "message" => $order->getLastError() ?: "Failed to update order status"]);
+    }
+}
+
+function archiveOrder() {
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $orderID = validateOrderID($input['orderID'] ?? null, 'Order ID');
+    $authUser = getCurrentAuthUser();
+    $userID = isset($authUser->sub) ? (int) $authUser->sub : 0;
+    $order = new Order();
+
+    if ($order->archiveOrder($orderID, $userID)) {
+        echo json_encode(["status" => "success", "message" => "Order archived successfully"]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Failed to archive order"]);
     }
 }

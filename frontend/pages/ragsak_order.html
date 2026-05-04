@@ -29,9 +29,39 @@
 
         #orderModal:not(.hidden), #viewModal:not(.hidden) { @apply !flex items-center justify-center; }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
         .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black rounded; }
+
+        .table-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #121212 #F4F5F2;
+        }
+
+        .table-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-scrollbar::-webkit-scrollbar-track { @apply bg-off-white rounded-full; }
+        .table-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black rounded-full; }
+        .table-scrollbar::-webkit-scrollbar-thumb:hover { @apply bg-soft-black/80; }
+
+        .view-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #121212 transparent;
+        }
+
+        .view-scrollbar::-webkit-scrollbar { width: 10px; }
+        .view-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+            margin-block: 72px;
+        }
+        .view-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #121212;
+            background-clip: content-box;
+            border: 3px solid transparent;
+            border-radius: 999px;
+        }
+        .view-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(18, 18, 18, 0.82);
+        }
 
         #toast-container {
             @apply fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 pointer-events-none px-4;
@@ -40,6 +70,11 @@
             @apply bg-soft-black text-white px-6 py-4 rounded-2xl shadow-2xl border-l-4 flex items-center gap-4 transition-all duration-500 opacity-0 translate-y-[-20px] pointer-events-auto max-w-full;
         }
         .toast-card.show { @apply opacity-100 translate-y-0; }
+
+        .status-pill { @apply inline-block w-28 text-center py-1 rounded text-[9px] font-bold uppercase tracking-tighter; }
+        .status-green { @apply bg-soft-black text-white; }
+        .status-yellow { @apply border border-soft-black/50 text-yellow-500; }
+        .status-red { @apply border border-red-900/50 text-red-500; }
 
         input:disabled { @apply bg-gray-100 cursor-not-allowed opacity-80; }
     </style>
@@ -80,17 +115,19 @@
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-auto custom-scrollbar pr-2">
-                    <table class="w-full text-left min-w-[1100px] table-fixed">
-                        <thead class="sticky top-0 z-10">
+                <div class="flex-1 min-h-0 overflow-x-auto overflow-y-auto custom-scrollbar table-scrollbar pr-2">
+                    <table class="w-full text-left min-w-[1120px] table-fixed">
+                        <thead class="sticky top-0 bg-white z-10">
                             <tr class="border-b border-gray-200">
-                                <th class="pb-6 pt-2 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Customer</th>
-                                <th class="pb-6 pt-2 w-[150px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Contact</th>
-                                <th class="pb-6 pt-2 text-[10px] font-bold uppercase tracking-widest text-gray-600">Product</th>
-                                <th class="pb-6 pt-2 w-[100px] text-center text-[10px] font-bold uppercase text-gray-600">Qty</th>
-                                <th class="pb-6 pt-2 w-[130px] text-center text-[10px] font-bold uppercase text-gray-600">Status</th>
-                                <th class="pb-6 pt-2 w-[140px] text-center text-[10px] font-bold uppercase text-gray-600">Due Date</th>
-                                <th class="pb-6 pt-2 w-[140px] text-right text-[10px] font-bold uppercase text-gray-600 pr-2">Control</th>
+                                <th class="pb-6 pt-2 px-2 w-[90px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Order ID</th>
+                                <th class="pb-6 pt-2 px-2 w-[150px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Customer</th>
+                                <th class="pb-6 px-2 w-[170px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Address</th>
+                                <th class="pb-6 px-2 w-[145px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Contact</th>
+                                <th class="pb-6 px-2 w-[165px] text-[10px] font-bold uppercase tracking-widest text-gray-600">Product</th>
+                                <th class="pb-6 px-2 w-[95px] text-center text-[10px] font-bold uppercase text-gray-600">Qty</th>
+                                <th class="pb-6 px-2 w-[125px] text-center text-[10px] font-bold uppercase text-gray-600">Status</th>
+                                <th class="pb-6 px-2 w-[130px] text-center text-[10px] font-bold uppercase text-gray-600">Due Date</th>
+                                <th class="pb-6 px-2 w-[110px] text-right text-[10px] font-bold uppercase text-gray-600">Control</th>
                             </tr>
                         </thead>
                         <tbody id="orderTableBody" class="divide-y divide-gray-200"></tbody>
@@ -101,15 +138,66 @@
     </main>
 
     <div id="orderModal" class="hidden fixed inset-0 bg-soft-black/30 z-[60] p-3 sm:p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black max-h-[95vh]">
-            <div class="p-5 sm:p-8 lg:p-10 max-h-[95vh] overflow-y-auto">
-                <h2 id="modalTitle" class="text-xl sm:text-2xl font-black italic uppercase tracking-tighter text-soft-black mb-8 border-b border-gray-100 pb-4">
-                    New Sales Order
-                </h2>
+        <div class="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border-t-[14px] border-soft-black">
+            <div class="p-8 md:p-10 max-h-[90vh] overflow-y-auto view-scrollbar">
+                <div class="mb-8 flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                    <h2 id="modalTitle" class="text-2xl font-black italic uppercase tracking-tighter text-soft-black">
+                        New Sales Order
+                    </h2>
+                    <button type="button" onclick="closeOrderModal()" class="rounded-lg border border-gray-200 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-gray-50">Exit</button>
+                </div>
 
                 <div class="space-y-6">
                     <input type="hidden" id="editOrderId">
 
+                    <div id="orderViewSummary" class="hidden">
+                        <div class="grid grid-cols-1 gap-4 py-6 md:grid-cols-3">
+                            <div class="rounded-2xl bg-gray-50 p-5">
+                                <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Product</p>
+                                <p id="viewOrderProduct" class="mt-2 text-sm font-black uppercase text-soft-black">-</p>
+                            </div>
+                            <div class="rounded-2xl bg-gray-50 p-5">
+                                <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Quantity</p>
+                                <p id="viewOrderQuantity" class="mt-2 text-sm font-black uppercase text-soft-black">-</p>
+                            </div>
+                            <div class="rounded-2xl bg-gray-50 p-5">
+                                <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Status</p>
+                                <p id="viewOrderStatus" class="mt-2 text-sm font-black uppercase text-soft-black">-</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="mb-4 text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Order Details</p>
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-12 items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                                    <div class="col-span-12 md:col-span-3">
+                                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Customer</p>
+                                    </div>
+                                    <div class="col-span-12 md:col-span-9 text-xs font-black uppercase tracking-tight text-soft-black" id="viewOrderCustomer">-</div>
+                                </div>
+                                <div class="grid grid-cols-12 items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                                    <div class="col-span-12 md:col-span-3">
+                                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Contact</p>
+                                    </div>
+                                    <div class="col-span-12 md:col-span-9 text-xs font-mono font-bold text-soft-black/70" id="viewOrderContact">-</div>
+                                </div>
+                                <div class="grid grid-cols-12 items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                                    <div class="col-span-12 md:col-span-3">
+                                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Due Date</p>
+                                    </div>
+                                    <div class="col-span-12 md:col-span-9 text-xs font-mono font-bold text-soft-black/70" id="viewOrderDueDate">-</div>
+                                </div>
+                                <div class="grid grid-cols-12 items-start gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                                    <div class="col-span-12 md:col-span-3">
+                                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Address</p>
+                                    </div>
+                                    <div class="col-span-12 md:col-span-9 text-xs font-bold leading-relaxed text-soft-black/70" id="viewOrderAddress">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="orderInfoFields" class="space-y-6">
                     <div>
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Customer Name</label>
                         <input type="text" id="custName" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all" placeholder="Enter name...">
@@ -118,16 +206,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Contact Number</label>
-                            <input type="text" id="custContact" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all" placeholder="09XXXXXXXXX">
-                        </div>
-
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Order Status</label>
-                            <select id="orderStatus" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all appearance-none">
-                                <option value="pending">Pending</option>
-                                <option value="completed">Completed</option>
-                                <option value="canceled">Canceled</option>
-                            </select>
+                            <input type="text" id="custContact" inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all" placeholder="09XXXXXXXXX">
                         </div>
                     </div>
 
@@ -160,13 +239,54 @@
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Completion Date</label>
                         <input type="date" id="dueDate" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all">
                     </div>
+                    </div>
 
-                    <div class="pt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div id="orderStatusField">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Order Status</label>
+                        <select id="orderStatus" class="w-full bg-gray-50 border-b-2 border-gray-200 py-4 px-2 text-sm font-bold outline-none focus:border-soft-black transition-all appearance-none">
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="late">Late</option>
+                            <option value="canceled">Canceled</option>
+                        </select>
+                    </div>
+
+                    <div id="createOrderActions" class="pt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
                         <button type="button" id="saveOrderButton" onclick="commitOrder()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-soft-black/50 transition-all uppercase tracking-widest shadow-xl">
                             Confirm Entry
                         </button>
                         <button type="button" onclick="closeOrderModal()" class="py-5 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
                             Abort
+                        </button>
+                    </div>
+
+                    <div id="viewOrderActions" class="hidden mt-8 grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <button type="button" id="editOrderInfoButton" onclick="startEditOrderInfo()" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85 disabled:cursor-not-allowed disabled:opacity-40">
+                            Edit Information
+                        </button>
+                        <button type="button" id="editOrderStatusButton" onclick="startEditOrderStatus()" class="rounded-2xl border border-soft-black/20 bg-soft-black/5 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white disabled:cursor-not-allowed disabled:opacity-40">
+                            Edit Status
+                        </button>
+                        <button type="button" onclick="archiveViewedOrder()" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100">
+                            Archive
+                        </button>
+                    </div>
+
+                    <div id="editInfoActions" class="hidden pt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button type="button" id="saveInfoButton" onclick="saveOrderInfo()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-soft-black/50 transition-all uppercase tracking-widest shadow-xl">
+                            Save Information
+                        </button>
+                        <button type="button" onclick="cancelOrderEdit()" class="py-5 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
+                            Cancel
+                        </button>
+                    </div>
+
+                    <div id="editStatusActions" class="hidden pt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button type="button" id="saveStatusButton" onclick="saveOrderStatus()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-soft-black/50 transition-all uppercase tracking-widest shadow-xl">
+                            Save Status
+                        </button>
+                        <button type="button" onclick="cancelOrderEdit()" class="py-5 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
+                            Cancel
                         </button>
                     </div>
                 </div>
@@ -179,10 +299,12 @@
     </script>
     <script type="module" src="../components/ragsak_navigation.js"></script>
     <script type="module">
-        import { getOrders, getOrderFinishedProducts, createOrder, updateOrder } from '../assets/js/api.js';
+        import { getOrders, getOrderFinishedProducts, createOrder, updateOrderInfo, updateOrderStatus, archiveOrder } from '../assets/js/api.js';
 
         let orders = [];
         let finishedProducts = [];
+        let viewedOrder = null;
+        let orderModalMode = 'create';
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -208,10 +330,9 @@
 
         function getSelectedFinishedProduct() {
             const value = document.getElementById('prodSelect').value;
-            const [productID, processID] = value.split(':').map(Number);
+            const productID = Number(value);
             return finishedProducts.find(product =>
-                Number(product.productID) === productID &&
-                Number(product.processID) === processID
+                Number(product.productID) === productID
             );
         }
 
@@ -219,7 +340,7 @@
             const select = document.getElementById('prodSelect');
             select.innerHTML = '<option value="" disabled selected>Choose Finished Product...</option>' +
                 finishedProducts.map(product => {
-                    const value = `${product.productID}:${product.processID}`;
+                    const value = Number(product.productID);
                     return `<option value="${value}">${escapeHtml(product.productName)} [${escapeHtml(product.unitType)}]</option>`;
                 }).join('');
 
@@ -243,10 +364,59 @@
             document.getElementById('unitLabel').innerText = 'Unit';
         }
 
+        function setOrderFieldsDisabled(disabled, allowStatus = false) {
+            document.getElementById('custName').disabled = disabled;
+            document.getElementById('custContact').disabled = disabled;
+            document.getElementById('custAddress').disabled = disabled;
+            document.getElementById('prodSelect').disabled = disabled;
+            document.getElementById('orderQty').disabled = disabled;
+            document.getElementById('dueDate').disabled = disabled;
+            document.getElementById('orderStatus').disabled = disabled && !allowStatus;
+        }
+
+        function showOrderActions(mode) {
+            orderModalMode = mode;
+            document.getElementById('orderViewSummary').classList.toggle('hidden', mode === 'create');
+            document.getElementById('orderInfoFields').classList.toggle('hidden', mode === 'view' || mode === 'editStatus');
+            document.getElementById('orderStatusField').classList.toggle('hidden', mode === 'create' || mode === 'view' || mode === 'editInfo');
+            document.getElementById('createOrderActions').classList.toggle('hidden', mode !== 'create');
+            document.getElementById('viewOrderActions').classList.toggle('hidden', mode !== 'view');
+            document.getElementById('editInfoActions').classList.toggle('hidden', mode !== 'editInfo');
+            document.getElementById('editStatusActions').classList.toggle('hidden', mode !== 'editStatus');
+
+            if (mode === 'view') {
+                const isFinal = viewedOrder && ['completed', 'canceled', 'late'].includes(String(viewedOrder.orderStatus || '').toLowerCase());
+                document.getElementById('editOrderInfoButton').disabled = Boolean(isFinal);
+                document.getElementById('editOrderStatusButton').disabled = Boolean(isFinal);
+            }
+        }
+
+        function fillOrderSummary(order) {
+            document.getElementById('viewOrderProduct').textContent = order?.productName || '-';
+            document.getElementById('viewOrderQuantity').textContent = order ? `${order.quantity || 0} ${order.unitType || ''}` : '-';
+            document.getElementById('viewOrderStatus').textContent = order?.orderStatus || '-';
+            document.getElementById('viewOrderCustomer').textContent = order?.customerName || '-';
+            document.getElementById('viewOrderContact').textContent = order?.contactNumber || '-';
+            document.getElementById('viewOrderDueDate').textContent = order?.dateCompletion || '-';
+            document.getElementById('viewOrderAddress').textContent = order?.customerAddress || '-';
+        }
+
+        function fillOrderForm(order) {
+            document.getElementById('editOrderId').value = order?.orderID || '';
+            document.getElementById('custName').value = order?.customerName || '';
+            document.getElementById('custContact').value = order?.contactNumber || '';
+            document.getElementById('custAddress').value = order?.customerAddress || '';
+            document.getElementById('orderStatus').value = order?.orderStatus || 'pending';
+            document.getElementById('orderQty').value = order?.quantity || '';
+            document.getElementById('dueDate').value = order?.dateCompletion || '';
+            loadProductOptions(order ? String(order.productID) : '');
+            fillOrderSummary(order);
+        }
+
         function getStatusClass(status) {
-            if (status === 'completed') return 'bg-soft-black text-white';
-            if (status === 'canceled') return 'bg-red-50 text-red-600 border border-red-100';
-            return 'bg-yellow-50 text-yellow-700 border border-yellow-100';
+            if (status === 'completed') return 'status-green';
+            if (status === 'canceled' || status === 'late') return 'status-red';
+            return 'status-yellow';
         }
 
         function renderOrders() {
@@ -260,7 +430,7 @@
             if (visibleOrders.length === 0) {
                 body.innerHTML = `
                     <tr>
-                        <td colspan="7" class="py-16 text-center text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
+                        <td colspan="9" class="py-16 text-center text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
                             No orders found
                         </td>
                     </tr>
@@ -269,28 +439,28 @@
             }
 
             body.innerHTML = visibleOrders.map(order => `
-                <tr class="group hover:bg-gray-50/50 transition-colors">
-                    <td class="py-6 px-2">
-                        <p class="text-sm font-bold text-soft-black uppercase tracking-tight italic">${escapeHtml(order.customerName)}</p>
-                        <p class="mt-1 truncate text-[10px] font-bold text-gray-400">${escapeHtml(order.customerAddress)}</p>
+                <tr class="border-b border-gray-200 text-soft-black hover:bg-black/[0.02] transition-colors group">
+                    <td class="py-4 px-2 text-xs text-soft-black/60 font-mono">${escapeHtml(order.orderID)}</td>
+                    <td class="py-4 px-2 text-xs font-bold text-soft-black">
+                        ${escapeHtml(order.customerName)}
                     </td>
-                    <td class="py-6 text-xs font-bold text-soft-black/70">${escapeHtml(order.contactNumber)}</td>
-                    <td class="py-6">
+                    <td class="py-4 px-2">
+                        <p class="truncate text-xs font-bold text-soft-black/60">${escapeHtml(order.customerAddress)}</p>
+                    </td>
+                    <td class="py-4 px-2 text-xs text-soft-black/60 font-mono">${escapeHtml(order.contactNumber)}</td>
+                    <td class="py-4 px-2">
                         <span class="text-xs font-bold text-soft-black">${escapeHtml(order.productName)}</span>
-                        <span class="text-[9px] font-black uppercase text-white bg-soft-black border border-soft-black px-2 py-0.5 rounded ml-2">
-                            ${escapeHtml(order.processName)}
-                        </span>
                     </td>
-                    <td class="py-6 text-center text-sm font-black text-soft-black">${escapeHtml(order.quantity)}</td>
-                    <td class="py-6 text-center">
-                        <span class="inline-flex rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest ${getStatusClass(order.orderStatus)}">
+                    <td class="py-4 px-2 text-center text-xs text-soft-black/60 font-mono">${escapeHtml(order.quantity)}</td>
+                    <td class="py-4 px-2 text-center">
+                        <span class="status-pill ${getStatusClass(order.orderStatus)}">
                             ${escapeHtml(order.orderStatus)}
                         </span>
                     </td>
-                    <td class="py-6 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">${escapeHtml(order.dateCompletion)}</td>
-                    <td class="py-6 text-right pr-2">
-                        <button type="button" onclick="editOrder('${escapeHtml(order.orderID)}')" class="text-soft-black/40 hover:text-soft-black text-[9px] font-black uppercase tracking-widest transition-colors">
-                            Edit
+                    <td class="py-4 px-2 text-center text-xs text-soft-black/60 font-mono">${escapeHtml(order.dateCompletion)}</td>
+                    <td class="py-4 px-2 text-right">
+                        <button type="button" onclick="viewOrder('${escapeHtml(order.orderID)}')" class="rounded-lg bg-soft-black px-3 py-2 text-[9px] font-black uppercase tracking-widest text-white hover:bg-soft-black/80">
+                            View
                         </button>
                     </td>
                 </tr>
@@ -319,65 +489,97 @@
             renderOrders();
         }
 
-        function editOrder(id) {
+        function viewOrder(id) {
             const order = orders.find(o => Number(o.orderID) === Number(id));
             if (!order) return;
 
-            document.getElementById('modalTitle').innerText = "Update Sales Order";
-            document.getElementById('editOrderId').value = order.orderID;
-            document.getElementById('custName').value = order.customerName || '';
-            document.getElementById('custContact').value = order.contactNumber || '';
-            document.getElementById('custAddress').value = order.customerAddress || '';
-            document.getElementById('orderStatus').value = order.orderStatus || 'pending';
-            document.getElementById('orderQty').value = order.quantity || '';
-            document.getElementById('dueDate').value = order.dateCompletion || '';
-            loadProductOptions(`${order.productID}:${order.processID}`);
+            viewedOrder = order;
+            document.getElementById('modalTitle').innerText = "View Sales Order";
+            fillOrderForm(order);
+            setOrderFieldsDisabled(true);
+            showOrderActions('view');
             document.getElementById('orderModal').classList.remove('hidden');
         }
 
-        async function commitOrder() {
-            const editId = document.getElementById('editOrderId').value;
+        function startEditOrderInfo() {
+            if (!viewedOrder) return;
+
+            document.getElementById('modalTitle').innerText = "Edit Order Information";
+            setOrderFieldsDisabled(false);
+            document.getElementById('orderStatus').disabled = true;
+            showOrderActions('editInfo');
+        }
+
+        function startEditOrderStatus() {
+            if (!viewedOrder) return;
+
+            document.getElementById('modalTitle').innerText = "Edit Order Status";
+            setOrderFieldsDisabled(true, true);
+            document.getElementById('orderStatus').disabled = false;
+            showOrderActions('editStatus');
+        }
+
+        function cancelOrderEdit() {
+            if (!viewedOrder) return;
+
+            document.getElementById('modalTitle').innerText = "View Sales Order";
+            fillOrderForm(viewedOrder);
+            setOrderFieldsDisabled(true);
+            showOrderActions('view');
+        }
+
+        function buildOrderInfoPayload() {
             const selectedItem = getSelectedFinishedProduct();
             const quantity = Number(document.getElementById('orderQty').value);
 
-            const payload = {
+            return {
                 customerName: document.getElementById('custName').value.trim(),
                 contactNumber: document.getElementById('custContact').value.trim(),
                 customerAddress: document.getElementById('custAddress').value.trim(),
                 productID: selectedItem ? Number(selectedItem.productID) : null,
-                processID: selectedItem ? Number(selectedItem.processID) : null,
                 quantity,
-                orderStatus: document.getElementById('orderStatus').value,
                 dateCompletion: document.getElementById('dueDate').value
             };
+        }
+
+        function validateOrderInfoPayload(payload) {
+            const selectedItem = getSelectedFinishedProduct();
 
             if (!payload.customerName || !payload.contactNumber || !payload.customerAddress || !payload.productID || !payload.quantity || !payload.dateCompletion) {
                 showToast("Missing Fields", "error");
-                return;
+                return false;
+            }
+
+            if (!/^09\d{9}$/.test(payload.contactNumber)) {
+                showToast("Contact number must be 11 digits and start with 09", "error");
+                return false;
             }
 
             if (payload.quantity <= 0 || !Number.isInteger(payload.quantity)) {
                 showToast("Quantity must be a positive whole number", "error");
-                return;
+                return false;
             }
 
             if (selectedItem && Number(selectedItem.quantity) < payload.quantity) {
                 showToast("Order quantity is greater than finished product stock", "error");
-                return;
+                return false;
             }
+
+            return true;
+        }
+
+        async function commitOrder() {
+            const payload = buildOrderInfoPayload();
+            payload.orderStatus = 'pending';
+
+            if (!validateOrderInfoPayload(payload)) return;
 
             const saveButton = document.getElementById('saveOrderButton');
             saveButton.disabled = true;
             saveButton.textContent = 'Saving Order...';
 
             try {
-                if (editId) {
-                    payload.orderID = Number(editId);
-                }
-
-                const response = editId
-                    ? await updateOrder(payload)
-                    : await createOrder(payload);
+                const response = await createOrder(payload);
 
                 if (!response || response.status !== 'success') {
                     showToast(response?.message || 'Order save failed', 'error');
@@ -395,21 +597,103 @@
             }
         }
 
+        async function saveOrderInfo() {
+            if (!viewedOrder) return;
+
+            const payload = buildOrderInfoPayload();
+            payload.orderID = Number(viewedOrder.orderID);
+
+            if (!validateOrderInfoPayload(payload)) return;
+
+            const saveButton = document.getElementById('saveInfoButton');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            try {
+                const response = await updateOrderInfo(payload);
+
+                if (!response || response.status !== 'success') {
+                    showToast(response?.message || 'Order information update failed', 'error');
+                    return;
+                }
+
+                showToast(response.message || 'Order information updated', 'success');
+                await loadOrderData();
+                viewedOrder = orders.find(order => Number(order.orderID) === Number(payload.orderID)) || viewedOrder;
+                cancelOrderEdit();
+            } catch (error) {
+                showToast("Failed to update order information", "error");
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Save Information';
+            }
+        }
+
+        async function saveOrderStatus() {
+            if (!viewedOrder) return;
+
+            const payload = {
+                orderID: Number(viewedOrder.orderID),
+                orderStatus: document.getElementById('orderStatus').value
+            };
+
+            const saveButton = document.getElementById('saveStatusButton');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            try {
+                const response = await updateOrderStatus(payload);
+
+                if (!response || response.status !== 'success') {
+                    showToast(response?.message || 'Order status update failed', 'error');
+                    return;
+                }
+
+                showToast(response.message || 'Order status updated', 'success');
+                await loadOrderData();
+                viewedOrder = orders.find(order => Number(order.orderID) === Number(payload.orderID)) || viewedOrder;
+                cancelOrderEdit();
+            } catch (error) {
+                showToast("Failed to update order status", "error");
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Save Status';
+            }
+        }
+
+        async function archiveViewedOrder() {
+            if (!viewedOrder) return;
+            if (!confirm('Archive this order?')) return;
+
+            try {
+                const response = await archiveOrder({ orderID: Number(viewedOrder.orderID) });
+
+                if (!response || response.status !== 'success') {
+                    showToast(response?.message || 'Order archive failed', 'error');
+                    return;
+                }
+
+                showToast(response.message || 'Order archived', 'success');
+                closeOrderModal();
+                await loadOrderData();
+            } catch (error) {
+                showToast("Failed to archive order", "error");
+            }
+        }
+
         function openOrderModal() {
+            viewedOrder = null;
             document.getElementById('modalTitle').innerText = "New Sales Order";
-            document.getElementById('editOrderId').value = "";
-            document.getElementById('custName').value = "";
-            document.getElementById('custContact').value = "";
-            document.getElementById('custAddress').value = "";
-            document.getElementById('orderStatus').value = "pending";
-            document.getElementById('orderQty').value = "";
-            document.getElementById('dueDate').value = "";
-            loadProductOptions();
+            fillOrderForm(null);
+            document.getElementById('orderStatus').value = 'pending';
+            setOrderFieldsDisabled(false);
+            showOrderActions('create');
             document.getElementById('orderModal').classList.remove('hidden');
         }
 
         function closeOrderModal() {
             document.getElementById('orderModal').classList.add('hidden');
+            viewedOrder = null;
         }
 
         document.getElementById('orderSearch').addEventListener('input', renderOrders);
@@ -417,7 +701,13 @@
         window.openOrderModal = openOrderModal;
         window.closeOrderModal = closeOrderModal;
         window.commitOrder = commitOrder;
-        window.editOrder = editOrder;
+        window.viewOrder = viewOrder;
+        window.startEditOrderInfo = startEditOrderInfo;
+        window.startEditOrderStatus = startEditOrderStatus;
+        window.cancelOrderEdit = cancelOrderEdit;
+        window.saveOrderInfo = saveOrderInfo;
+        window.saveOrderStatus = saveOrderStatus;
+        window.archiveViewedOrder = archiveViewedOrder;
         window.updateAvailableStock = updateAvailableStock;
 
         loadOrderData();

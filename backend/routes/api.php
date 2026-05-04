@@ -238,6 +238,32 @@ switch($request) {
             updateOrder();
         }
 
+        if($method == "POST" && $action == "update_info") {
+            updateOrderInfo();
+        }
+
+        if($method == "POST" && $action == "update_status") {
+            updateOrderStatusOnly();
+        }
+
+        if($method == "POST" && $action == "archive") {
+            archiveOrder();
+        }
+
+        break;
+
+    case 'reports':
+        validateJWT();
+        require_once __DIR__ . '../../controllers/reportController.php';
+
+        if($method == "GET") {
+            getReportDataset();
+        }
+
+        if($method == "POST" && $action == "log_export") {
+            logReportExport();
+        }
+
         break;
 
     case 'users':

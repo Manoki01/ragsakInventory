@@ -129,7 +129,6 @@
                                 </label>
                                 <textarea
                                     id="processDescription"
-                                    required
                                     maxlength="255"
                                     rows="5"
                                     class="w-full resize-none bg-gray-50 border-b-2 border-gray-200 py-3 px-2 text-sm font-bold outline-none focus:border-moss-green"
@@ -435,11 +434,23 @@
 
             const payload = {
                 processName: processNameInput.value.trim(),
-                processDescription: processDescriptionInput.value.trim()
+                processDescription: processDescriptionInput.value.trim() || 'No Description'
             };
 
             if (!payload.processName || !payload.processDescription) {
                 showToast('Process name and description are required', 'error');
+                return;
+            }
+
+            if (!/^[A-Za-z0-9][A-Za-z0-9\s().,&\/-]*$/.test(payload.processName)) {
+                showToast('Process name contains invalid characters', 'error');
+                processNameInput.focus();
+                return;
+            }
+
+            if (/[<>{}]/.test(payload.processDescription)) {
+                showToast('Process description contains invalid characters', 'error');
+                processDescriptionInput.focus();
                 return;
             }
 

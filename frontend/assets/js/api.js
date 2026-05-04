@@ -227,6 +227,49 @@ async function apiRequest(route, options = {}) {
         });
     }
 
+    export async function updateOrderInfo(data) {
+        return await apiRequest("orders&action=update_info", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function updateOrderStatus(data) {
+        return await apiRequest("orders&action=update_status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function archiveOrder(data) {
+        return await apiRequest("orders&action=archive", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+//Reports
+    export async function getReportDataset(params = {}) {
+        const query = new URLSearchParams();
+
+        if (params.dateFrom) query.set("dateFrom", params.dateFrom);
+        if (params.dateUntil) query.set("dateUntil", params.dateUntil);
+
+        const suffix = query.toString() ? `&${query.toString()}` : "";
+        return await apiRequest(`reports${suffix}`);
+    }
+
+    export async function logReportExport(data) {
+        return await apiRequest("reports&action=log_export", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
 //Users
     export async function userLogin(data) {
         return await apiRequest("users&action=login", {

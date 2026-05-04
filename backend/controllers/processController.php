@@ -47,6 +47,20 @@ function validateProcessText($value, $fieldName, $maxLength = 255) {
         failProcessValidation($fieldName . " is invalid");
     }
 
+    if (preg_match('/[<>{}]/', $value)) {
+        failProcessValidation($fieldName . " contains invalid characters");
+    }
+
+    return $value;
+}
+
+function validateProcessName($value) {
+    $value = validateProcessText($value, 'Process name', 50);
+
+    if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9\s().,&\/-]*$/', $value)) {
+        failProcessValidation("Process name contains invalid characters");
+    }
+
     return $value;
 }
 
@@ -67,7 +81,7 @@ function createProcess() {
         exit;
     }
 
-    $input['processName'] = validateProcessText($input['processName'] ?? '', 'Process name', 50);
+    $input['processName'] = validateProcessName($input['processName'] ?? '');
     $input['processDescription'] = validateProcessText($input['processDescription'] ?? '', 'Process description', 255);
 
     $process = new Process();
@@ -97,7 +111,7 @@ function updateProcess() {
     }
 
     $input['processID'] = validateProcessID($input['processID'] ?? null);
-    $input['processName'] = validateProcessText($input['processName'] ?? '', 'Process name', 50);
+    $input['processName'] = validateProcessName($input['processName'] ?? '');
     $input['processDescription'] = validateProcessText($input['processDescription'] ?? '', 'Process description', 255);
 
     $process = new Process();

@@ -8,13 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <style type="text/tailwindcss">
         @theme {
-            --color-moss-green: #4A5D23;
-            --color-moss-light: #8DA067;
             --color-soft-black: #121212;
             --color-off-white: #F4F5F2;
             --font-montserrat: "Montserrat", sans-serif;
@@ -40,6 +37,14 @@
             }
             .no-print { display: none !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .report-block, .report-group {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .report-group {
+                break-before: auto;
+                page-break-before: auto;
+            }
         }
     </style>
 </head>
@@ -49,138 +54,63 @@
 
         <main class="min-h-screen lg:pl-64">
             <div class="min-h-screen px-4 pt-6 pb-6 sm:px-6 lg:px-8 lg:pt-10">
-                <div class="mb-10">
+                <header class="mb-10">
                     <h1 class="text-2xl sm:text-3xl font-black text-soft-black uppercase tracking-tighter italic leading-none">
                         Report Engine
                     </h1>
                     <p class="text-[10px] font-bold text-soft-black uppercase tracking-[0.2em] mt-2">
-                        Operational Intelligence • Philippines Tarlac Hub
+                        Templated Exports - PDF / Excel
                     </p>
-                </div>
+                </header>
 
-                <div class="max-w-8xl w-full space-y-6">
-                    <div class="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 sm:p-6">
-                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-soft-black mb-4 italic">01. Target Departments</p>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-100 bg-off-white/50 cursor-pointer hover:border-soft-black transition-all">
-                                <input type="checkbox" id="dept-products" class="w-5 h-5 accent-soft-black">
-                                <span class="text-xs font-black uppercase italic">Products</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-100 bg-off-white/50 cursor-pointer hover:border-soft-black transition-all">
-                                <input type="checkbox" id="dept-materials" class="w-5 h-5 accent-soft-black">
-                                <span class="text-xs font-black uppercase italic">Raw Materials</span>
-                            </label>
-                            <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-100 bg-off-white/50 cursor-pointer hover:border-soft-black transition-all">
-                                <input type="checkbox" id="dept-packaging" class="w-5 h-5 accent-soft-black">
-                                <span class="text-xs font-black uppercase italic">Packaging Items</span>
-                            </label>
-                        </div>
+                <section class="rounded-2xl bg-white border border-gray-100 shadow-xl overflow-hidden">
+                    <div class="bg-soft-black p-4">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">01. Report template details</p>
                     </div>
 
-                    <div class="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 sm:p-6">
-                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-soft-black mb-4 italic">02. Target Date Range</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-5 sm:p-8">
+                        <div class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
-                                <label class="text-[10px] font-bold uppercase tracking-widest text-soft-black ml-1">Date From</label>
-                                <input
-                                    type="date"
-                                    id="date-from"
-                                    class="w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm font-bold transition-all outline-none focus:border-soft-black focus:ring-2 focus:ring-soft-black/10"
-                                >
+                                <label class="ml-1 text-[10px] font-bold uppercase tracking-widest text-soft-black">Report Name</label>
+                                <input type="text" id="reportName" maxlength="100" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm font-bold outline-none focus:border-soft-black" placeholder="Monthly Inventory Report">
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold uppercase tracking-widest text-soft-black ml-1">Date Until</label>
-                                <input
-                                    type="date"
-                                    id="date-until"
-                                    class="w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm font-bold transition-all outline-none focus:border-soft-black focus:ring-2 focus:ring-soft-black/10"
-                                >
+                                <label class="ml-1 text-[10px] font-bold uppercase tracking-widest text-soft-black">Start Date</label>
+                                <input type="date" id="dateFrom" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm font-bold outline-none focus:border-soft-black">
+                            </div>
+                            <div>
+                                <label class="ml-1 text-[10px] font-bold uppercase tracking-widest text-soft-black">End Date</label>
+                                <input type="date" id="dateUntil" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-sm font-bold outline-none focus:border-soft-black">
                             </div>
                         </div>
-                        <p class="mt-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                        </p>
-                    </div>
 
-                    <div class="rounded-2xl bg-white border border-gray-100 shadow-xl overflow-hidden">
-                        <div class="bg-soft-black p-4">
-                            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">03. Choose what report to Print</p>
-                        </div>
+                        <p class="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-soft-black">02. Choose reports to export</p>
+                        <div id="reportOptions" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
-                        <div class="p-5 sm:p-8">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                                <div class="space-y-4">
-                                    <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-soft-black transition-all cursor-pointer bg-off-white/50">
-                                        <div class="flex flex-col pr-4">
-                                            <span class="text-xs font-black uppercase tracking-tight">Full Inventory</span>
-                                            <span class="text-[9px] text-soft-black uppercase font-bold italic">Itemized cost & stock levels</span>
-                                        </div>
-                                        <input type="checkbox" id="check-inventory" class="w-5 h-5 accent-soft-black">
-                                    </label>
-
-                                    <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-soft-black transition-all cursor-pointer bg-off-white/50">
-                                        <div class="flex flex-col pr-4">
-                                            <span class="text-xs font-black uppercase tracking-tight text-red-700">Critical Stock Alerts</span>
-                                            <span class="text-[9px] text-soft-black uppercase font-bold italic">Items that are out of stock</span>
-                                        </div>
-                                        <input type="checkbox" id="check-lowstock" class="w-5 h-5 accent-soft-black">
-                                    </label>
-
-                                    <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-soft-black transition-all cursor-pointer bg-off-white/50">
-                                        <div class="flex flex-col pr-4">
-                                            <span class="text-xs font-black uppercase tracking-tight">Total Value of Items</span>
-                                            <span class="text-[9px] text-soft-black uppercase font-bold italic">Total asset value</span>
-                                        </div>
-                                        <input type="checkbox" id="check-categories" class="w-5 h-5 accent-soft-black">
-                                    </label>
-
-                                    <label class="group flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-soft-black transition-all cursor-pointer bg-off-white/50">
-                                        <div class="flex flex-col pr-4">
-                                            <span class="text-xs font-black uppercase tracking-tight">Product Stock In / Out</span>
-                                            <span class="text-[9px] text-soft-black uppercase font-bold italic">Display of Stock In / Out of products</span>
-                                        </div>
-                                        <input type="checkbox" id="check-stock-movement" class="w-5 h-5 accent-soft-black">
-                                    </label>
-                                </div>
-
-                                <div class="flex flex-col justify-center bg-soft-black/5 rounded-2xl p-6 border border-soft-black/10">
-                                    <p class="text-[10px] font-bold text-soft-black uppercase mb-2 italic">Export Summary</p>
-                                    <p class="text-[11px] leading-relaxed text-soft-black/70 italic font-medium">
-                                        Documents are optimized for A4 paper. Please ensure <span class="text-soft-black font-black underline">"Background Graphics"</span> is enabled in your print settings to see the brand colors.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end sm:space-x-6">
-                                <button onclick="window.location.reload()" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-soft-black transition-colors">
-                                    Reset Filters
-                                </button>
-                                <button onclick="prepareAndPrint()" class="bg-soft-black text-white text-[11px] font-black uppercase tracking-widest px-8 sm:px-10 py-4 rounded-xl hover:bg-soft-black/50 hover:scale-105 transition-all shadow-lg">
-                                    Generate PDF / Print
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
-                        <div class="bg-soft-black p-4 flex items-center justify-between">
-                            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">04. Report History</p>
-                            <button
-                                type="button"
-                                onclick="clearReportHistory()"
-                                class="text-[9px] font-bold uppercase tracking-widest text-white/60 hover:text-red-400 transition-colors"
-                            >
-                                Clear History
+                        <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+                            <button type="button" id="resetReports" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-soft-black">
+                                Reset
+                            </button>
+                            <button type="button" id="exportExcel" class="rounded-xl border border-soft-black/20 bg-soft-black/5 px-8 py-4 text-[11px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white">
+                                Export Excel
+                            </button>
+                            <button type="button" id="exportPdf" class="rounded-xl bg-soft-black px-8 py-4 text-[11px] font-black uppercase tracking-widest text-white hover:bg-soft-black/80">
+                                Export PDF / Print
                             </button>
                         </div>
+                    </div>
+                </section>
 
-                        <div class="p-5 sm:p-6">
-                            <div id="reportHistoryList" class="space-y-3"></div>
-                            <div id="reportHistoryEmpty" class="hidden py-10 text-center">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-gray-300">No generated reports yet</p>
-                            </div>
+                <section class="mt-6 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="bg-soft-black p-4">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">03. Export transactions</p>
+                    </div>
+                    <div class="p-5 sm:p-6">
+                        <div id="reportTransactionList" class="space-y-3">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Export a report to record a transaction.</p>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
         </main>
     </div>
@@ -189,404 +119,427 @@
         <div class="flex justify-between items-end border-b-8 border-soft-black pb-6 mb-10">
             <div>
                 <h1 class="text-5xl font-black uppercase tracking-tighter italic leading-none">RAGSAK</h1>
-                <p class="text-sm font-bold uppercase tracking-[0.4em] text-soft-black">Inventory Systems</p>
+                <p class="text-sm font-bold uppercase tracking-[0.4em] text-soft-black">Inventory Report Export</p>
             </div>
             <div class="text-right">
                 <p id="printDate" class="text-xs font-mono font-bold mb-1"></p>
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tarlac Operations • Philippines</p>
+                <p id="reportRef" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest"></p>
             </div>
         </div>
 
         <div id="report-content-area" class="space-y-12"></div>
-
-        <div class="mt-20 border-t border-gray-100 pt-6">
-            <div class="flex justify-between items-center">
-                <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold">System Authorized Report • Verified Electronic Loadout</p>
-                <p id="reportRef" class="text-[9px] font-mono text-gray-300"></p>
-            </div>
-        </div>
     </div>
 
     <script>
         window.currentPageId = 'nav-reports';
     </script>
     <script type="module" src="../components/ragsak_navigation.js"></script>
-    <script>
-        const REPORT_HISTORY_KEY = 'ragsak_report_history';
-        const ORDER_KEY = 'ragsak_orders_data';
-        const PRODUCT_STOCK_LOG_KEY = 'ragsak_product_stock_log';
+    <script type="module">
+        import { getReportDataset, logReportExport } from '../assets/js/api.js';
 
-        function getSelectedDepartments() {
-            const selections = [];
-            if (document.getElementById('dept-products').checked) selections.push('Products');
-            if (document.getElementById('dept-materials').checked) selections.push('Materials');
-            if (document.getElementById('dept-packaging').checked) selections.push('Packaging');
-            return selections;
+        const REPORTS = [
+            ['inventoryStock', 'Inventory Stock Report', 'Products by process, raw materials, packaging'],
+            ['stockMovement', 'Stock Movement Report', 'All product, raw material, and packaging changelogs'],
+            ['orderFulfillment', 'Order Fulfillment Report', 'Orders with total revenue'],
+            ['completedLateOrders', 'Completed / Late Orders Report', 'Completed and late order revenue'],
+            ['archivedRecords', 'Archived Records Report', 'Grouped archived records without IDs'],
+            ['userActivity', 'User Activity Report', 'Order activity grouped by user'],
+            ['productConsumption', 'Production Consumption Report', 'BOM usage grouped by product process'],
+            ['salesDemand', 'Sales Demand Report', 'Demand, earned revenue, pending revenue, expected revenue']
+        ];
+
+        let reportDataset = null;
+        let reportDatasetRangeKey = '';
+
+        const peso = value => Number(value || 0).toLocaleString('en-PH', {
+            style: 'currency',
+            currency: 'PHP'
+        });
+
+        const number = value => Number(value || 0).toLocaleString('en-PH');
+
+        function formatDateWords(value) {
+            if (!value) return '';
+            const date = new Date(`${value}T00:00:00`);
+            if (Number.isNaN(date.getTime())) return value;
+            return date.toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            });
         }
 
-        function getSelectedModules() {
-            const modules = [];
-            if (document.getElementById('check-inventory').checked) modules.push('Full Inventory Valuation');
-            if (document.getElementById('check-lowstock').checked) modules.push('Critical Stock Alerts');
-            if (document.getElementById('check-categories').checked) modules.push('Global Metrics');
-            if (document.getElementById('check-stock-movement').checked) modules.push('Product Stock In / Out');
-            return modules;
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char]));
         }
 
-        function saveReportHistory(entry) {
-            const history = JSON.parse(localStorage.getItem(REPORT_HISTORY_KEY)) || [];
-            history.unshift(entry);
-            localStorage.setItem(REPORT_HISTORY_KEY, JSON.stringify(history.slice(0, 20)));
-            renderReportHistory();
+        function groupBy(rows, key) {
+            return rows.reduce((groups, row) => {
+                const value = row[key] || 'Unclassified';
+                groups[value] = groups[value] || [];
+                groups[value].push(row);
+                return groups;
+            }, {});
         }
 
-        function clearReportHistory() {
-            if (!confirm("Clear all generated report history?")) return;
-            localStorage.removeItem(REPORT_HISTORY_KEY);
-            renderReportHistory();
+        function section(title, body) {
+            return `
+                <section class="report-block">
+                    <h2 class="mb-4 flex items-center text-xl font-black uppercase italic tracking-tight">
+                        <span class="mr-3 flex h-8 w-8 items-center justify-center bg-soft-black text-xs text-white not-italic">RS</span>
+                        ${escapeHtml(title)}
+                    </h2>
+                    ${body}
+                </section>
+            `;
         }
 
-        function renderReportHistory() {
-            const history = JSON.parse(localStorage.getItem(REPORT_HISTORY_KEY)) || [];
-            const list = document.getElementById('reportHistoryList');
-            const empty = document.getElementById('reportHistoryEmpty');
+        function table(headers, rows) {
+            return `
+                <table class="w-full border-collapse text-left text-[11px]">
+                    <thead>
+                        <tr class="border-b-2 border-soft-black text-[9px] font-black uppercase italic tracking-widest text-gray-400">
+                            ${headers.map(header => `<th class="py-2 pr-3">${escapeHtml(header)}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        ${rows || `<tr><td class="py-4 text-gray-400" colspan="${headers.length}">No records found</td></tr>`}
+                    </tbody>
+                </table>
+            `;
+        }
 
-            if (history.length === 0) {
-                list.innerHTML = '';
-                empty.classList.remove('hidden');
+        function groupedTables(groups, headers, renderRow) {
+            const entries = Object.entries(groups);
+            if (!entries.length) return '<p class="py-4 text-xs font-bold uppercase text-gray-400">No records found</p>';
+
+            return entries.map(([group, rows]) => `
+                <div class="report-group mb-8">
+                    <p class="mb-3 border-l-8 border-soft-black bg-off-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-soft-black">${escapeHtml(group)}</p>
+                    ${table(headers, rows.map(renderRow).join(''))}
+                </div>
+            `).join('');
+        }
+
+        function inventoryStockReport(data) {
+            const productGroups = groupBy(data.inventory.products, 'processName');
+
+            return section('Inventory Stock Report', `
+                <p class="mb-4 border-l-8 border-soft-black bg-off-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-soft-black">Products</p>
+                ${groupedTables(productGroups, ['Product', 'Stock', 'Unit', 'Unit Price', 'Asset Value'], row => `
+                    <tr>
+                        <td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.productName)}</td>
+                        <td class="py-3 pr-3 font-mono">${number(row.quantity)}</td>
+                        <td class="py-3 pr-3">${escapeHtml(row.unitType)}</td>
+                        <td class="py-3 pr-3 font-mono">${peso(row.productPrice)}</td>
+                        <td class="py-3 pr-3 font-mono font-black">${peso(Number(row.quantity) * Number(row.productPrice))}</td>
+                    </tr>
+                `)}
+                <div class="report-group">
+                <p class="mb-4 mt-8 border-l-8 border-soft-black bg-off-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-soft-black">Raw Materials</p>
+                ${table(['Raw Material', 'Stock', 'Unit', 'Type', 'Unit Price', 'Asset Value'], data.inventory.rawMaterials.map(row => `
+                    <tr><td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.rawMaterialName)}</td><td class="py-3 pr-3 font-mono">${number(row.quantity)}</td><td>${escapeHtml(row.unitType)}</td><td>${escapeHtml(row.matType)}</td><td class="font-mono">${peso(row.rawMaterialPrice)}</td><td class="font-mono font-black">${peso(Number(row.quantity) * Number(row.rawMaterialPrice))}</td></tr>
+                `).join(''))}
+                </div>
+                <div class="report-group">
+                <p class="mb-4 mt-8 border-l-8 border-soft-black bg-off-white px-4 py-3 text-[11px] font-black uppercase tracking-[0.25em] text-soft-black">Packaging</p>
+                ${table(['Packaging', 'Stock', 'Unit', 'Type', 'Unit Price', 'Asset Value'], data.inventory.packaging.map(row => `
+                    <tr><td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.packagingName)}</td><td class="py-3 pr-3 font-mono">${number(row.quantity)}</td><td>${escapeHtml(row.unitType)}</td><td>${escapeHtml(row.packagingType)}</td><td class="font-mono">${peso(row.packagingPrice)}</td><td class="font-mono font-black">${peso(Number(row.quantity) * Number(row.packagingPrice))}</td></tr>
+                `).join(''))}
+                </div>
+            `);
+        }
+
+        function stockMovementReport(data) {
+            return section('Stock Movement Report', table(
+                ['Date', 'Type', 'Item', 'Group', 'Action', 'Qty', 'Initial', 'Final', 'Reason'],
+                data.stockMovements.map(row => `
+                    <tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td>${escapeHtml(row.itemType)}</td><td class="font-bold uppercase">${escapeHtml(row.itemName)}</td><td>${escapeHtml(row.groupName)}</td><td>${escapeHtml(row.action)}</td><td class="font-mono">${number(row.quantity)}</td><td class="font-mono">${number(row.initialQuantity)}</td><td class="font-mono">${number(row.finalQuantity)}</td><td>${escapeHtml(row.reason)}</td></tr>
+                `).join('')
+            ));
+        }
+
+        function orderFulfillmentReport(data, completedOnly = false) {
+            const rows = completedOnly
+                ? data.orders.filter(row => ['completed', 'late'].includes(row.orderStatus))
+                : data.orders;
+            const title = completedOnly ? 'Completed / Late Orders Report' : 'Order Fulfillment Report';
+
+            return section(title, table(
+                ['Order ID', 'Customer', 'Product', 'Qty', 'Status', 'Due Date', 'Unit Price', 'Total Revenue'],
+                rows.map(row => `
+                    <tr><td class="py-3 pr-3 font-mono">${row.orderID}</td><td class="font-bold uppercase">${escapeHtml(row.customerName)}</td><td>${escapeHtml(row.productName)}</td><td class="font-mono">${number(row.quantity)}</td><td>${escapeHtml(row.orderStatus)}</td><td class="font-mono">${escapeHtml(row.dateCompletion)}</td><td class="font-mono">${peso(row.productPrice)}</td><td class="font-mono font-black">${peso(row.totalRevenue)}</td></tr>
+                `).join('')
+            ));
+        }
+
+        function archivedRecordsReport(data) {
+            const labels = {
+                products: 'Products',
+                rawMaterials: 'Raw Materials',
+                packaging: 'Packaging',
+                processes: 'Processes',
+                orders: 'Orders'
+            };
+
+            return section('Archived Records Report', Object.entries(data.archivedRecords).map(([key, rows]) => `
+                <div class="mb-8">
+                    <p class="mb-3 rounded-xl bg-soft-black px-4 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-white">${labels[key]}</p>
+                    ${table(['Record', 'Archived Date'], rows.map(row => `
+                        <tr><td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.name)}</td><td class="font-mono">${escapeHtml(row.deleted_at)}</td></tr>
+                    `).join(''))}
+                </div>
+            `).join(''));
+        }
+
+        function userActivityReport(data) {
+            return section('User Activity Report', groupedTables(
+                groupBy(data.userActivity, 'username'),
+                ['Date', 'Order ID', 'Action'],
+                row => `<tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td class="font-mono">${row.orderID}</td><td class="font-bold uppercase">${escapeHtml(row.action)}</td></tr>`
+            ));
+        }
+
+        function productConsumptionReport(data) {
+            const rows = data.productConsumption.map(row => ({
+                ...row,
+                group: `${row.productName} - ${row.processName}`
+            }));
+
+            return section('Production Consumption Report', groupedTables(
+                groupBy(rows, 'group'),
+                ['Item Type', 'Item', 'Qty Required', 'Unit'],
+                row => `<tr><td class="py-3 pr-3">${escapeHtml(row.itemType)}</td><td class="font-bold uppercase">${escapeHtml(row.itemName)}</td><td class="font-mono">${number(row.quantityRequired)}</td><td>${escapeHtml(row.unitType)}</td></tr>`
+            ));
+        }
+
+        function salesDemandReport(data) {
+            return section('Sales Demand Report', table(
+                ['Product', 'Orders', 'Ordered Qty', 'Completed Qty', 'Late Qty', 'Pending Qty', 'Total Revenue', 'Pending Revenue', 'Expected Revenue'],
+                data.salesDemand.map(row => `
+                    <tr><td class="py-3 pr-3 font-bold uppercase">${escapeHtml(row.productName)}</td><td class="font-mono">${number(row.totalOrders)}</td><td class="font-mono">${number(row.totalQtyOrdered)}</td><td class="font-mono">${number(row.completedQty)}</td><td class="font-mono">${number(row.lateQty)}</td><td class="font-mono">${number(row.pendingQty)}</td><td class="font-mono font-black">${peso(row.totalRevenue)}</td><td class="font-mono">${peso(row.pendingRevenue)}</td><td class="font-mono font-black">${peso(row.expectedRevenue)}</td></tr>
+                `).join('')
+            ));
+        }
+
+        function renderReportTransactions() {
+            const list = document.getElementById('reportTransactionList');
+            const rows = reportDataset?.reportTransactions || [];
+
+            if (!rows.length) {
+                list.innerHTML = '<p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">No report exports found for this timeframe.</p>';
                 return;
             }
 
-            empty.classList.add('hidden');
-
-            list.innerHTML = history.map(item => `
-                <div class="rounded-2xl border border-gray-100 bg-off-white/60 p-4 sm:p-5">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            list.innerHTML = rows.slice(0, 8).map(row => `
+                <div class="rounded-2xl border border-gray-100 bg-off-white/60 p-4">
+                    <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                         <div>
-                            <p class="text-xs sm:text-sm font-black uppercase italic tracking-tight text-soft-black">${item.fileName}</p>
-                            <p class="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-soft-black">
-                                ${item.dateLabel}
-                            </p>
+                            <p class="text-xs font-black uppercase italic text-soft-black">${escapeHtml(row.reportName)}</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-gray-400">${escapeHtml(row.reportTypes)}</p>
+                            <p class="mt-2 text-[9px] font-bold uppercase tracking-widest text-soft-black/60">Timeframe: ${escapeHtml(row.dateFrom ? formatDateWords(row.dateFrom) : 'Start')} To ${escapeHtml(row.dateUntil ? formatDateWords(row.dateUntil) : 'End')}</p>
                         </div>
-                        <div class="text-left sm:text-right">
-                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Reference</p>
-                            <p class="text-[10px] font-mono text-gray-500">${item.reference}</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
-                        <div>
-                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Departments</p>
-                            <p class="text-[10px] font-black uppercase text-soft-black">${item.departments.join(', ') || 'None'}</p>
-                        </div>
-                        <div>
-                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Modules</p>
-                            <p class="text-[10px] font-black uppercase text-soft-black">${item.modules.join(', ') || 'None'}</p>
-                        </div>
-                        <div>
-                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Range</p>
-                            <p class="text-[10px] font-black uppercase text-soft-black">${item.dateRange || 'No Date Filter'}</p>
-                        </div>
-                        <div>
-                            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Status</p>
-                            <p class="text-[10px] font-black uppercase text-soft-black">${item.status || 'Export Initiated'}</p>
+                        <div class="text-left md:text-right">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-soft-black">${escapeHtml(row.exportFormat)}</p>
+                            <p class="mt-1 text-[10px] font-mono text-gray-500">${escapeHtml(row.date)}</p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-widest text-gray-400">${escapeHtml(row.username)}</p>
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        function normalizeDateString(value) {
-            if (!value) return null;
-            const d = new Date(value);
-            if (isNaN(d.getTime())) return null;
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
+        const renderers = {
+            inventoryStock: inventoryStockReport,
+            stockMovement: stockMovementReport,
+            orderFulfillment: data => orderFulfillmentReport(data, false),
+            completedLateOrders: data => orderFulfillmentReport(data, true),
+            archivedRecords: archivedRecordsReport,
+            userActivity: userActivityReport,
+            productConsumption: productConsumptionReport,
+            salesDemand: salesDemandReport
+        };
+
+        function selectedReportKeys() {
+            return REPORTS.map(([key]) => key).filter(key => document.getElementById(`report-${key}`).checked);
         }
 
-        function isDateInRange(dateValue, from, until) {
-            const normalized = normalizeDateString(dateValue);
-            if (!normalized) return false;
-            if (from && normalized < from) return false;
-            if (until && normalized > until) return false;
+        function buildReportHtml(keys) {
+            if (!reportDataset) return '';
+            const rangeLabel = getRangeLabel();
+            const timeframeNotice = `
+                <div class="mb-8 rounded-2xl border border-soft-black/10 bg-off-white p-5">
+                    <p class="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Timeframe</p>
+                    <p class="mt-2 text-sm font-black uppercase text-soft-black">${escapeHtml(rangeLabel)}</p>
+                </div>
+            `;
+            return timeframeNotice + keys.map(key => renderers[key](reportDataset)).join('');
+        }
+
+        function getDateRange() {
+            return {
+                dateFrom: document.getElementById('dateFrom').value || '',
+                dateUntil: document.getElementById('dateUntil').value || ''
+            };
+        }
+
+        function getRangeLabel() {
+            const { dateFrom, dateUntil } = getDateRange();
+
+            if (dateFrom && dateUntil) return `${formatDateWords(dateFrom)} To ${formatDateWords(dateUntil)}`;
+            if (dateFrom) return `${formatDateWords(dateFrom)} Onward`;
+            if (dateUntil) return `Until ${formatDateWords(dateUntil)}`;
+            return 'All available dates';
+        }
+
+        function getReportName() {
+            return document.getElementById('reportName').value.trim() || `Ragsak Report ${new Date().toISOString().slice(0, 10)}`;
+        }
+
+        function sanitizeFileName(value) {
+            return String(value || 'ragsak_report')
+                .trim()
+                .replace(/[<>:"/\\|?*]+/g, '')
+                .replace(/\s+/g, '_')
+                .slice(0, 90) || 'ragsak_report';
+        }
+
+        function getExportFileName(format) {
+            const extension = format === 'excel' ? 'xls' : 'pdf';
+            return `${sanitizeFileName(getReportName())}.${extension}`;
+        }
+
+        async function loadDataset() {
+            const range = getDateRange();
+            const response = await getReportDataset(range);
+
+            if (!response || response.status !== 'success') {
+                alert(response?.message || 'Failed to load report dataset');
+                return false;
+            }
+
+            reportDataset = response.data;
+            reportDatasetRangeKey = `${range.dateFrom}|${range.dateUntil}`;
+            renderReportTransactions();
             return true;
         }
 
-        function buildRangeLabel(from, until) {
-            if (!from && !until) return 'No Date Filter';
-            if (from && until) return `${from} to ${until}`;
-            if (from) return `${from} onward`;
-            return `Until ${until}`;
+        async function prepareReport() {
+            const keys = selectedReportKeys();
+            const range = getDateRange();
+            const rangeKey = `${range.dateFrom}|${range.dateUntil}`;
+
+            if (keys.length === 0) {
+                alert('Select at least one report.');
+                return false;
+            }
+
+            if (range.dateFrom && range.dateUntil && range.dateFrom > range.dateUntil) {
+                alert('Start date must be earlier than or equal to end date.');
+                return false;
+            }
+
+            if (!reportDataset || reportDatasetRangeKey !== rangeKey) {
+                if (!(await loadDataset())) return false;
+            }
+
+            document.getElementById('printDate').textContent = new Date().toLocaleString('en-PH').toUpperCase();
+            document.getElementById('reportRef').textContent = `${getReportName()} - REF: RSK-RPT-${Date.now()}`;
+            document.getElementById('report-content-area').innerHTML = buildReportHtml(keys);
+            return true;
         }
 
-        function prepareAndPrint() {
-            const reportArea = document.getElementById('report-content-area');
-            const printDate = document.getElementById('printDate');
-            const reportRef = document.getElementById('reportRef');
+        async function recordExport(format) {
+            const keys = selectedReportKeys();
+            const range = getDateRange();
+            const typeLabels = REPORTS
+                .filter(([key]) => keys.includes(key))
+                .map(([, title]) => title)
+                .join(', ');
 
-            reportArea.innerHTML = '';
-            const reference = `REF: RSK-INV-${Date.now()}`;
-            reportRef.innerText = reference;
-
-            const dateFrom = document.getElementById('date-from').value || '';
-            const dateUntil = document.getElementById('date-until').value || '';
-
-            if (dateFrom && dateUntil && dateFrom > dateUntil) {
-                alert("Target date range is invalid. 'Date From' must be earlier than or equal to 'Date Until'.");
-                return;
-            }
-
-            printDate.innerText = new Date().toLocaleDateString('en-PH', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            }).toUpperCase();
-
-            let masterData = [];
-            const depts = [
-                { id: 'dept-products', key: 'ragsak_products_inv', label: 'Product' },
-                { id: 'dept-materials', key: 'ragsak_materials_inv', label: 'Material' },
-                { id: 'dept-packaging', key: 'ragsak_packaging_inv', label: 'Packaging' }
-            ];
-
-            depts.forEach(dept => {
-                if (document.getElementById(dept.id).checked) {
-                    const raw = JSON.parse(localStorage.getItem(dept.key)) || [];
-                    masterData = [...masterData, ...raw.map(item => ({ ...item, category: dept.label }))];
-                }
+            const response = await logReportExport({
+                reportName: getExportFileName(format),
+                reportTypes: typeLabels,
+                exportFormat: format,
+                dateFrom: range.dateFrom,
+                dateUntil: range.dateUntil
             });
 
-            if (masterData.length === 0) {
-                alert("Attention: No departments selected or no data found in storage.");
-                return;
+            if (!response || response.status !== 'success') {
+                alert(response?.message || 'Failed to record report export');
+                return false;
             }
 
-            if (document.getElementById('check-inventory').checked) {
-                reportArea.innerHTML += `
-                    <section>
-                        <h2 class="text-xl font-black uppercase tracking-tight mb-4 flex items-center italic">
-                            <span class="w-8 h-8 bg-soft-black text-white flex items-center justify-center mr-3 text-xs not-italic">01</span>
-                            Full Valuation Summary
-                        </h2>
-                        <table class="w-full text-[11px] text-left border-collapse">
-                            <thead>
-                                <tr class="border-b-2 border-soft-black uppercase font-black text-gray-400 italic">
-                                    <th class="py-2">Category</th>
-                                    <th class="py-2">Item Name</th>
-                                    <th class="py-2 text-center">Stock</th>
-                                    <th class="py-2 text-right">Unit Price</th>
-                                    <th class="py-2 text-right">Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                ${masterData.map(i => `
-                                    <tr>
-                                        <td class="py-3 font-bold text-soft-black uppercase text-[9px]">${i.category}</td>
-                                        <td class="py-3 font-bold uppercase italic">${i.name}</td>
-                                        <td class="py-3 text-center font-mono font-bold">${i.qty} <span class="text-[9px] text-gray-400">${i.unit}</span></td>
-                                        <td class="py-3 text-right font-mono">₱${(parseFloat(i.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                        <td class="py-3 text-right font-mono font-black italic">₱${((i.qty || 0) * (i.price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </section>`;
-            }
+            await loadDataset();
 
-            if (document.getElementById('check-lowstock').checked) {
-                const lowItems = masterData.filter(i => (i.qty <= (i.category === 'Packaging' ? 50 : 15)));
-                reportArea.innerHTML += `
-                    <section>
-                        <h2 class="text-xl font-black uppercase tracking-tight mb-4 flex items-center text-red-700 italic">
-                            <span class="w-8 h-8 bg-red-700 text-white flex items-center justify-center mr-3 text-xs not-italic">02</span>
-                            Procurement Requirements
-                        </h2>
-                        <div class="grid grid-cols-1 gap-3">
-                            ${lowItems.length > 0 ? lowItems.map(i => `
-                                <div class="p-4 bg-red-50 border-r-4 border-red-700 flex justify-between items-center">
-                                    <div>
-                                        <p class="text-[9px] font-black text-red-700 uppercase mb-1">${i.category} Threshold Alert</p>
-                                        <p class="text-sm font-black uppercase italic text-soft-black">${i.name}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-[9px] font-bold text-gray-400 uppercase italic">Current Stock</p>
-                                        <p class="text-lg font-black font-mono text-red-700">${i.qty} ${i.unit}</p>
-                                    </div>
-                                </div>
-                            `).join('') : '<p class="text-xs italic py-4 text-gray-400">All filtered items are within safe operational stock parameters.</p>'}
-                        </div>
-                    </section>`;
-            }
-
-            if (document.getElementById('check-categories').checked) {
-                const totalValue = masterData.reduce((acc, i) => acc + ((i.qty || 0) * (i.price || 0)), 0);
-                reportArea.innerHTML += `
-                    <section>
-                        <h2 class="text-xl font-black uppercase tracking-tight mb-4 flex items-center italic">
-                            <span class="w-8 h-8 bg-soft-black text-white flex items-center justify-center mr-3 text-xs not-italic">03</span>
-                            Key Performance Metrics
-                        </h2>
-                        <div class="grid grid-cols-3 gap-6">
-                            <div class="p-6 border-2 border-soft-black bg-off-white italic text-center rounded-xl">
-                                <p class="text-[9px] font-black uppercase text-gray-500 mb-2 tracking-widest">Total Asset Value</p>
-                                <p class="text-2xl font-black text-soft-black">₱${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                            </div>
-                            <div class="p-6 border-2 border-soft-black bg-off-white italic text-center rounded-xl">
-                                <p class="text-[9px] font-black uppercase text-gray-500 mb-2 tracking-widest">Global Items Count</p>
-                                <p class="text-2xl font-black">${masterData.length.toString().padStart(2, '0')}</p>
-                            </div>
-                            <div class="p-6 border-2 border-soft-black bg-off-white italic text-center rounded-xl">
-                                <p class="text-[9px] font-black uppercase text-gray-500 mb-2 tracking-widest">Active Categories</p>
-                                <p class="text-2xl font-black">0${[...new Set(masterData.map(i => i.category))].length}</p>
-                            </div>
-                        </div>
-                    </section>`;
-            }
-
-            if (document.getElementById('check-stock-movement').checked) {
-                const orders = JSON.parse(localStorage.getItem(ORDER_KEY)) || [];
-                const stockInLogs = JSON.parse(localStorage.getItem(PRODUCT_STOCK_LOG_KEY)) || [];
-
-                const filteredOrders = orders.filter(order => isDateInRange(order.date, dateFrom, dateUntil));
-
-                const filteredStockIn = Array.isArray(stockInLogs)
-                    ? stockInLogs.filter(entry =>
-                        (entry.type === 'in' || entry.movement === 'in' || entry.direction === 'in' || entry.action === 'stock_in') &&
-                        isDateInRange(entry.date, dateFrom, dateUntil)
-                    )
-                    : [];
-
-                const stockOutRows = filteredOrders.map(order => `
-                    <tr>
-                        <td class="py-3 font-mono text-[10px]">${order.date || '--'}</td>
-                        <td class="py-3 font-bold uppercase italic">${order.productName || 'Unknown Product'}</td>
-                        <td class="py-3 uppercase text-[9px] font-black text-gray-500">${order.process || 'Product'}</td>
-                        <td class="py-3 text-center font-mono font-black text-red-700">${order.qty || 0}</td>
-                        <td class="py-3 uppercase text-[9px] font-black text-gray-500">${order.customer || 'Order'}</td>
-                    </tr>
-                `).join('');
-
-                const stockInRows = filteredStockIn.map(entry => `
-                    <tr>
-                        <td class="py-3 font-mono text-[10px]">${entry.date || '--'}</td>
-                        <td class="py-3 font-bold uppercase italic">${entry.productName || entry.name || 'Unknown Product'}</td>
-                        <td class="py-3 uppercase text-[9px] font-black text-gray-500">${entry.process || 'Product'}</td>
-                        <td class="py-3 text-center font-mono font-black text-soft-black">${entry.qty || entry.quantity || 0}</td>
-                        <td class="py-3 uppercase text-[9px] font-black text-gray-500">${entry.note || entry.source || 'Stock In'}</td>
-                    </tr>
-                `).join('');
-
-                reportArea.innerHTML += `
-                    <section>
-                        <h2 class="text-xl font-black uppercase tracking-tight mb-4 flex items-center italic">
-                            <span class="w-8 h-8 bg-soft-black text-white flex items-center justify-center mr-3 text-xs not-italic">04</span>
-                            Product Stock In / Out
-                        </h2>
-
-                        <p class="mb-5 text-[10px] font-bold uppercase tracking-[0.2em] text-soft-black">
-                            Range: ${buildRangeLabel(dateFrom, dateUntil)}
-                        </p>
-
-                        <div class="space-y-8">
-                            <div>
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="h-3 w-3 rounded-full bg-soft-black"></div>
-                                    <h3 class="text-sm font-black uppercase italic tracking-tight">Stock In</h3>
-                                </div>
-
-                                ${filteredStockIn.length > 0 ? `
-                                    <table class="w-full text-[11px] text-left border-collapse">
-                                        <thead>
-                                            <tr class="border-b-2 border-soft-black uppercase font-black text-gray-400 italic">
-                                                <th class="py-2">Date</th>
-                                                <th class="py-2">Product</th>
-                                                <th class="py-2">Process</th>
-                                                <th class="py-2 text-center">Qty In</th>
-                                                <th class="py-2">Source</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-100">
-                                            ${stockInRows}
-                                        </tbody>
-                                    </table>
-                                ` : `
-                                    <div class="p-4 rounded-xl bg-soft-black/5 border border-soft-black/10">
-                                        <p class="text-[10px] font-bold uppercase tracking-widest text-soft-black">
-                                            No stock-in history found for the selected range.
-                                        </p>
-                                        <p class="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                            Add entries to localStorage key: PRODUCT_STOCK_LOG_KEY = "ragsak_product_stock_log" to populate this section.
-                                        </p>
-                                    </div>
-                                `}
-                            </div>
-
-                            <div>
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="h-3 w-3 rounded-full bg-red-700"></div>
-                                    <h3 class="text-sm font-black uppercase italic tracking-tight">Stock Out</h3>
-                                </div>
-
-                                ${filteredOrders.length > 0 ? `
-                                    <table class="w-full text-[11px] text-left border-collapse">
-                                        <thead>
-                                            <tr class="border-b-2 border-soft-black uppercase font-black text-gray-400 italic">
-                                                <th class="py-2">Date</th>
-                                                <th class="py-2">Product</th>
-                                                <th class="py-2">Process</th>
-                                                <th class="py-2 text-center">Qty Out</th>
-                                                <th class="py-2">Reference</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-100">
-                                            ${stockOutRows}
-                                        </tbody>
-                                    </table>
-                                ` : `
-                                    <p class="text-xs italic py-4 text-gray-400">
-                                        No product stock-out records found from orders within the selected range.
-                                    </p>
-                                `}
-                            </div>
-                        </div>
-                    </section>`;
-            }
-
-            if (reportArea.innerHTML === '') {
-                alert("Please select at least one report module.");
-                return;
-            }
-
-            const historyEntry = {
-                fileName: `ragsak_report_${new Date().toISOString().slice(0, 10)}`,
-                reference,
-                dateLabel: new Date().toLocaleString('en-PH', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }).toUpperCase(),
-                departments: getSelectedDepartments(),
-                modules: getSelectedModules(),
-                dateRange: buildRangeLabel(dateFrom, dateUntil),
-                status: 'Export Initiated',
-                createdAt: Date.now()
-            };
-
-            saveReportHistory(historyEntry);
-
-            document.fonts.ready.then(() => {
-                setTimeout(() => {
-                    window.print();
-                }, 300);
-            });
+            return true;
         }
 
-        renderReportHistory();
+        function exportExcelDocument() {
+            const html = `
+                <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body { font-family: Montserrat, Arial, sans-serif; }
+                            table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
+                            th { background: #121212; color: #ffffff; text-transform: uppercase; }
+                            th, td { border: 1px solid #d9d9d9; padding: 8px; font-size: 11px; }
+                            h2 { margin-top: 24px; text-transform: uppercase; }
+                            p { font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>${document.getElementById('printableReport').innerHTML}</body>
+                </html>
+            `;
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = getExportFileName('excel');
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('reportOptions').innerHTML = REPORTS.map(([key, title, description]) => `
+            <label class="group flex items-center justify-between rounded-xl border border-gray-100 bg-off-white/50 p-4 transition-all hover:border-soft-black">
+                <div class="pr-4">
+                    <span class="text-xs font-black uppercase tracking-tight">${title}</span>
+                    <p class="mt-1 text-[9px] font-bold uppercase italic text-soft-black/60">${description}</p>
+                </div>
+                <input type="checkbox" id="report-${key}" class="h-5 w-5 accent-soft-black">
+            </label>
+        `).join('');
+
+        document.getElementById('resetReports').addEventListener('click', () => {
+            REPORTS.forEach(([key]) => document.getElementById(`report-${key}`).checked = false);
+            document.getElementById('reportName').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateUntil').value = '';
+            reportDataset = null;
+            reportDatasetRangeKey = '';
+            renderReportTransactions();
+        });
+
+        loadDataset();
+
+        document.getElementById('exportPdf').addEventListener('click', async () => {
+            if (!(await prepareReport())) return;
+            if (!(await recordExport('pdf'))) return;
+            document.fonts.ready.then(() => setTimeout(() => window.print(), 300));
+        });
+
+        document.getElementById('exportExcel').addEventListener('click', async () => {
+            if (!(await prepareReport())) return;
+            if (!(await recordExport('excel'))) return;
+            exportExcelDocument();
+        });
     </script>
 </body>
 </html>
