@@ -41,7 +41,15 @@ function getLogin() {
 
     header('Content-Type: application/json');
 
-    if ($authenticatedUser) {
+    if ($authenticatedUser && !empty($authenticatedUser['loginBlocked'])) {
+        http_response_code(403);
+        echo json_encode([
+            "status" => "error",
+            "message" => $authenticatedUser['status'] === 'pending'
+                ? "Your account is still pending approval"
+                : "Your account registration was denied"
+        ]);
+    } else if ($authenticatedUser) {
         issueAuthToken([
             'sub' => $authenticatedUser['userID'],
             'username' => $authenticatedUser['username'],
@@ -75,6 +83,55 @@ function getAuthenticatedUser() {
             "role" => $decodedUser->role ?? null
         ]
     ]);
+}
+
+function getApprovalDataset() {
+    $user = new User();
+
+    echo json_encode([
+        "status" => "success",
+        "data" => $user->getApprovalDataset()
+    ]);
+}
+
+function updateUserApprovalStatus() {
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    if (!$input) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON input"]);
+        exit;
+    }
+
+    $userID = filter_var($input['userID'] ?? null, FILTER_VALIDATE_INT);
+    $status = strtolower(trim((string) ($input['status'] ?? '')));
+
+    if (!$userID) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "User is invalid"]);
+        exit;
+    }
+
+    if (!in_array($status, ['approved', 'denied'], true)) {
+        http_response_code(422);
+        echo json_encode(["status" => "error", "message" => "Approval status is invalid"]);
+        exit;
+    }
+
+    $user = new User();
+
+    if ($user->updateStatus($userID, $status)) {
+        echo json_encode([
+            "status" => "success",
+            "message" => $status === 'approved' ? "User approved" : "User denied"
+        ]);
+    } else {
+        http_response_code(404);
+        echo json_encode([
+            "status" => "error",
+            "message" => "Pending user was not found"
+        ]);
+    }
 }
 
 function logoutUser() {
@@ -150,7 +207,7 @@ function registerUsers() {
         http_response_code(201);
         echo json_encode([
             "status" => "success",
-            "message" => "User Registered Successfully",
+            "message" => "Registration submitted for approval",
         ]);
     } else {
         http_response_code(500);

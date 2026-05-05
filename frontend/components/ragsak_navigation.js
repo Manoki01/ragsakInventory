@@ -1,4 +1,23 @@
-import { startSessionManagement, isLoggedIn, logout } from '../assets/js/utils.js';
+import { startSessionManagement, logout } from '../assets/js/utils.js';
+import { getCurrentUser } from '../assets/js/api.js';
+
+const ROLE_ACCESS = {
+    Chairman: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry', 'nav-orders', 'nav-reports'],
+    President: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry', 'nav-attendance', 'nav-reports', 'nav-process', 'nav-orders', 'nav-approval'],
+    Supervisor: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry', 'nav-attendance', 'nav-reports', 'nav-process', 'nav-orders'],
+    Manufacturing: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry']
+};
+
+const DEFAULT_PAGE_BY_ROLE = {
+    Chairman: 'ragsak_home.html',
+    President: 'ragsak_home.html',
+    Supervisor: 'ragsak_home.html',
+    Manufacturing: 'ragsak_home.html'
+};
+
+function allowedPagesForRole(role) {
+    return ROLE_ACCESS[role] || [];
+}
 
 const sidebarHTML = `
 <div class="flex h-full flex-col justify-between bg-soft-black border-e border-white/5 w-72 max-w-[85vw] lg:w-64 lg:max-w-none">
@@ -98,6 +117,29 @@ function applyActiveNavState(currentPageId) {
     });
 }
 
+function applyRoleNavigation(role) {
+    const allowedPages = allowedPagesForRole(role);
+
+    document.querySelectorAll('[data-nav-id]').forEach(link => {
+        if (!allowedPages.includes(link.dataset.navId)) {
+            const listItem = link.closest('li');
+            if (listItem) listItem.remove();
+        }
+    });
+
+    document.querySelectorAll('[data-nav-group]').forEach(group => {
+        if (!group.querySelector('[data-nav-id]')) {
+            const listItem = group.closest('li');
+            if (listItem) listItem.remove();
+        }
+    });
+}
+
+function redirectUnauthorized(role) {
+    const destination = DEFAULT_PAGE_BY_ROLE[role] || '../../index.html';
+    window.location.href = destination;
+}
+
 function injectNavigation(currentPageId) {
     const container = document.getElementById('sidebar-container');
     if (!container) return;
@@ -170,13 +212,24 @@ async function initNavigation() {
         return;
     }
 
-    injectNavigation(window.currentPageId);
+    const response = await getCurrentUser();
 
-    if (!(await isLoggedIn())) {
+    if (!response || response.status !== 'success') {
         window.location.href = '../../index.html';
         return;
     }
 
+    const role = response.user?.role;
+    const allowedPages = allowedPagesForRole(role);
+
+    if (!allowedPages.includes(window.currentPageId)) {
+        redirectUnauthorized(role);
+        return;
+    }
+
+    injectNavigation(window.currentPageId);
+    applyRoleNavigation(role);
+    applyActiveNavState(window.currentPageId);
     startSessionManagement();
 }
 

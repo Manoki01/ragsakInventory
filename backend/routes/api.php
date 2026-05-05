@@ -98,6 +98,20 @@ function validateJWT() {
     }
 }
 
+function requireRole($allowedRoles) {
+    $user = getCurrentAuthUser();
+    $role = $user->role ?? '';
+
+    if (!in_array($role, $allowedRoles, true)) {
+        http_response_code(403);
+        echo json_encode([
+            "status" => "error",
+            "message" => "You are not allowed to access this resource"
+        ]);
+        exit;
+    }
+}
+
 $request = $_GET['route'] ?? '';
 $action = $_GET['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
@@ -105,6 +119,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 switch($request) {
     case 'products':
         validateJWT();
+        requireRole(['Chairman', 'President', 'Supervisor', 'Manufacturing']);
         require_once __DIR__ . '../../controllers/productController.php';
 
         if($method == "GET" && $action == "formula") {
@@ -140,6 +155,7 @@ switch($request) {
         break;
     case 'raw_materials':
         validateJWT();
+        requireRole(['Chairman', 'President', 'Supervisor', 'Manufacturing']);
         require_once __DIR__ . '../../controllers/rawMaterialController.php';
 
         if($method == "GET") {
@@ -169,6 +185,7 @@ switch($request) {
         break;
     case 'packaging':
         validateJWT();
+        requireRole(['Chairman', 'President', 'Supervisor', 'Manufacturing']);
         require_once __DIR__ .  '../../controllers/packagingController.php';
 
         if($method == "GET") {
@@ -198,6 +215,7 @@ switch($request) {
         break;
     case 'process':
         validateJWT();
+        requireRole(['President', 'Supervisor']);
         require_once __DIR__ . '../../controllers/processController.php';
 
         if($method == "GET" && $action == "details") {
@@ -222,6 +240,7 @@ switch($request) {
 
     case 'orders':
         validateJWT();
+        requireRole(['Chairman', 'President', 'Supervisor']);
         require_once __DIR__ . '../../controllers/orderController.php';
 
         if($method == "GET" && $action == "finished_products") {
@@ -254,6 +273,7 @@ switch($request) {
 
     case 'reports':
         validateJWT();
+        requireRole(['Chairman', 'President', 'Supervisor']);
         require_once __DIR__ . '../../controllers/reportController.php';
 
         if($method == "GET") {
@@ -262,6 +282,17 @@ switch($request) {
 
         if($method == "POST" && $action == "log_export") {
             logReportExport();
+        }
+
+        break;
+
+    case 'dashboard':
+        validateJWT();
+        requireRole(['Chairman', 'President', 'Supervisor', 'Manufacturing']);
+        require_once __DIR__ . '../../controllers/dashboardController.php';
+
+        if($method == "GET") {
+            getDashboardDataset();
         }
 
         break;
@@ -277,9 +308,21 @@ switch($request) {
             registerUsers();
         }
 
+        if($method == "GET" && $action == "approval") {
+            validateJWT();
+            requireRole(['President']);
+            getApprovalDataset();
+        }
+
         if($method == "GET" && $action == "me") {
             validateJWT();
             getAuthenticatedUser();
+        }
+
+        if($method == "POST" && $action == "approval_status") {
+            validateJWT();
+            requireRole(['President']);
+            updateUserApprovalStatus();
         }
 
         if($method == "POST" && $action == "logout") {

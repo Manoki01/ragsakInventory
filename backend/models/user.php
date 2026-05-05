@@ -14,6 +14,7 @@ class User {
             u.userID, 
             u.username,
             u.role,
+            u.status,
             p.password
             FROM tbl_user u
             INNER JOIN tbl_password p ON u.passwordID = p.passwordID
@@ -36,17 +37,25 @@ class User {
 
         $hashedPassword = '';
         $username = '';
-        $stmt->bind_result($userID, $username, $role, $hashedPassword);
+        $stmt->bind_result($userID, $username, $role, $status, $hashedPassword);
         $stmt->fetch();
 
         if (!password_verify($data['password'], $hashedPassword)) {
             return false;
         }
 
+        if ($status !== 'approved') {
+            return [
+                'loginBlocked' => true,
+                'status' => $status
+            ];
+        }
+
         return [
             'userID' => (int) $userID,
             'username' => $username,
-            'role' => $role
+            'role' => $role,
+            'status' => $status
         ];
     }
 
@@ -86,8 +95,8 @@ class User {
             $passwordID = $this->conn->insert_id;
 
             $stmt2 = $this->conn->prepare("
-            INSERT INTO tbl_user (username, passwordID, role)
-            VALUES (?, ?, ?)");
+            INSERT INTO tbl_user (username, passwordID, role, status)
+            VALUES (?, ?, ?, 'pending')");
 
             $stmt2->bind_param("sis", $data["username"], $passwordID, $data["role"]);
 
@@ -102,5 +111,60 @@ class User {
             error_log("Transaction failed: " . $e->getMessage());
             return false;
         }
+    }
+
+    public function getApprovalDataset() {
+        return [
+            'summary' => $this->getApprovalSummary(),
+            'pendingUsers' => $this->getPendingUsers()
+        ];
+    }
+
+    public function getApprovalSummary() {
+        $result = $this->conn->query("
+            SELECT
+                COALESCE(SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END), 0) AS approved,
+                COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
+                COALESCE(SUM(CASE WHEN status = 'denied' THEN 1 ELSE 0 END), 0) AS denied
+            FROM tbl_user
+        ");
+
+        if (!$result) {
+            throw new Exception("Failed to load user summary");
+        }
+
+        return $result->fetch_assoc();
+    }
+
+    public function getPendingUsers() {
+        $result = $this->conn->query("
+            SELECT userID, username, role, status
+            FROM tbl_user
+            WHERE status = 'pending'
+            ORDER BY userID ASC
+        ");
+
+        if (!$result) {
+            throw new Exception("Failed to load pending users");
+        }
+
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function updateStatus($userID, $status) {
+        $stmt = $this->conn->prepare("
+            UPDATE tbl_user
+            SET status = ?
+            WHERE userID = ?
+            AND status = 'pending'
+        ");
+
+        $stmt->bind_param("si", $status, $userID);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to update user status");
+        }
+
+        return $stmt->affected_rows > 0;
     }
 }

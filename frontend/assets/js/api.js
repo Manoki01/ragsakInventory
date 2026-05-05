@@ -270,6 +270,11 @@ async function apiRequest(route, options = {}) {
         });
     }
 
+//Dashboard
+    export async function getDashboardDataset() {
+        return await apiRequest("dashboard");
+    }
+
 //Users
     export async function userLogin(data) {
         return await apiRequest("users&action=login", {
@@ -281,6 +286,18 @@ async function apiRequest(route, options = {}) {
 
     export async function userRegister(data) {
         return await apiRequest("users&action=register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
+    export async function getApprovalDataset() {
+        return await apiRequest("users&action=approval");
+    }
+
+    export async function updateApprovalStatus(data) {
+        return await apiRequest("users&action=approval_status", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)

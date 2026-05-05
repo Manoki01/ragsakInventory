@@ -440,21 +440,29 @@
             const assetValueTotal = data.productConsumption
                 .reduce((total, row) => total + Number(row.assetValue || 0), 0);
 
-            return section('Production Consumption Report', nestedTables(
-                data.productConsumption,
-                'consumptionGroup',
-                'itemType',
-                ['Date', 'Item', 'Qty Used', 'Unit', 'Unit Price', 'Asset Value', 'Reason'],
-                row => `<tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td class="font-bold uppercase">${escapeHtml(row.itemName)}</td><td class="font-mono">${number(row.quantityConsumed)}</td><td>${escapeHtml(row.unitType)}</td><td class="font-mono">${peso(row.unitPrice)}</td><td class="font-mono font-black">${peso(row.assetValue)}</td><td>${escapeHtml(row.reason)}</td></tr>`
-            ) + `
+            return section('Production Consumption Report', `
                 ${sectionLabel('Consumption Summary')}
-                ${table(['Total Raw Materials Used', 'Total Packaging Used', 'Total Asset Value Used'], `
-                    <tr>
-                        <td class="py-3 pr-3 font-mono font-black">${number(rawTotal)}</td>
-                        <td class="py-3 pr-3 font-mono font-black">${number(packagingTotal)}</td>
-                        <td class="py-3 pr-3 font-mono font-black">${peso(assetValueTotal)}</td>
-                    </tr>
-                `)}
+                <div class="mb-8 border-l-8 border-soft-black bg-white px-6 py-5">
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Raw Materials Used</p>
+                            <p class="mt-2 text-3xl font-black uppercase italic text-soft-black">${number(rawTotal)}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Packaging Used</p>
+                            <p class="mt-2 text-3xl font-black uppercase italic text-soft-black">${number(packagingTotal)}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Asset Value Used</p>
+                            <p class="mt-2 text-3xl font-black uppercase italic text-soft-black">${peso(assetValueTotal)}</p>
+                        </div>
+                    </div>
+                </div>
+                ${mainTables(
+                    groupBy(data.productConsumption, 'itemType'),
+                    ['Date', 'Item', 'Qty Used', 'Unit', 'Unit Price', 'Asset Value', 'Reason'],
+                    row => `<tr><td class="py-3 pr-3 font-mono">${escapeHtml(row.date)}</td><td class="font-bold uppercase">${escapeHtml(row.itemName)}</td><td class="font-mono">${number(row.quantityConsumed)}</td><td>${escapeHtml(row.unitType)}</td><td class="font-mono">${peso(row.unitPrice)}</td><td class="font-mono font-black">${peso(row.assetValue)}</td><td>${escapeHtml(row.reason)}</td></tr>`
+                )}
             `);
         }
 
@@ -911,26 +919,7 @@
                 });
             }],
             productConsumption: ['Product Consumption', (worksheet, data, sheetName) => {
-                buildNestedSheet(
-                    worksheet,
-                    'Production Consumption Report',
-                    data.productConsumption,
-                    'consumptionGroup',
-                    'itemType',
-                    ['Date', 'Item', 'Qty Used', 'Unit', 'Unit Price', 'Asset Value', 'Reason'],
-                    row => [
-                        row.date,
-                        row.itemName,
-                        Number(row.quantityConsumed || 0),
-                        row.unitType,
-                        Number(row.unitPrice || 0),
-                        Number(row.assetValue || 0),
-                        row.reason
-                    ],
-                    sheetName
-                );
-
-                const worksheetState = { row: worksheet.lastRow.number + 2, tableIndex: worksheet.tables.length + 1 };
+                const worksheetState = setupWorksheet(worksheet, 'Production Consumption Report');
                 const rawTotal = data.productConsumption
                     .filter(row => row.itemType === 'Raw Material')
                     .reduce((total, row) => total + Number(row.quantityConsumed || 0), 0);
@@ -948,6 +937,25 @@
                     [[rawTotal, packagingTotal, assetValueTotal]],
                     sheetName
                 );
+
+                Object.entries(groupBy(data.productConsumption, 'itemType')).forEach(([itemType, rows]) => {
+                    addHeading(worksheet, worksheetState, itemType, 'main');
+                    addExcelTable(
+                        worksheet,
+                        worksheetState,
+                        ['Date', 'Item', 'Qty Used', 'Unit', 'Unit Price', 'Asset Value', 'Reason'],
+                        rows.map(row => [
+                            row.date,
+                            row.itemName,
+                            Number(row.quantityConsumed || 0),
+                            row.unitType,
+                            Number(row.unitPrice || 0),
+                            Number(row.assetValue || 0),
+                            row.reason
+                        ]),
+                        sheetName
+                    );
+                });
             }],
             salesDemand: ['Sales Demand', (worksheet, data, sheetName) => {
                 const state = setupWorksheet(worksheet, 'Sales Demand Report');

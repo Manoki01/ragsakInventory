@@ -194,9 +194,17 @@
 
             const response = await registerUsers(data);
             if (response.status === "success") {
-                window.location.href = '../pages/ragsak_home.html';
+                errorDiv.innerText = response.message || "Registration submitted for approval.";
+                errorDiv.classList.remove('hidden');
+                errorDiv.classList.remove('text-red-600');
+                errorDiv.classList.add('text-soft-black');
+                setTimeout(() => {
+                    window.location.href = '../../index.html';
+                }, 1800);
             } else {
                 errorDiv.innerText = response.message || "Registration failed";
+                errorDiv.classList.add('text-red-600');
+                errorDiv.classList.remove('text-soft-black');
                 errorDiv.classList.remove('hidden');
             }
         });
