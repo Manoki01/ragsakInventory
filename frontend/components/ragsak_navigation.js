@@ -3,8 +3,8 @@ import { getCurrentUser } from '../assets/js/api.js';
 
 const ROLE_ACCESS = {
     Chairman: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry', 'nav-orders', 'nav-reports'],
-    President: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry', 'nav-attendance', 'nav-reports', 'nav-process', 'nav-orders', 'nav-approval'],
-    Supervisor: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry', 'nav-attendance', 'nav-reports', 'nav-process', 'nav-orders'],
+    President: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry', 'nav-attendance', 'nav-reports', 'nav-process', 'nav-orders', 'nav-archives', 'nav-approval'],
+    Supervisor: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry', 'nav-attendance', 'nav-reports', 'nav-process', 'nav-orders', 'nav-archives'],
     Manufacturing: ['nav-home', 'nav-products', 'nav-materials', 'nav-packaging', 'nav-add-entry']
 };
 
@@ -60,6 +60,7 @@ const sidebarHTML = `
             <li><a href="ragsak_report.html" data-nav-id="nav-reports" class="block rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-white/5 hover:text-white transition-all">Reports</a></li>
             <li><a href="ragsak_processes.html" data-nav-id="nav-process" class="block rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-white/5 hover:text-white transition-all">Processes</a></li>
             <li><a href="ragsak_order.html" data-nav-id="nav-orders" class="block rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-white/5 hover:text-white transition-all">Orders</a></li>
+            <li><a href="ragsak_archives.html" data-nav-id="nav-archives" class="block rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-white/5 hover:text-white transition-all">Archives</a></li>
             <li><a href="approval.html" data-nav-id="nav-approval" class="block rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-white/5 hover:text-white transition-all">Approval</a></li>
         </ul>
     </div>

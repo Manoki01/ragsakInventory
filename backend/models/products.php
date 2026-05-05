@@ -15,18 +15,21 @@ class Product {
     }
 
     public function getAll() {
-        $query = "SELECT 
-        p.productID, 
-        p.productName, 
+        $query = "SELECT
+        p.productID,
+        p.productName,
         ps.quantity,
         pf.processID,
-        (SELECT processName FROM tbl_process WHERE processID = pf.processID) AS processName,
+        pr.processName,
         p.unitType,
         p.productPrice
         FROM tbl_products p
         INNER JOIN tbl_processFlow pf ON p.productID = pf.productID
+        INNER JOIN tbl_process pr ON pf.processID = pr.processID
         INNER JOIN tbl_productStock ps ON pf.flowID = ps.flowID
-        WHERE p.deleted_at IS NULL";
+        WHERE p.deleted_at IS NULL
+        AND pr.deleted_at IS NULL
+        ORDER BY p.productName, pf.flowOrder, pr.processName";
 
         $result = $this->conn->query($query);
 
@@ -43,9 +46,11 @@ class Product {
             SELECT pf.flowID
             FROM tbl_processFlow pf
             INNER JOIN tbl_products p ON pf.productID = p.productID
+            INNER JOIN tbl_process pr ON pf.processID = pr.processID
             WHERE pf.productID = ?
             AND pf.processID = ?
             AND p.deleted_at IS NULL
+            AND pr.deleted_at IS NULL
             LIMIT 1
         ");
 
@@ -122,6 +127,7 @@ class Product {
                 WHERE pf.productID = ?
                 AND pf.processID = ?
                 AND p.deleted_at IS NULL
+                AND pr.deleted_at IS NULL
                 LIMIT 1
             ");
 
@@ -405,11 +411,20 @@ class Product {
             $userID = $data['userID'];
 
             $checkStmt = $this->conn->prepare("
-            SELECT ps.flowID, ps.quantity FROM tbl_productStock ps
+            SELECT
+                ps.flowID,
+                ps.quantity,
+                pf.flowOrder,
+                pr.processName,
+                p.productName,
+                p.unitType
+            FROM tbl_productStock ps
             INNER JOIN tbl_processFlow pf ON ps.flowID = pf.flowID
             INNER JOIN tbl_products p ON pf.productID = p.productID
+            INNER JOIN tbl_process pr ON pf.processID = pr.processID
             WHERE pf.productID = ? AND pf.processID = ?
-            AND p.deleted_at IS NULL");
+            AND p.deleted_at IS NULL
+            AND pr.deleted_at IS NULL");
             $checkStmt->bind_param(
                 'ii',
                 $product,
@@ -431,9 +446,49 @@ class Product {
             $row = $result->fetch_assoc();
             $quantity = (int) $row['quantity'];
             $flowID = (int) $row['flowID'];
+            $flowOrder = (int) $row['flowOrder'];
+            $currentProcessName = $row['processName'];
             $stockInQuantity = (int) $data['quantity'];
             $finalQuantity = $stockInQuantity + $quantity;
             $formulaMode = $data['formulaMode'] ?? 'formula';
+
+            $previousFlow = null;
+
+            if ($flowOrder > 1) {
+                $previousFlowStmt = $this->conn->prepare("
+                    SELECT
+                        ps.flowID,
+                        ps.quantity,
+                        pr.processName
+                    FROM tbl_processFlow pf
+                    INNER JOIN tbl_process pr ON pf.processID = pr.processID
+                    INNER JOIN tbl_productStock ps ON pf.flowID = ps.flowID
+                    WHERE pf.productID = ?
+                    AND pf.flowOrder < ?
+                    AND pr.deleted_at IS NULL
+                    ORDER BY pf.flowOrder DESC
+                    LIMIT 1
+                ");
+
+                $previousFlowStmt->bind_param("ii", $product, $flowOrder);
+
+                if (!$previousFlowStmt->execute()) {
+                    throw new Exception("Failed to locate previous product process");
+                }
+
+                $previousResult = $previousFlowStmt->get_result();
+
+                if ($previousResult && $previousResult->num_rows > 0) {
+                    $previousFlow = $previousResult->fetch_assoc();
+                    $previousQuantity = (int) $previousFlow['quantity'];
+
+                    if ($previousQuantity < $stockInQuantity) {
+                        $this->lastError = $previousFlow['processName'] . " only has " . $previousQuantity . " " . $row['unitType'] . " available";
+                        $this->conn->rollback();
+                        return false;
+                    }
+                }
+            }
 
             if ($formulaMode === 'formula') {
                 $rawFormulaStmt = $this->conn->prepare("
@@ -692,6 +747,82 @@ class Product {
                 }
             }
 
+            if ($previousFlow) {
+                $previousFlowID = (int) $previousFlow['flowID'];
+                $previousInitialQuantity = (int) $previousFlow['quantity'];
+                $previousFinalQuantity = $previousInitialQuantity - $stockInQuantity;
+
+                $deductPreviousStmt = $this->conn->prepare("
+                    UPDATE tbl_productStock
+                    SET quantity = ?
+                    WHERE flowID = ?
+                ");
+
+                $deductPreviousStmt->bind_param(
+                    "ii",
+                    $previousFinalQuantity,
+                    $previousFlowID
+                );
+
+                if (!$deductPreviousStmt->execute()) {
+                    throw new Exception("Failed to deduct previous process stock");
+                }
+
+                $previousStatus = "success";
+                $previousTransactionAction = "Transferred to " . $currentProcessName;
+                $previousTransactionStmt = $this->conn->prepare("
+                    INSERT INTO tbl_prodTransactions (
+                        userID,
+                        flowID,
+                        status,
+                        quantity,
+                        action
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                ");
+
+                $previousTransactionStmt->bind_param(
+                    "iisis",
+                    $userID,
+                    $previousFlowID,
+                    $previousStatus,
+                    $stockInQuantity,
+                    $previousTransactionAction
+                );
+
+                if (!$previousTransactionStmt->execute()) {
+                    throw new Exception("Failed to log previous process transfer");
+                }
+
+                $previousChangelogAction = "Decrease";
+                $previousReason = "Transferred to " . $currentProcessName;
+                $previousChangelogStmt = $this->conn->prepare("
+                    INSERT INTO tbl_prodChangelogs (
+                        flowID,
+                        action,
+                        quantity,
+                        initialQuantity,
+                        finalQuantity,
+                        reason
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ");
+
+                $previousChangelogStmt->bind_param(
+                    "isiiis",
+                    $previousFlowID,
+                    $previousChangelogAction,
+                    $stockInQuantity,
+                    $previousInitialQuantity,
+                    $previousFinalQuantity,
+                    $previousReason
+                );
+
+                if (!$previousChangelogStmt->execute()) {
+                    throw new Exception("Failed to log previous process changelog");
+                }
+            }
+
             $updateStmt = $this->conn->prepare("UPDATE tbl_productStock SET
             quantity = ?
             WHERE flowID = ?");
@@ -777,9 +908,11 @@ class Product {
                 FROM tbl_productStock ps
                 INNER JOIN tbl_processFlow pf ON ps.flowID = pf.flowID
                 INNER JOIN tbl_products p ON pf.productID = p.productID
+                INNER JOIN tbl_process pr ON pf.processID = pr.processID
                 WHERE pf.productID = ?
                 AND pf.processID = ?
                 AND p.deleted_at IS NULL
+                AND pr.deleted_at IS NULL
                 LIMIT 1
             ");
 

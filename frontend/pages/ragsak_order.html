@@ -27,6 +27,12 @@
             }
         }
 
+        table th,
+        table td {
+            text-align: center !important;
+            vertical-align: middle;
+        }
+
         #orderModal:not(.hidden), #viewModal:not(.hidden) { @apply !flex items-center justify-center; }
 
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
@@ -260,12 +266,15 @@
                         </button>
                     </div>
 
-                    <div id="viewOrderActions" class="hidden mt-8 grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <div id="viewOrderActions" class="hidden mt-8 grid grid-cols-1 gap-3 md:grid-cols-4">
                         <button type="button" id="editOrderInfoButton" onclick="startEditOrderInfo()" class="rounded-2xl bg-soft-black px-4 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-soft-black/85 disabled:cursor-not-allowed disabled:opacity-40">
                             Edit Information
                         </button>
-                        <button type="button" id="editOrderStatusButton" onclick="startEditOrderStatus()" class="rounded-2xl border border-soft-black/20 bg-soft-black/5 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white disabled:cursor-not-allowed disabled:opacity-40">
-                            Edit Status
+                        <button type="button" id="completeOrderButton" onclick="completeViewedOrder()" class="rounded-2xl border border-soft-black/20 bg-soft-black/5 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-soft-black hover:bg-soft-black hover:text-white disabled:cursor-not-allowed disabled:opacity-40">
+                            Complete Order
+                        </button>
+                        <button type="button" id="cancelOrderButton" onclick="cancelViewedOrder()" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40">
+                            Cancel Order
                         </button>
                         <button type="button" onclick="archiveViewedOrder()" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-100">
                             Archive
@@ -281,14 +290,6 @@
                         </button>
                     </div>
 
-                    <div id="editStatusActions" class="hidden pt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <button type="button" id="saveStatusButton" onclick="saveOrderStatus()" class="bg-soft-black text-white text-[11px] font-black py-5 rounded-2xl hover:bg-soft-black/50 transition-all uppercase tracking-widest shadow-xl">
-                            Save Status
-                        </button>
-                        <button type="button" onclick="cancelOrderEdit()" class="py-5 text-[10px] font-bold uppercase text-gray-400 hover:text-red-600 transition-all tracking-widest">
-                            Cancel
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -377,18 +378,31 @@
         function showOrderActions(mode) {
             orderModalMode = mode;
             document.getElementById('orderViewSummary').classList.toggle('hidden', mode === 'create');
-            document.getElementById('orderInfoFields').classList.toggle('hidden', mode === 'view' || mode === 'editStatus');
-            document.getElementById('orderStatusField').classList.toggle('hidden', mode === 'create' || mode === 'view' || mode === 'editInfo');
+            document.getElementById('orderInfoFields').classList.toggle('hidden', mode === 'view');
+            document.getElementById('orderStatusField').classList.add('hidden');
             document.getElementById('createOrderActions').classList.toggle('hidden', mode !== 'create');
             document.getElementById('viewOrderActions').classList.toggle('hidden', mode !== 'view');
             document.getElementById('editInfoActions').classList.toggle('hidden', mode !== 'editInfo');
-            document.getElementById('editStatusActions').classList.toggle('hidden', mode !== 'editStatus');
 
             if (mode === 'view') {
                 const isFinal = viewedOrder && ['completed', 'canceled', 'late'].includes(String(viewedOrder.orderStatus || '').toLowerCase());
                 document.getElementById('editOrderInfoButton').disabled = Boolean(isFinal);
-                document.getElementById('editOrderStatusButton').disabled = Boolean(isFinal);
+                document.getElementById('completeOrderButton').disabled = Boolean(isFinal);
+                document.getElementById('cancelOrderButton').disabled = Boolean(isFinal);
             }
+        }
+
+        function setOrderStatusActionLoading(isLoading, activeAction = '') {
+            const isFinal = viewedOrder && ['completed', 'canceled', 'late'].includes(String(viewedOrder.orderStatus || '').toLowerCase());
+            const editButton = document.getElementById('editOrderInfoButton');
+            const completeButton = document.getElementById('completeOrderButton');
+            const cancelButton = document.getElementById('cancelOrderButton');
+
+            editButton.disabled = isLoading || Boolean(isFinal);
+            completeButton.disabled = isLoading || Boolean(isFinal);
+            cancelButton.disabled = isLoading || Boolean(isFinal);
+            completeButton.textContent = isLoading && activeAction === 'complete' ? 'Completing...' : 'Complete Order';
+            cancelButton.textContent = isLoading && activeAction === 'cancel' ? 'Canceling...' : 'Cancel Order';
         }
 
         function fillOrderSummary(order) {
@@ -510,15 +524,6 @@
             showOrderActions('editInfo');
         }
 
-        function startEditOrderStatus() {
-            if (!viewedOrder) return;
-
-            document.getElementById('modalTitle').innerText = "Edit Order Status";
-            setOrderFieldsDisabled(true, true);
-            document.getElementById('orderStatus').disabled = false;
-            showOrderActions('editStatus');
-        }
-
         function cancelOrderEdit() {
             if (!viewedOrder) return;
 
@@ -629,36 +634,47 @@
             }
         }
 
-        async function saveOrderStatus() {
+        async function changeViewedOrderStatus(action) {
             if (!viewedOrder) return;
 
             const payload = {
                 orderID: Number(viewedOrder.orderID),
-                orderStatus: document.getElementById('orderStatus').value
+                action
             };
+            const isComplete = action === 'complete';
+            const confirmMessage = isComplete
+                ? 'Complete this order? If the due date has passed, it will be marked as Completed late.'
+                : 'Cancel this order?';
 
-            const saveButton = document.getElementById('saveStatusButton');
-            saveButton.disabled = true;
-            saveButton.textContent = 'Saving...';
+            if (!confirm(confirmMessage)) return;
+
+            setOrderStatusActionLoading(true, action);
 
             try {
                 const response = await updateOrderStatus(payload);
 
                 if (!response || response.status !== 'success') {
-                    showToast(response?.message || 'Order status update failed', 'error');
+                    showToast(response?.message || 'Order action failed', 'error');
                     return;
                 }
 
-                showToast(response.message || 'Order status updated', 'success');
+                showToast(response.message || 'Order updated', 'success');
                 await loadOrderData();
                 viewedOrder = orders.find(order => Number(order.orderID) === Number(payload.orderID)) || viewedOrder;
                 cancelOrderEdit();
             } catch (error) {
-                showToast("Failed to update order status", "error");
+                showToast("Failed to update order", "error");
             } finally {
-                saveButton.disabled = false;
-                saveButton.textContent = 'Save Status';
+                setOrderStatusActionLoading(false);
             }
+        }
+
+        function completeViewedOrder() {
+            changeViewedOrderStatus('complete');
+        }
+
+        function cancelViewedOrder() {
+            changeViewedOrderStatus('cancel');
         }
 
         async function archiveViewedOrder() {
@@ -703,10 +719,10 @@
         window.commitOrder = commitOrder;
         window.viewOrder = viewOrder;
         window.startEditOrderInfo = startEditOrderInfo;
-        window.startEditOrderStatus = startEditOrderStatus;
         window.cancelOrderEdit = cancelOrderEdit;
         window.saveOrderInfo = saveOrderInfo;
-        window.saveOrderStatus = saveOrderStatus;
+        window.completeViewedOrder = completeViewedOrder;
+        window.cancelViewedOrder = cancelViewedOrder;
         window.archiveViewedOrder = archiveViewedOrder;
         window.updateAvailableStock = updateAvailableStock;
 

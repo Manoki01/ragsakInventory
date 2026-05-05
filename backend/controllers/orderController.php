@@ -92,9 +92,20 @@ function validateOrderStatusPayload($input) {
         exit;
     }
 
+    $action = strtolower(trim((string) ($input['action'] ?? '')));
+    $legacyStatus = strtolower(trim((string) ($input['orderStatus'] ?? '')));
+
+    if ($action === '' && in_array($legacyStatus, ['completed', 'canceled'], true)) {
+        $action = $legacyStatus === 'completed' ? 'complete' : 'cancel';
+    }
+
+    if (!in_array($action, ['complete', 'cancel'], true)) {
+        failOrderValidation("Order action is invalid");
+    }
+
     return [
         'orderID' => validateOrderID($input['orderID'] ?? null, 'Order ID'),
-        'orderStatus' => validateOrderStatus($input['orderStatus'] ?? '')
+        'action' => $action
     ];
 }
 

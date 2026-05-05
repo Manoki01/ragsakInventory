@@ -275,6 +275,19 @@ async function apiRequest(route, options = {}) {
         return await apiRequest("dashboard");
     }
 
+//Archives
+    export async function getArchiveDataset() {
+        return await apiRequest("archives");
+    }
+
+    export async function restoreArchivedRecord(data) {
+        return await apiRequest("archives&action=restore", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
 //Users
     export async function userLogin(data) {
         return await apiRequest("users&action=login", {

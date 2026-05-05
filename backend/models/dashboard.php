@@ -36,13 +36,15 @@ class Dashboard {
         return [
             'products' => $this->fetchOne("
                 SELECT
-                    COUNT(DISTINCT p.productID) AS totalEntries,
+                    (SELECT COUNT(productID) FROM tbl_products WHERE deleted_at IS NULL) AS totalEntries,
                     COUNT(DISTINCT CASE WHEN ps.quantity > 0 AND ps.quantity <= 15 THEN pf.flowID END) AS lowStock,
                     COUNT(DISTINCT CASE WHEN COALESCE(ps.quantity, 0) <= 0 THEN pf.flowID END) AS noStock
-                FROM tbl_products p
-                LEFT JOIN tbl_processFlow pf ON p.productID = pf.productID
+                FROM tbl_processFlow pf
+                INNER JOIN tbl_products p ON pf.productID = p.productID
+                INNER JOIN tbl_process pr ON pf.processID = pr.processID
                 LEFT JOIN tbl_productStock ps ON pf.flowID = ps.flowID
                 WHERE p.deleted_at IS NULL
+                AND pr.deleted_at IS NULL
             "),
             'rawMaterials' => $this->fetchOne("
                 SELECT

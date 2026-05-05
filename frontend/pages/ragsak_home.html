@@ -24,6 +24,12 @@
             }
         }
 
+        table th,
+        table td {
+            text-align: center !important;
+            vertical-align: middle;
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { @apply bg-soft-black; }
         .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-soft-black rounded; }
@@ -70,54 +76,54 @@
             </header>
 
             <section class="grid grid-cols-1 gap-6 md:grid-cols-3 mb-8 lg:mb-10">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black">
-                    <p class="text-[10px] font-bold text-soft-black uppercase mb-1 tracking-widest">Products</p>
-                    <div class="mt-5 grid grid-cols-3 gap-4">
-                        <div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black text-center">
+                    <h2 class="text-base font-black italic uppercase tracking-tighter text-soft-black">Products</h2>
+                    <div class="mt-5 grid grid-cols-3 gap-4 text-center">
+                        <div class="flex flex-col items-center">
                             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Total Entries</p>
                             <p id="productsTotal" class="mt-1 text-4xl font-black italic tracking-tighter text-soft-black">0</p>
                         </div>
-                        <div class="text-right">
+                        <div class="flex flex-col items-center">
                             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Low Stock</p>
                             <p id="productsLow" class="mt-1 text-3xl font-black italic tracking-tighter text-soft-black">0</p>
                         </div>
-                        <div class="text-right">
+                        <div class="flex flex-col items-center">
                             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">No Stock</p>
                             <p id="productsNoStock" class="mt-1 text-3xl font-black italic tracking-tighter text-soft-black">0</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black">
-                    <p class="text-[10px] font-bold text-soft-black uppercase mb-1 tracking-widest">Raw Materials</p>
-                    <div class="mt-5 grid grid-cols-3 gap-4">
-                        <div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black text-center">
+                    <h2 class="text-base font-black italic uppercase tracking-tighter text-soft-black">Raw Materials</h2>
+                    <div class="mt-5 grid grid-cols-3 gap-4 text-center">
+                        <div class="flex flex-col items-center">
                             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Total Entries</p>
                             <p id="rawTotal" class="mt-1 text-4xl font-black italic tracking-tighter text-soft-black">0</p>
                         </div>
-                        <div class="text-right">
+                        <div class="flex flex-col items-center">
                             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Low Stock</p>
                             <p id="rawLow" class="mt-1 text-3xl font-black italic tracking-tighter text-soft-black">0</p>
                         </div>
-                        <div class="text-right">
+                        <div class="flex flex-col items-center">
                             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">No Stock</p>
                             <p id="rawNoStock" class="mt-1 text-3xl font-black italic tracking-tighter text-soft-black">0</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black">
-                    <p class="text-[10px] font-bold text-soft-black uppercase mb-1 tracking-widest">Packaging</p>
-                    <div class="mt-5 grid grid-cols-3 gap-4">
-                        <div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border-b-4 border-soft-black text-center">
+                    <h2 class="text-base font-black italic uppercase tracking-tighter text-soft-black">Packaging</h2>
+                    <div class="mt-5 grid grid-cols-3 gap-4 text-center">
+                        <div class="flex flex-col items-center">
                             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Total Entries</p>
                             <p id="packagingTotal" class="mt-1 text-4xl font-black italic tracking-tighter text-soft-black">0</p>
                         </div>
-                        <div class="text-right">
+                        <div class="flex flex-col items-center">
                             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Low Stock</p>
                             <p id="packagingLow" class="mt-1 text-3xl font-black italic tracking-tighter text-soft-black">0</p>
                         </div>
-                        <div class="text-right">
+                        <div class="flex flex-col items-center">
                             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">No Stock</p>
                             <p id="packagingNoStock" class="mt-1 text-3xl font-black italic tracking-tighter text-soft-black">0</p>
                         </div>

@@ -64,6 +64,16 @@ function validateProcessName($value) {
     return $value;
 }
 
+function validateProcessDescription($value) {
+    $value = trim((string) $value);
+
+    if ($value === '') {
+        return 'No description';
+    }
+
+    return validateProcessText($value, 'Process description', 255);
+}
+
 function validateProcessID($value) {
     if (filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value <= 0) {
         failProcessValidation("Process ID must be a positive whole number");
@@ -82,7 +92,7 @@ function createProcess() {
     }
 
     $input['processName'] = validateProcessName($input['processName'] ?? '');
-    $input['processDescription'] = validateProcessText($input['processDescription'] ?? '', 'Process description', 255);
+    $input['processDescription'] = validateProcessDescription($input['processDescription'] ?? '');
 
     $process = new Process();
 
@@ -112,7 +122,7 @@ function updateProcess() {
 
     $input['processID'] = validateProcessID($input['processID'] ?? null);
     $input['processName'] = validateProcessName($input['processName'] ?? '');
-    $input['processDescription'] = validateProcessText($input['processDescription'] ?? '', 'Process description', 255);
+    $input['processDescription'] = validateProcessDescription($input['processDescription'] ?? '');
 
     $process = new Process();
 

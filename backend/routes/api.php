@@ -297,6 +297,21 @@ switch($request) {
 
         break;
 
+    case 'archives':
+        validateJWT();
+        requireRole(['President', 'Supervisor']);
+        require_once __DIR__ . '../../controllers/archiveController.php';
+
+        if($method == "GET") {
+            getArchiveDataset();
+        }
+
+        if($method == "POST" && $action == "restore") {
+            restoreArchivedRecord();
+        }
+
+        break;
+
     case 'users':
         require_once __DIR__ . '../../controllers/userController.php';
 

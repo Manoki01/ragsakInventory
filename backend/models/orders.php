@@ -164,6 +164,7 @@ class Order {
                 o.quantity,
                 o.orderStatus,
                 o.stockDeducted,
+                DATE(o.dateCompletion) AS dateCompletion,
                 pf.flowID,
                 ps.quantity AS availableQuantity
             FROM tbl_orders o
@@ -487,7 +488,19 @@ class Order {
             }
 
             $currentStatus = strtolower((string) $orderRow['orderStatus']);
-            $newStatus = strtolower((string) $data['orderStatus']);
+            $action = strtolower((string) ($data['action'] ?? ''));
+
+            if ($action === 'complete') {
+                $today = (new DateTime('now', new DateTimeZone('Asia/Manila')))->format('Y-m-d');
+                $dueDate = substr((string) ($orderRow['dateCompletion'] ?? ''), 0, 10);
+                $newStatus = ($dueDate !== '' && $dueDate < $today) ? 'late' : 'completed';
+            } else if ($action === 'cancel') {
+                $newStatus = 'canceled';
+            } else {
+                $this->lastError = "Order action is invalid";
+                $this->conn->rollback();
+                return false;
+            }
 
             if ($this->isTerminalStatus($currentStatus)) {
                 $this->lastError = "Completed, canceled, and late orders cannot change status";
