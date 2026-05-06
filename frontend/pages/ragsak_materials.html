@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style type="text/tailwindcss">
         @theme {
@@ -113,6 +114,17 @@
                     <h2 id="skuCount" class="text-4xl font-black italic tracking-tighter text-soft-black">00</h2>
                 </div>
             </div>
+
+            <section class="grid grid-cols-1 gap-6 xl:grid-cols-2 mb-8 lg:mb-10">
+                <div class="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <p class="mb-5 text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Top Low Stock Materials</p>
+                    <div class="h-72"><canvas id="materialLowStockChart"></canvas></div>
+                </div>
+                <div class="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <p class="mb-5 text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Material Asset Value</p>
+                    <div class="h-72"><canvas id="materialAssetChart"></canvas></div>
+                </div>
+            </section>
 
             <div class="overflow-hidden bg-white rounded-3xl p-4 md:p-6 shadow-2xl flex flex-col h-[560px]">
                 <div class="flex items-center justify-between mb-6 px-2 gap-4">
@@ -261,6 +273,7 @@
 
         let selectedMatID;
         let viewedMaterialID;
+        const charts = {};
 
         window.inventoryData = [];
 
@@ -276,6 +289,7 @@
                 window.inventoryData = response.data;
 
                 renderRawMaterials();
+                renderMaterialCharts();
 
             } catch (err) {
                 console.error("Load raw materials error:", err);
@@ -355,6 +369,49 @@
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
+        }
+
+        function destroyChart(id) {
+            if (charts[id]) charts[id].destroy();
+        }
+
+        function baseChartOptions() {
+            return {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { font: { family: 'Montserrat', size: 10, weight: 'bold' } } } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { font: { family: 'Montserrat', size: 10, weight: 'bold' } } },
+                    y: { ticks: { font: { family: 'Montserrat', size: 10, weight: 'bold' } }, grid: { display: false } }
+                }
+            };
+        }
+
+        function renderMaterialCharts() {
+            const rows = [...(window.inventoryData || [])];
+            const lowStock = rows
+                .map(item => ({ label: item.rawMaterialName, value: Number(item.quantity || 0) }))
+                .sort((a, b) => a.value - b.value)
+                .slice(0, 8);
+            const assetValue = rows
+                .map(item => ({ label: item.rawMaterialName, value: Number(item.quantity || 0) * Number(item.rawMaterialPrice || 0) }))
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 8);
+
+            destroyChart('materialLowStockChart');
+            charts.materialLowStockChart = new Chart(document.getElementById('materialLowStockChart'), {
+                type: 'bar',
+                data: { labels: lowStock.map(item => item.label), datasets: [{ label: 'Stock', data: lowStock.map(item => item.value), backgroundColor: '#D9A441' }] },
+                options: baseChartOptions()
+            });
+
+            destroyChart('materialAssetChart');
+            charts.materialAssetChart = new Chart(document.getElementById('materialAssetChart'), {
+                type: 'bar',
+                data: { labels: assetValue.map(item => item.label), datasets: [{ label: 'Asset Value', data: assetValue.map(item => item.value), backgroundColor: '#121212' }] },
+                options: baseChartOptions()
+            });
         }
 
         const searchInput = document.getElementById("inventorySearch");

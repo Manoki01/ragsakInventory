@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style type="text/tailwindcss">
         @theme {
@@ -144,7 +145,31 @@
 
                 <section class="mt-6 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
                     <div class="bg-soft-black p-4">
-                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">03. Export transactions</p>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">03. Visual insights</p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-6 p-5 sm:p-6 xl:grid-cols-2">
+                        <div class="rounded-2xl border border-gray-100 bg-off-white/40 p-5">
+                            <p class="mb-4 text-center text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">Sales Demand</p>
+                            <div class="h-72"><canvas id="reportSalesDemandChart"></canvas></div>
+                        </div>
+                        <div class="rounded-2xl border border-gray-100 bg-off-white/40 p-5">
+                            <p class="mb-4 text-center text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">Product Consumption</p>
+                            <div class="h-72"><canvas id="reportConsumptionChart"></canvas></div>
+                        </div>
+                        <div class="rounded-2xl border border-gray-100 bg-off-white/40 p-5">
+                            <p class="mb-4 text-center text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">Stock Movement</p>
+                            <div class="h-72"><canvas id="reportStockMovementChart"></canvas></div>
+                        </div>
+                        <div class="rounded-2xl border border-gray-100 bg-off-white/40 p-5">
+                            <p class="mb-4 text-center text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">User Activity</p>
+                            <div class="h-72"><canvas id="reportUserActivityChart"></canvas></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mt-6 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="bg-soft-black p-4">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">04. Export transactions</p>
                     </div>
                     <div class="p-5 sm:p-6">
                         <div id="reportTransactionList" class="space-y-3">
@@ -191,6 +216,8 @@
         let reportDataset = null;
         let reportDatasetRangeKey = '';
         let pendingPdfExportRecord = false;
+        const charts = {};
+        const chartColors = ['#121212', '#4A5D23', '#8DA067', '#D9A441', '#9CA3AF', '#DC2626'];
 
         const peso = value => Number(value || 0).toLocaleString('en-PH', {
             style: 'currency',
@@ -227,6 +254,78 @@
                 groups[value].push(row);
                 return groups;
             }, {});
+        }
+
+        function destroyChart(id) {
+            if (charts[id]) charts[id].destroy();
+        }
+
+        function countBy(rows, keyGetter, valueGetter = () => 1) {
+            return (rows || []).reduce((acc, row) => {
+                const key = keyGetter(row) || 'Unknown';
+                acc[key] = (acc[key] || 0) + Number(valueGetter(row) || 0);
+                return acc;
+            }, {});
+        }
+
+        function chartOptions(indexAxis = 'x') {
+            return {
+                indexAxis,
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { font: { family: 'Montserrat', size: 10, weight: 'bold' } } } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { font: { family: 'Montserrat', size: 10, weight: 'bold' } }, grid: { display: indexAxis === 'y' } },
+                    y: { beginAtZero: true, ticks: { precision: 0, font: { family: 'Montserrat', size: 10, weight: 'bold' } }, grid: { display: indexAxis !== 'y' } }
+                }
+            };
+        }
+
+        function renderReportCharts() {
+            if (!reportDataset || !window.Chart) return;
+
+            const salesRows = [...(reportDataset.salesDemand || [])]
+                .sort((a, b) => Number(b.totalRevenue || 0) - Number(a.totalRevenue || 0))
+                .slice(0, 8);
+            destroyChart('reportSalesDemandChart');
+            charts.reportSalesDemandChart = new Chart(document.getElementById('reportSalesDemandChart'), {
+                type: 'bar',
+                data: { labels: salesRows.map(row => row.productName), datasets: [{ label: 'Total Revenue', data: salesRows.map(row => Number(row.totalRevenue || 0)), backgroundColor: '#121212' }] },
+                options: chartOptions('y')
+            });
+
+            const consumption = countBy(reportDataset.productConsumption || [], row => row.itemType, row => row.assetValue);
+            destroyChart('reportConsumptionChart');
+            charts.reportConsumptionChart = new Chart(document.getElementById('reportConsumptionChart'), {
+                type: 'bar',
+                data: { labels: Object.keys(consumption), datasets: [{ label: 'Asset Value Used', data: Object.values(consumption), backgroundColor: ['#4A5D23', '#D9A441'] }] },
+                options: chartOptions()
+            });
+
+            const stockRows = reportDataset.stockMovements || [];
+            const stockTypes = [...new Set(stockRows.map(row => row.itemType || 'Unknown'))];
+            destroyChart('reportStockMovementChart');
+            charts.reportStockMovementChart = new Chart(document.getElementById('reportStockMovementChart'), {
+                type: 'bar',
+                data: {
+                    labels: stockTypes,
+                    datasets: [
+                        { label: 'Increase', data: stockTypes.map(type => stockRows.filter(row => row.itemType === type && row.action === 'Increase').reduce((sum, row) => sum + Number(row.quantity || 0), 0)), backgroundColor: '#121212' },
+                        { label: 'Decrease', data: stockTypes.map(type => stockRows.filter(row => row.itemType === type && row.action === 'Decrease').reduce((sum, row) => sum + Number(row.quantity || 0), 0)), backgroundColor: '#DC2626' }
+                    ]
+                },
+                options: chartOptions()
+            });
+
+            const activity = Object.entries(countBy(reportDataset.userActivity || [], row => row.username))
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8);
+            destroyChart('reportUserActivityChart');
+            charts.reportUserActivityChart = new Chart(document.getElementById('reportUserActivityChart'), {
+                type: 'bar',
+                data: { labels: activity.map(row => row[0]), datasets: [{ label: 'Actions', data: activity.map(row => row[1]), backgroundColor: '#8DA067' }] },
+                options: chartOptions('y')
+            });
         }
 
         function section(title, body) {
@@ -597,6 +696,7 @@
 
             reportDataset = response.data;
             reportDatasetRangeKey = `${range.dateFrom}|${range.dateUntil}`;
+            renderReportCharts();
             renderReportTransactions();
             return true;
         }
@@ -1041,6 +1141,7 @@
             document.getElementById('dateUntil').value = '';
             reportDataset = null;
             reportDatasetRangeKey = '';
+            renderReportCharts();
             renderReportTransactions();
         });
 

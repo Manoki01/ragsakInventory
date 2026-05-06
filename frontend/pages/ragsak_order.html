@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style type="text/tailwindcss">
         @theme {
@@ -110,6 +111,21 @@
                     >
                 </div>
             </header>
+
+            <section class="grid grid-cols-1 gap-6 xl:grid-cols-3 mb-8">
+                <div class="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <p class="mb-5 text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Order Status Breakdown</p>
+                    <div class="h-72"><canvas id="orderStatusChart"></canvas></div>
+                </div>
+                <div class="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <p class="mb-5 text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Monthly Order Revenue</p>
+                    <div class="h-72"><canvas id="orderRevenueChart"></canvas></div>
+                </div>
+                <div class="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+                    <p class="mb-5 text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Top Ordered Products</p>
+                    <div class="h-72"><canvas id="topOrderedProductsChart"></canvas></div>
+                </div>
+            </section>
 
             <div class="flex-1 overflow-hidden bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-100 flex flex-col min-h-[420px]">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 px-2">
@@ -306,6 +322,8 @@
         let finishedProducts = [];
         let viewedOrder = null;
         let orderModalMode = 'create';
+        const charts = {};
+        const chartColors = ['#D9A441', '#121212', '#DC2626', '#9CA3AF'];
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -481,6 +499,71 @@
             `).join('');
         }
 
+        function destroyChart(id) {
+            if (charts[id]) charts[id].destroy();
+        }
+
+        function baseChartOptions(indexAxis = 'x') {
+            return {
+                indexAxis,
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { font: { family: 'Montserrat', size: 10, weight: 'bold' } } } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { font: { family: 'Montserrat', size: 10, weight: 'bold' } }, grid: { display: indexAxis === 'y' } },
+                    y: { beginAtZero: true, ticks: { precision: 0, font: { family: 'Montserrat', size: 10, weight: 'bold' } }, grid: { display: indexAxis !== 'y' } }
+                }
+            };
+        }
+
+        function countBy(rows, keyGetter, valueGetter = () => 1) {
+            return rows.reduce((acc, row) => {
+                const key = keyGetter(row) || 'Unknown';
+                acc[key] = (acc[key] || 0) + valueGetter(row);
+                return acc;
+            }, {});
+        }
+
+        function monthKey(value) {
+            const date = new Date(String(value || '').replace(' ', 'T'));
+            if (Number.isNaN(date.getTime())) return 'Unknown';
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
+
+        function renderOrderCharts() {
+            const statusCounts = countBy(orders, row => row.orderStatus || 'pending');
+            destroyChart('orderStatusChart');
+            charts.orderStatusChart = new Chart(document.getElementById('orderStatusChart'), {
+                type: 'doughnut',
+                data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts), backgroundColor: chartColors }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { family: 'Montserrat', size: 10, weight: 'bold' } } } } }
+            });
+
+            const completedOrders = orders.filter(order => ['completed', 'late'].includes(String(order.orderStatus || '').toLowerCase()));
+            const priceByProduct = Object.fromEntries(finishedProducts.map(product => [String(product.productID), Number(product.productPrice || 0)]));
+            const revenueByMonth = countBy(
+                completedOrders,
+                row => monthKey(row.created_at || row.dateCompletion),
+                row => Number(row.quantity || 0) * Number(priceByProduct[String(row.productID)] || 0)
+            );
+            const monthLabels = Object.keys(revenueByMonth).slice(-8);
+            destroyChart('orderRevenueChart');
+            charts.orderRevenueChart = new Chart(document.getElementById('orderRevenueChart'), {
+                type: 'bar',
+                data: { labels: monthLabels, datasets: [{ label: 'Revenue', data: monthLabels.map(label => revenueByMonth[label]), backgroundColor: '#121212' }] },
+                options: baseChartOptions()
+            });
+
+            const topProducts = countBy(completedOrders, row => row.productName, row => Number(row.quantity || 0));
+            const productRows = Object.entries(topProducts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+            destroyChart('topOrderedProductsChart');
+            charts.topOrderedProductsChart = new Chart(document.getElementById('topOrderedProductsChart'), {
+                type: 'bar',
+                data: { labels: productRows.map(row => row[0]), datasets: [{ label: 'Completed/Late Qty', data: productRows.map(row => row[1]), backgroundColor: '#4A5D23' }] },
+                options: baseChartOptions('y')
+            });
+        }
+
         async function loadOrderData() {
             const [ordersResponse, productsResponse] = await Promise.all([
                 getOrders(),
@@ -500,6 +583,7 @@
             orders = ordersResponse.data || [];
             finishedProducts = productsResponse.data || [];
             loadProductOptions();
+            renderOrderCharts();
             renderOrders();
         }
 
